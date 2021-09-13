@@ -2,10 +2,6 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '7.0.0' apply false
 }
 
-configurations {
-    childJars
-}
-
 allprojects {
     apply plugin: 'java'
     apply plugin: 'com.github.johnrengelman.shadow'
@@ -36,8 +32,6 @@ dependencies {
     implementation project(':NMS:v1_16_R2')
     implementation project(':NMS:v1_16_R3')
     implementation project(path: ':NMS:v1_17_R1', configuration: 'remapped')
-
-    subprojects.each { childJars project(it.path) }
 }
 
 shadowJar {
@@ -46,11 +40,6 @@ shadowJar {
     relocate "xyz.oribuin.gui", "${project.group}.libs.gui"
     relocate "com.zaxxer.hikaricp", "${project.group}.libs.hikaricp"
     relocate "org.jetbrains", "${project.group}.libs.jetbrains"
-}
-
-jar {
-    dependsOn configurations.childJars
-    from { configurations.childJars.collect { zipTree(it) } }
 }
 
 tasks.getByName("build").dependsOn("shadowJar")
