@@ -13,6 +13,4 @@ include('NMS:v1_16_R1')
 include('NMS:v1_16_R2')
 include('NMS:v1_16_R3')
 include('NMS:v1_17_R1')
-include 'NMS:v1_16_R1'
-findProject(':NMS:v1_16_R1')?.name = 'v1_16_R1'
 

@@ -1,6 +1,5 @@
 package xyz.oribuin.eternalcrates.animation;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
@@ -8,7 +7,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
 import xyz.oribuin.eternalcrates.EternalCrates;
-
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -35,6 +33,9 @@ public abstract class Animation {
     /**
      * Spawn an entity using the plugin's internal methods and apply PDC
      * Tags to make sure we can remove the entity later on.
+     * 
+     * If you would like to spawn a clientside entity, You can use 
+     * NMSAdapter#getHandler().createClientsideEntity(player, loc, entityType)
      *
      * @param loc            The location of the entity.
      * @param entityClass    The entity's class.
@@ -47,6 +48,18 @@ public abstract class Animation {
             return null;
 
         return world.spawn(loc, entityClass, t -> t.getPersistentDataContainer().set(new NamespacedKey(EternalCrates.getInstance(), "animationEntity"), PersistentDataType.INTEGER, 1));
+    }
+
+    public Consumer<Player> getSoundConsumer() {
+        return soundConsumer;
+    }
+
+    public void setSoundConsumer(Consumer<Player> soundConsumer) {
+        this.soundConsumer = soundConsumer;
+    }
+    
+    public AnimationType getAnimationType() {
+        return animationType;
     }
 
     public String getName() {

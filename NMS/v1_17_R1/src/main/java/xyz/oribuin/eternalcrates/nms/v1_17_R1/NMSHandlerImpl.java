@@ -46,8 +46,19 @@ public class NMSHandlerImpl implements NMSHandler {
         return null;
     }
 
+    //    @Override
+    //    public Entity updateEntity(Player player, Entity entity) {
+    //        final ServerPlayer serverPlayer = ((CraftPlayer) player).getHandle();
+    //        final CraftEntity craftEntity = (CraftEntity) entity;
+    //        final Location loc = entity.getLocation();
+    //
+    //        ClientboundMoveEntityPacket.PosRot packet = new ClientboundMoveEntityPacket.PosRot(craftEntity.getEntityId(), loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch(), entity.isOnGround());
+    //
+    //    }
+
     private int getNewEntityId() {
         return ENTITY_ID.incrementAndGet();
     }
+
 
 }

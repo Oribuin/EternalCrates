@@ -1,4 +1,6 @@
 package xyz.oribuin.eternalcrates.animation;
 
-public class GuiAnimation {
+public interface GuiAnimation {
+
+    int[] guiSlots();
 }
