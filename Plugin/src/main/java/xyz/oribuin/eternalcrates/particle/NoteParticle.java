@@ -21,21 +21,21 @@ public enum NoteParticle {
     LIGHTER_BLUE(17),
     MINT_BLUE(18),
     MINT_GREEN(19),
-    LIGHT_GREEN(20); // fuck anything after 20, its the same throughout the whole thing
-    //    LIME_GREEN(21),
-    //    LIMER_GREEN(22), It's literally 5 forms of lime green man what am I supposed to do
-    //    LIGHT_LIME_GREEN(23),
-    //    LIGHT_LIMER_GREEN(24);
-    //    fuck 20-24, they're literally like all the same colours but with the slightest shade difference
+    LIGHT_GREEN(20), // fuck anything after 20, its the same throughout the whole thing
+    LIME_GREEN(21),
+    LIMER_GREEN(22), // It's literally 5 forms of lime green man what am I supposed to do
+    LIGHT_LIME_GREEN(23),
+    LIGHT_LIMER_GREEN(24);
+    // fuck 20-24, they're literally like all the same colours but with the slightest shade difference
 
-    int note;
+    private final int noteNumber;
 
     NoteParticle(int note) {
-        this.note = note;
+        this.noteNumber = note;
     }
 
-    public int getNote() {
-        return note;
+    public int getNoteNumber() {
+        return noteNumber;
     }
 
 }
