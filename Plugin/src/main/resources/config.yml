@@ -1,0 +1,11 @@
+# If you want to use MySQL, use this.
+mysql:
+  enabled: false
+  host: localhost
+  port: 3306
+  dbname: DBName
+  username: Username
+  password: Password
+  ssl: false
+  # just for some spicy extra configuration
+  table-name: 'eternalcrates'

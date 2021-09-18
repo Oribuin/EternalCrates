@@ -9,7 +9,7 @@ public class Crate {
 
     private final String id;
     private String displayName;
-    private Map<Double, Reward> rewardMap;
+    private Map<Reward, Integer> rewardMap;
     private Animation animation;
 
     public Crate(final String id) {
@@ -31,11 +31,11 @@ public class Crate {
         this.displayName = displayName;
     }
 
-    public Map<Double, Reward> getRewardMap() {
+    public Map<Reward, Integer> getRewardMap() {
         return rewardMap;
     }
 
-    public void setRewardMap(Map<Double, Reward> rewardMap) {
+    public void setRewardMap(Map<Reward, Integer> rewardMap) {
         this.rewardMap = rewardMap;
     }
 

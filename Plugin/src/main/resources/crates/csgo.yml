@@ -1,0 +1,60 @@
+name: csgo
+display-name: 'Csgo Crate'
+animation: 'csgo'
+rewards:
+  '1':
+    material: STONE
+    amount: 1
+    chance: 64
+  '2':
+    material: GRANITE
+    amount: 1
+    chance: 60
+  '3':
+    material: DIORITE
+    amount: 1
+    chance: 55
+  '4':
+    material: ANDESITE
+    amount: 1
+    chance: 50
+  '5':
+    material: DEEPSLATE
+    amount: 1
+    chance: 45
+  '6':
+    material: CALCITE
+    amount: 1
+    chance: 40
+  '7':
+    material: TUFF
+    amount: 1
+    chance: 35
+  '8':
+    material: GRASS_BLOCK
+    amount: 1
+    chance: 30
+  '9':
+    material: DIRT
+    amount: 1
+    chance: 25
+  '10':
+    material: CRIMSON_NYLIUM
+    amount: 1
+    chance: 20
+  '11':
+    material: WARPED_NYLIUM
+    amount: 1
+    chance: 15
+  '12':
+    material: COBBLESTONE
+    amount: 1
+    chance: 10
+  '13':
+    material: CRIMSON_PLANKS
+    amount: 1
+    chance: 5
+  '14':
+    material: WARPED_PLANKS
+    amount: 1
+    chance: 1

@@ -1,9 +1,12 @@
 package xyz.oribuin.eternalcrates.particle;
 
+import java.util.Arrays;
+import java.util.Optional;
+
 public enum NoteParticle {
     GREEN_1(0), // there are literally like, 7 different greens, bite me
     GREEN_2(1),
-    DARK_YELLOW(2), // looks kinda like dehyrated piss yellow
+    DARK_YELLOW(2), // looks kinda like dehydrated piss yellow
     LIGHT_ORANGE(3),
     ORANGE(4),
     DARK_ORANGE(5),
@@ -21,12 +24,11 @@ public enum NoteParticle {
     LIGHTER_BLUE(17),
     MINT_BLUE(18),
     MINT_GREEN(19),
-    LIGHT_GREEN(20), // fuck anything after 20, its the same throughout the whole thing
+    LIGHT_GREEN(20), // fuck anything after 20, it's the same throughout the whole thing
     LIME_GREEN(21),
     LIMER_GREEN(22), // It's literally 5 forms of lime green man what am I supposed to do
     LIGHT_LIME_GREEN(23),
-    LIGHT_LIMER_GREEN(24);
-    // fuck 20-24, they're literally like all the same colours but with the slightest shade difference
+    LIGHT_LIMER_GREEN(24); // I ran out of greens
 
     private final int noteNumber;
 
@@ -38,4 +40,7 @@ public enum NoteParticle {
         return noteNumber;
     }
 
+    public Optional<NoteParticle> matchNote(int note) {
+        return Arrays.stream(NoteParticle.values()).filter(particle -> particle.getNoteNumber() == note).findFirst();
+    }
 }

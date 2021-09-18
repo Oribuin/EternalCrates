@@ -2,15 +2,10 @@ package xyz.oribuin.eternalcrates.util;
 
 import org.bukkit.Location;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import xyz.oribuin.eternalcrates.EternalCrates;
-import xyz.oribuin.eternalcrates.crate.Crate;
+import xyz.oribuin.orilibrary.util.FileUtils;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public final class PluginUtils {
 
@@ -63,23 +58,13 @@ public final class PluginUtils {
      * Create all the default files required for the different crate types
      *
      * @param plugin The plugin.
-     * @return All the different {@link FileConfiguration} in a map with their {@link CrateType}
      */
-    public static Map<Crate, FileConfiguration> createDefaultFiles(final EternalCrates plugin) {
-        final Map<Crate, FileConfiguration> configs = new HashMap<>();
+    public static void createDefaultFiles(final EternalCrates plugin) {
+        final List<FileConfiguration> configs = new ArrayList<>();
 
-        final File folder = new File(plugin.getDataFolder(), "crates");
+        final String[] fileNames = new String[]{"wheel", "spiral", "quick"};
+        Arrays.stream(fileNames).forEach(s -> FileUtils.createFile(plugin, "crates", s + ".yml"));
 
-        // Add all the crate types as their default files.
-
-//        final Crate crate = new Crate("default-crate");
-//        crate.setAnimation();
-//
-//        configs.put()
-//        Arrays.asList(CrateType.values()).forEach(crateType ->
-//                configs.put(crateType, YamlConfiguration.loadConfiguration(createFile(plugin, folder, crateType.name().toLowerCase() + ".yml"))));
-
-        return configs;
     }
 
 }

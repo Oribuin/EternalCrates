@@ -1,11 +1,15 @@
 package xyz.oribuin.eternalcrates.listener;
 
-import org.bukkit.entity.EntityType;
+import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import xyz.oribuin.eternalcrates.EternalCrates;
-import xyz.oribuin.eternalcrates.nms.NMSAdapter;
+import xyz.oribuin.eternalcrates.crate.Crate;
+import xyz.oribuin.eternalcrates.gui.AnimatedGUI;
+import xyz.oribuin.eternalcrates.manager.CrateManager;
+
+import java.util.Optional;
 
 public class PlayerListeners implements Listener {
 
@@ -18,14 +22,15 @@ public class PlayerListeners implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onChat(AsyncPlayerChatEvent event) {
 
-        final String[] args = event.getMessage().toLowerCase().split(" ");
-
-        if (args.length == 2 && args[0].equalsIgnoreCase("spawn")) {
-            final EntityType entityType = EntityType.valueOf(args[1].toUpperCase());
-
-            // Spawn entity async or else it'll screech at you.
-            this.plugin.getServer().getScheduler().runTask(this.plugin, () ->
-                    NMSAdapter.getHandler().createClientsideEntity(event.getPlayer(), event.getPlayer().getLocation(), entityType));
+        final CrateManager crateManager = this.plugin.getManager(CrateManager.class);
+        if (event.getMessage().equalsIgnoreCase("list")) {
+            crateManager.getCachedCrates().forEach((s, crate) -> event.getPlayer().sendMessage(s));
+            return;
         }
+
+        final String[] args = event.getMessage().toLowerCase().split(" ");
+        Optional<Crate> optional = crateManager.getCrate(event.getMessage());
+        Bukkit.getScheduler().runTask(plugin, () -> optional.ifPresentOrElse(x -> new AnimatedGUI(plugin, x, event.getPlayer()), () -> event.getPlayer().sendMessage("unknown crate")));
+
     }
 }

@@ -1,0 +1,60 @@
+name: wheel
+display-name: 'Wheel Crate'
+animation: 'wheel'
+rewards:
+  '1':
+    material: DIAMOND
+    amount: 1
+    chance: 64
+  '2':
+    material: DIAMOND
+    amount: 2
+    chance: 60
+  '3':
+    material: DIAMOND
+    amount: 3
+    chance: 55
+  '4':
+    material: DIAMOND
+    amount: 4
+    chance: 50
+  '5':
+    material: DIAMOND
+    amount: 5
+    chance: 45
+  '6':
+    material: DIAMOND
+    amount: 6
+    chance: 40
+  '7':
+    material: DIAMOND
+    amount: 7
+    chance: 35
+  '8':
+    material: DIAMOND
+    amount: 8
+    chance: 30
+  '9':
+    material: DIAMOND
+    amount: 9
+    chance: 25
+  '10':
+    material: DIAMOND
+    amount: 10
+    chance: 20
+  '11':
+    material: DIAMOND
+    amount: 11
+    chance: 15
+  '12':
+    material: DIAMOND
+    amount: 12
+    chance: 10
+  '13':
+    material: DIAMOND
+    amount: 13
+    chance: 5
+  '14':
+    material: DIAMOND
+    amount: 14
+    chance: 1

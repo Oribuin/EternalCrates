@@ -22,29 +22,6 @@ public abstract class Animation {
         this.animationType = animationType;
     }
 
-    // Here are a bunch of usual functions for people to use when creating animation.
-
-    //    /**
-    //     * Spawn an entity using the plugin's internal methods and apply PDC
-    //     * Tags to make sure we can remove the entity later on.
-    //     *
-    //     * If you would like to spawn a clientside entity, You can use
-    //     * NMSAdapter#getHandler().createClientsideEntity(player, loc, entityType)
-    //     *
-    //     * @param loc            The location of the entity.
-    //     * @param entityClass    The entity's class.
-    //     * @param entityFunction The function
-    //     */
-    //    public <T extends Entity> T spawnEntity(Location loc, Class<T> entityClass, Consumer<T> entityFunction) {
-    //
-    //        final World world = loc.getWorld();
-    //        if (world == null)
-    //            return null;
-    //
-    //
-    //        return world.spawn(loc, entityClass, t -> t.getPersistentDataContainer().set(new NamespacedKey(EternalCrates.getInstance(), "animationEntity"), PersistentDataType.INTEGER, 1));
-    //    }
-
     public Consumer<Player> getSoundConsumer() {
         return soundConsumer;
     }
@@ -69,4 +46,11 @@ public abstract class Animation {
         this.hasSound = hasSound;
     }
 
+    public TriConsumer<Player, Reward, Crate> getRewardConsumer() {
+        return rewardConsumer;
+    }
+
+    public void setRewardConsumer(TriConsumer<Player, Reward, Crate> rewardConsumer) {
+        this.rewardConsumer = rewardConsumer;
+    }
 }

@@ -8,22 +8,14 @@ import java.util.List;
 
 public abstract class ParticleAnimation extends Animation {
 
-    private final List<Location> particleLocations;
-
     private ParticleData particleData = new ParticleData(Particle.FLAME);
     private int speed;
     private int length;
 
-
-    public ParticleAnimation(String name, Location baseLocation, int speed) {
+    public ParticleAnimation(String name, int speed) {
         super(name, AnimationType.PARTICLES);
         this.speed = speed;
         this.length = 60;
-        this.particleLocations = particleLocations(baseLocation);
-    }
-
-    public void spawnParticles() {
-        this.particleLocations.
     }
 
     public abstract List<Location> particleLocations(Location crateLocation);

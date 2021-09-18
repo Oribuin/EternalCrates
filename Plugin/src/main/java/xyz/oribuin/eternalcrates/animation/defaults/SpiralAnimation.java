@@ -1,4 +1,4 @@
-package xyz.oribuin.eternalcrates.animation.defaults.particle;
+package xyz.oribuin.eternalcrates.animation.defaults;
 
 import org.bukkit.Location;
 import xyz.oribuin.eternalcrates.animation.ParticleAnimation;
