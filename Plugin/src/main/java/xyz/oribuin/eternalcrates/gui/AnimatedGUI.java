@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import xyz.oribuin.eternalcrates.EternalCrates;
+import xyz.oribuin.eternalcrates.action.Action;
 import xyz.oribuin.eternalcrates.animation.GuiAnimation;
 import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.crate.Reward;
@@ -81,7 +82,7 @@ public class AnimatedGUI {
 
                 bukkitTask.cancel();
 
-                finalReward.getCommands().forEach(s -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), s));
+                finalReward.getActions().forEach(action -> action.executeAction(plugin, player));
 
                 // close the inventory 2 second later, so they can see the reward they won
                 Bukkit.getScheduler().runTaskLater(plugin, player::closeInventory, 40);

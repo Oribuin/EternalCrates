@@ -10,6 +10,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import xyz.oribuin.eternalcrates.EternalCrates;
+import xyz.oribuin.eternalcrates.action.*;
 import xyz.oribuin.eternalcrates.animation.Animation;
 import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.crate.Reward;
@@ -106,9 +107,34 @@ public class CrateManager extends Manager {
             reward.setChance(section.getInt(s + ".chance"));
             // section inception
             // holup that rhymes
-            final ConfigurationSection commandSection = section.getConfigurationSection(s + ".commands");
+            final ConfigurationSection commandSection = section.getConfigurationSection(s + ".actions");
             if (commandSection != null) {
-                commandSection.getKeys(false).forEach(i -> reward.getCommands().add(i));
+                final List<Action> actions = Arrays.asList(
+                        new BroadcastAction(),
+                        new CloseAction(),
+                        new ConsoleAction(),
+                        new MessageAction(),
+                        new PlayerAction(),
+                        new SoundAction()
+                );
+
+                commandSection.getKeys(false).forEach(i -> {
+
+                    Optional<Action> optional = actions.stream().filter(x -> {
+                        final String formattedAction = "[" + x.actionType().toLowerCase() + "]";
+                        return formattedAction.startsWith(i.toLowerCase());
+                    }).findFirst();
+
+                    if (optional.isEmpty())
+                        return;
+
+                    Action action = optional.get();
+                    final String formattedAction = "[" + action.actionType().toLowerCase() + "]";
+
+                    action.setMessage(i.substring(formattedAction.length()));
+                    reward.getActions().add(action);
+
+                });
             }
 
             rewards.add(reward);
