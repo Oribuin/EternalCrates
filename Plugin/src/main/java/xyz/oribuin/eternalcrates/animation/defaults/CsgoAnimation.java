@@ -29,11 +29,11 @@ public class CsgoAnimation extends GuiAnimation {
 
     @Override
     public int getRotationSpeed() {
-        return 2;
+        return 3;
     }
 
     @Override
     public BiConsumer<Player, Gui> getSpinConsumer() {
-        return (player, gui) -> player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 10f, 1f);
+        return (player, gui) -> player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 50f, 1f);
     }
 }

@@ -69,28 +69,27 @@ public class AnimatedGUI {
         Bukkit.getScheduler().runTaskTimer(plugin, (bukkitTask) -> {
 
             final Reward rotatedReward = animation.rotateItems(gui, rewards);
+            animation.getSpinConsumer().accept(player, gui);
+
             if (rotatedReward == finalReward) {
-                System.out.println("Increases rotation to " + rotationCount.incrementAndGet());
+                rotationCount.getAndIncrement();
             }
 
             if (rotationCount.get() == animation.getRotationCount()) {
-                System.out.println("Cancelling.");
-                if (finalReward != null) {
-                    finalReward.getCommands().forEach(s -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), s));
-                }
+                if (finalReward == null)
+                    return;
 
-                Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                    player.closeInventory();
+                bukkitTask.cancel();
 
-                    if (!bukkitTask.isCancelled())
-                        bukkitTask.cancel();
-                }, 40);
+                finalReward.getCommands().forEach(s -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), s));
+
+                // close the inventory 2 second later, so they can see the reward they won
+                Bukkit.getScheduler().runTaskLater(plugin, player::closeInventory, 40);
 
                 bukkitTask.cancel();
             }
 
         }, 0, 4);
-
 
 
         gui.open(player);
