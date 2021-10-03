@@ -29,49 +29,42 @@ public class ParticleData {
         if (world == null)
             return;
 
-
         switch (this.getParticle().name()) {
 
             // Dust Particle.
-            case "REDSTONE":
+            case "REDSTONE" -> {
                 Particle.DustOptions options = new Particle.DustOptions(this.dustColor, 1f);
                 world.spawnParticle(Particle.REDSTONE, loc, count, 0.0, 0.0, 0., 0, options);
-                break;
+            }
 
             // Spawn Dust Transition particles.
-            case "DUST_COLOR_TRANSITION":
+            case "DUST_COLOR_TRANSITION" -> {
                 Particle.DustTransition transition = new Particle.DustTransition(this.dustColor, this.transitionColor, 1f);
                 world.spawnParticle(Particle.DUST_COLOR_TRANSITION, loc, count, 0.0, 0.0, 0., 0, transition);
-                break;
+            }
 
             // Spawn in Spell Mob Particles
-            case "SPELL_MOB":
-            case "SPELL_MOB_AMBIENT":
-                world.spawnParticle(this.particle, loc, 0, this.dustColor.getRed() / 255.0, this.dustColor.getGreen() / 255.0, this.dustColor.getBlue() / 255.0, 1.0);
-                break;
+            case "SPELL_MOB", "SPELL_MOB_AMBIENT" -> world.spawnParticle(this.particle, loc, 0, this.dustColor.getRed() / 255.0, this.dustColor.getGreen() / 255.0, this.dustColor.getBlue() / 255.0, 1.0);
+
 
             // Block Particles
-            case "BLOCK_CRACK":
-            case "BLOCK_DUST":
-            case "FALLING_DUST":
+            case "BLOCK_CRACK", "BLOCK_DUST", "FALLING_DUST" -> {
                 Material block = this.blockMaterial.isBlock() ? this.blockMaterial : Material.BLACK_WOOL;
                 world.spawnParticle(this.particle, loc, count, 0, 0.0, 0.0, 0.0, block.createBlockData());
-                break;
+            }
 
             // Item Particles
-            case "ITEM_CRACK":
+            case "ITEM_CRACK" -> {
                 Material item = this.itemMaterial.isItem() ? this.itemMaterial : Material.BLACK_WOOL;
                 world.spawnParticle(this.particle, loc, count, 0, 0.0, 0.0, 0.0, new ItemStack(item));
-                break;
+            }
 
             // Note Particles
-            case "NOTE":
-                world.spawnParticle(this.particle, loc, 0, this.note.getNoteNumber() / 24.0, 0, 0, 1);
-                break;
+            case "NOTE" -> world.spawnParticle(this.particle, loc, 0, this.note.getNoteNumber() / 24.0, 0, 0, 1);
+
 
             // Any other particle.
-            default:
-                world.spawnParticle(this.particle, loc, count, 0, 0.0, 0.0, 0.0);
+            default -> world.spawnParticle(this.particle, loc, count, 0, 0.0, 0.0, 0.0);
         }
     }
 

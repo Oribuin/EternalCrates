@@ -1,17 +1,21 @@
 package xyz.oribuin.eternalcrates.manager;
 
+import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.configuration.file.FileConfiguration;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.animation.Animation;
 import xyz.oribuin.eternalcrates.animation.AnimationType;
+import xyz.oribuin.eternalcrates.animation.GuiAnimation;
+import xyz.oribuin.eternalcrates.animation.ParticleAnimation;
 import xyz.oribuin.eternalcrates.animation.defaults.CsgoAnimation;
-import xyz.oribuin.eternalcrates.animation.defaults.SpiralAnimation;
+import xyz.oribuin.eternalcrates.animation.defaults.RingsAnimation;
 import xyz.oribuin.eternalcrates.animation.defaults.WheelAnimation;
+import xyz.oribuin.eternalcrates.particle.ParticleData;
+import xyz.oribuin.eternalcrates.util.PluginUtils;
 import xyz.oribuin.orilibrary.manager.Manager;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class AnimationManager extends Manager {
@@ -29,7 +33,7 @@ public class AnimationManager extends Manager {
 
         // Add the default
         registerAnimation(new CsgoAnimation());
-        registerAnimation(new SpiralAnimation());
+        registerAnimation(new RingsAnimation());
         registerAnimation(new WheelAnimation());
     }
 
@@ -41,6 +45,67 @@ public class AnimationManager extends Manager {
      */
     public Optional<Animation> getAnimation(String name) {
         return Optional.ofNullable(this.cachedAnimations.get(name));
+    }
+
+    /**
+     * Get an animation from the config;
+     *
+     * @param config The configuration file
+     * @return The Optional Animation Type.
+     */
+    public Optional<? extends Animation> getAnimationFromConfig(final FileConfiguration config) {
+
+        // get the base optional animation.
+        final Optional<Animation> optional = this.getAnimation(config.getString("animation.name"));
+        if (optional.isEmpty())
+            return Optional.empty();
+
+        switch (optional.get().getAnimationType()) {
+            case PARTICLES -> {
+                return getParticleAni(config, optional.get());
+            }
+
+            case GUI -> {
+                // optional inception
+                return Optional.of((GuiAnimation) optional.get());
+            }
+
+            case FIREWORKS -> {
+            }
+
+            case HOLOGRAM -> {
+            }
+
+        }
+
+        return Optional.empty();
+    }
+
+    private Optional<ParticleAnimation> getParticleAni(final FileConfiguration config, final Animation animation) {
+        if (!(animation instanceof ParticleAnimation particleAni))
+            return Optional.empty();
+
+        Particle particle = Arrays.stream(Particle.values()).filter(x -> x.name().equalsIgnoreCase(config.getString("animation.particle")))
+                .findFirst()
+                .orElse(Particle.FLAME);
+
+        final ParticleData particleData = new ParticleData(particle);
+
+        particleData.setNote(config.getInt("animation.note"));
+        if (config.getString("animation.color") != null)
+            particleData.setDustColor(PluginUtils.fromHex(config.getString("animation.color")));
+
+        if (config.getString("animation.transition") != null)
+            particleData.setDustColor(PluginUtils.fromHex(config.getString("animation.transition")));
+
+        if (config.getString("animation.item") != null)
+            particleData.setItemMaterial(Material.matchMaterial(config.getString("animation.item")));
+
+        if (config.getString("animation.block") != null)
+            particleData.setBlockMaterial(Material.matchMaterial(config.getString("animation.block")));
+
+        particleAni.setParticleData(particleData);
+        return Optional.of(particleAni);
     }
 
     /**

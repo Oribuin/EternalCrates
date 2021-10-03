@@ -1,11 +1,14 @@
 package xyz.oribuin.eternalcrates.util;
 
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.FileConfiguration;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.orilibrary.util.FileUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public final class PluginUtils {
 
@@ -62,9 +65,28 @@ public final class PluginUtils {
     public static void createDefaultFiles(final EternalCrates plugin) {
         final List<FileConfiguration> configs = new ArrayList<>();
 
-        final String[] fileNames = new String[]{"wheel", "spiral", "quick"};
+        final String[] fileNames = new String[]{"wheel", "csgo", "spiral"};
         Arrays.stream(fileNames).forEach(s -> FileUtils.createFile(plugin, "crates", s + ".yml"));
+    }
 
+    /**
+     * Get a bukkit color from a hex code
+     *
+     * @param hex The hex code
+     * @return The bukkit color
+     */
+    public static Color fromHex(String hex) {
+        if (hex == null)
+            return Color.BLACK;
+
+        final java.awt.Color color;
+        try {
+            color = java.awt.Color.decode(hex);
+        } catch (final NumberFormatException ex) {
+            return Color.BLACK;
+        }
+
+        return Color.fromRGB(color.getRed(), color.getGreen(), color.getBlue());
     }
 
 }

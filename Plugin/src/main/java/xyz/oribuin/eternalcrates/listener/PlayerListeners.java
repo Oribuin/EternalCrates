@@ -5,6 +5,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import xyz.oribuin.eternalcrates.EternalCrates;
+import xyz.oribuin.eternalcrates.animation.AnimationType;
+import xyz.oribuin.eternalcrates.animation.ParticleAnimation;
 import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.gui.AnimatedGUI;
 import xyz.oribuin.eternalcrates.manager.CrateManager;
@@ -29,8 +31,27 @@ public class PlayerListeners implements Listener {
         }
 
         final String[] args = event.getMessage().toLowerCase().split(" ");
-        Optional<Crate> optional = crateManager.getCrate(event.getMessage());
-        Bukkit.getScheduler().runTask(plugin, () -> optional.ifPresentOrElse(x -> new AnimatedGUI(plugin, x, event.getPlayer()), () -> event.getPlayer().sendMessage("unknown crate")));
+        if (args.length >= 2 && args[0].equalsIgnoreCase("crate")) {
+            final String name = String.join(" ", args).substring(args[0].length() + 1);
+
+            System.out.println(name);
+            Optional<Crate> optional = crateManager.getCrate(name);
+            optional.ifPresent(crate -> {
+
+                event.setCancelled(true);
+                if (crate.getAnimation().getAnimationType() == AnimationType.GUI)
+                    Bukkit.getScheduler().runTask(plugin, () -> new AnimatedGUI(plugin, crate, event.getPlayer()));
+
+                else if (crate.getAnimation().getAnimationType() == AnimationType.PARTICLES) {
+                    if (!(crate.getAnimation() instanceof ParticleAnimation animation))
+                        return;
+
+                    animation.spawn(event.getPlayer().getLocation(), 1);
+                }
+
+            });
+
+        }
 
     }
 }

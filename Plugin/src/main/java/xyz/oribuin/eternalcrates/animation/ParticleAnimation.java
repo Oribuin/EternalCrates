@@ -1,7 +1,10 @@
 package xyz.oribuin.eternalcrates.animation;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Particle;
+import org.bukkit.scheduler.BukkitTask;
+import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.particle.ParticleData;
 
 import java.util.List;
@@ -24,6 +27,21 @@ public abstract class ParticleAnimation extends Animation {
 
     public ParticleData getParticleData() {
         return particleData;
+    }
+
+    /**
+     * Spawn a particle at a location.
+     *
+     * @param loc   The location of the particle
+     * @param count the amount of particles being spawned
+     */
+    public void spawn(Location loc, int count) {
+        final BukkitTask task = Bukkit.getScheduler().runTaskTimerAsynchronously(EternalCrates.getInstance(), () -> {
+            this.updateTimer();
+            this.particleLocations(loc.clone().add(0.0, 1.0, 0.0)).forEach(location -> particleData.spawn(location, count));
+        }, 0, this.speed);
+
+        Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), task::cancel, this.getLength());
     }
 
     public void setParticleData(ParticleData particleData) {

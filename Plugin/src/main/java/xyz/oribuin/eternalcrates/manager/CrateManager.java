@@ -87,7 +87,7 @@ public class CrateManager extends Manager {
             return null;
 
         // this line isn't dumb
-        final Optional<Animation> animation = animationManager.getAnimation(Optional.ofNullable(config.getString("animation")).orElse("wheel"));
+        final Optional<? extends Animation> animation = animationManager.getAnimationFromConfig(config);
         if (animation.isEmpty())
             return null;
 
