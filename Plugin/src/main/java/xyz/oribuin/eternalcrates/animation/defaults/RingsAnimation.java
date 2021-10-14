@@ -28,8 +28,8 @@ public class RingsAnimation extends ParticleAnimation {
         double ring1 = Math.PI / (maxStep / 2D) * this.step;
         double ring2 = Math.PI / (maxStep / 2D) * ((((this.step + this.maxStep / 2D) % this.maxStep)));
 
-        locations.add(crateLocation.clone().add(MathL.cos(ring1), Math.sin(ring1), Math.sin(ring1)));
-        locations.add(crateLocation.clone().add(MathL.cos(ring2), Math.sin(ring2), Math.sin(ring2)));
+        locations.add(crateLocation.clone().add(MathL.cos(ring1), MathL.sin(ring1), MathL.sin(ring1)));
+        locations.add(crateLocation.clone().add(MathL.cos(ring2), MathL.sin(ring2), MathL.sin(ring2)));
 
         locations.add(crateLocation.clone().add(MathL.cos(ring1 + Math.PI), MathL.sin(ring1), MathL.sin(ring1 + Math.PI)));
         locations.add(crateLocation.clone().add(MathL.cos(ring2 + Math.PI), MathL.sin(ring2), MathL.sin(ring2 + Math.PI)));

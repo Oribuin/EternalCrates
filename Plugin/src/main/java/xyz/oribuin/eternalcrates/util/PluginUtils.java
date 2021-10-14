@@ -12,6 +12,12 @@ import java.util.List;
 
 public final class PluginUtils {
 
+    /**
+     * Format a string list into a single string.
+     *
+     * @param stringList The strings being converted
+     * @return the converted string.
+     */
     public static String formatList(List<String> stringList) {
         final StringBuilder builder = new StringBuilder();
         stringList.forEach(s -> builder.append(s).append("\n"));
