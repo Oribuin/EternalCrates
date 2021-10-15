@@ -68,7 +68,10 @@ public class CrateManager extends Manager {
      * @return An Optional Crate
      */
     public Optional<Crate> getCrate(String id) {
-        return Optional.ofNullable(this.cachedCrates.get(id));
+        return this.cachedCrates.values()
+                .stream()
+                .filter(crate -> crate.getId().equalsIgnoreCase(id))
+                .findFirst();
     }
 
     /**

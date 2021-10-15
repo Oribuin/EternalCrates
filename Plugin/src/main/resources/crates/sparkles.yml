@@ -1,7 +1,8 @@
-name: CSGO
-display-name: 'Csgo Crate'
+name: Sparkles
+display-name: 'Sparkles Crate'
 animation:
-  name: 'csgo'
+    name: 'sparkle'
+    
 rewards:
   '1':
     material: STONE
@@ -59,4 +60,3 @@ rewards:
     material: WARPED_PLANKS
     amount: 1
     chance: 1
-

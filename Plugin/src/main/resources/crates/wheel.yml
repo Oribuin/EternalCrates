@@ -1,60 +1,61 @@
 name: wheel
 display-name: 'Wheel Crate'
-animation: 'wheel'
+animation:
+  name: 'wheel'
 rewards:
   '1':
-    material: DIAMOND
+    material: STONE
     amount: 1
     chance: 64
   '2':
-    material: DIAMOND
-    amount: 2
+    material: GRANITE
+    amount: 1
     chance: 60
   '3':
-    material: DIAMOND
-    amount: 3
+    material: DIORITE
+    amount: 1
     chance: 55
   '4':
-    material: DIAMOND
-    amount: 4
+    material: ANDESITE
+    amount: 1
     chance: 50
   '5':
-    material: DIAMOND
-    amount: 5
+    material: DEEPSLATE
+    amount: 1
     chance: 45
   '6':
-    material: DIAMOND
-    amount: 6
+    material: CALCITE
+    amount: 1
     chance: 40
   '7':
-    material: DIAMOND
-    amount: 7
+    material: TUFF
+    amount: 1
     chance: 35
   '8':
-    material: DIAMOND
-    amount: 8
+    material: GRASS_BLOCK
+    amount: 1
     chance: 30
   '9':
-    material: DIAMOND
-    amount: 9
+    material: DIRT
+    amount: 1
     chance: 25
   '10':
-    material: DIAMOND
-    amount: 10
+    material: CRIMSON_NYLIUM
+    amount: 1
     chance: 20
   '11':
-    material: DIAMOND
-    amount: 11
+    material: WARPED_NYLIUM
+    amount: 1
     chance: 15
   '12':
-    material: DIAMOND
-    amount: 12
+    material: COBBLESTONE
+    amount: 1
     chance: 10
   '13':
-    material: DIAMOND
-    amount: 13
+    material: CRIMSON_PLANKS
+    amount: 1
     chance: 5
   '14':
-    material: DIAMOND
-    amount: 14
+    material: WARPED_PLANKS
+    amount: 1
     chance: 1

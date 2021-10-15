@@ -1,9 +1,14 @@
 package xyz.oribuin.eternalcrates.crate;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
+import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.animation.Animation;
+import xyz.oribuin.eternalcrates.animation.FireworkAnimation;
+import xyz.oribuin.eternalcrates.animation.ParticleAnimation;
+import xyz.oribuin.eternalcrates.gui.AnimatedGUI;
+
+import java.util.*;
 
 public class Crate {
 
@@ -11,12 +16,59 @@ public class Crate {
     private String displayName;
     private Map<Reward, Integer> rewardMap;
     private Animation animation;
+    private Location location;
 
     public Crate(final String id) {
         this.id = id;
         this.setDisplayName(id);
         this.setRewardMap(new HashMap<>());
         this.setAnimation(null);
+        this.location = null;
+    }
+
+    /**
+     * Open a crate for the player.
+     *
+     * @param plugin The plugin instance.
+     * @param player The player who is opening the crate
+     */
+    public void open(EternalCrates plugin, Player player) {
+
+        // The crate location or the player location.
+        final Location spawnLocation = location != null ? location : player.getLocation();
+
+        switch (animation.getAnimationType()) {
+            case GUI -> new AnimatedGUI(plugin, this, player);
+            case PARTICLES -> ((ParticleAnimation) animation).spawn(spawnLocation, 1);
+            case FIREWORKS -> ((FireworkAnimation) animation).play(spawnLocation);
+            case CUSTOM, HOLOGRAM -> {
+            }
+        }
+    }
+
+    public Reward selectReward() {
+
+        final List<Reward> rewards = new ArrayList<>(this.getRewardMap().keySet());
+        Collections.shuffle(rewards);
+
+        // Select a reward.
+        Map<Reward, Integer> chanceMap = new HashMap<>();
+        rewards.forEach(reward -> chanceMap.put(reward, reward.getChance()));
+        int sum = chanceMap.values().stream().reduce(0, Integer::sum);
+        int current = 0;
+        Random random = new Random();
+
+        // Select a random reward based on chance.
+        int randomNumber = random.nextInt(sum);
+        for (Map.Entry<Reward, Integer> entry : chanceMap.entrySet()) {
+            current += entry.getValue();
+            if (randomNumber > current)
+                continue;
+
+            return entry.getKey();
+        }
+
+        return null;
     }
 
     public String getId() {
@@ -45,6 +97,14 @@ public class Crate {
 
     public void setAnimation(Animation animation) {
         this.animation = animation;
+    }
+
+    public Location getLocation() {
+        return location;
+    }
+
+    public void setLocation(Location location) {
+        this.location = location;
     }
 
 }

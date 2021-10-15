@@ -1,7 +1,9 @@
-name: CSGO
-display-name: 'Csgo Crate'
+name: Rings
+display-name: 'Rings Crate'
 animation:
-  name: 'csgo'
+    name: 'rings'
+    particle: 'SPELL_WITCH'
+    
 rewards:
   '1':
     material: STONE
@@ -59,4 +61,3 @@ rewards:
     material: WARPED_PLANKS
     amount: 1
     chance: 1
-

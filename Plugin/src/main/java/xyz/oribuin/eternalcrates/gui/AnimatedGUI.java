@@ -10,7 +10,9 @@ import xyz.oribuin.eternalcrates.crate.Reward;
 import xyz.oribuin.gui.Gui;
 import xyz.oribuin.orilibrary.util.HexUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class AnimatedGUI {
@@ -46,23 +48,7 @@ public class AnimatedGUI {
         Collections.shuffle(rewards);
 
         // Select a reward.
-        Map<Reward, Integer> chanceMap = new HashMap<>();
-        rewards.forEach(reward -> chanceMap.put(reward, reward.getChance()));
-        int sum = chanceMap.values().stream().reduce(0, Integer::sum);
-        int current = 0;
-        Random random = new Random();
-
-        // Select a random reward based on chance.
-        int randomNumber = random.nextInt(sum);
-        for (Map.Entry<Reward, Integer> entry : chanceMap.entrySet()) {
-            current += entry.getValue();
-            if (randomNumber > current)
-                continue;
-
-            temp = entry.getKey();
-        }
-
-        Reward finalReward = temp;
+        Reward finalReward = crate.selectReward();
 
         // no not perfect and no I don't like it, but we're dealing with it
         AtomicInteger rotationCount = new AtomicInteger();
@@ -79,13 +65,10 @@ public class AnimatedGUI {
                 if (finalReward == null)
                     return;
 
-                bukkitTask.cancel();
-
                 finalReward.getActions().forEach(action -> action.executeAction(plugin, player));
 
                 // close the inventory 2 second later, so they can see the reward they won
                 Bukkit.getScheduler().runTaskLater(plugin, player::closeInventory, 40);
-
                 bukkitTask.cancel();
             }
 

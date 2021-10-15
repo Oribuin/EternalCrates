@@ -4,12 +4,10 @@ import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.configuration.file.FileConfiguration;
 import xyz.oribuin.eternalcrates.EternalCrates;
-import xyz.oribuin.eternalcrates.animation.Animation;
-import xyz.oribuin.eternalcrates.animation.AnimationType;
-import xyz.oribuin.eternalcrates.animation.GuiAnimation;
-import xyz.oribuin.eternalcrates.animation.ParticleAnimation;
+import xyz.oribuin.eternalcrates.animation.*;
 import xyz.oribuin.eternalcrates.animation.defaults.CsgoAnimation;
 import xyz.oribuin.eternalcrates.animation.defaults.RingsAnimation;
+import xyz.oribuin.eternalcrates.animation.defaults.SparkleAnimation;
 import xyz.oribuin.eternalcrates.animation.defaults.WheelAnimation;
 import xyz.oribuin.eternalcrates.particle.ParticleData;
 import xyz.oribuin.eternalcrates.util.PluginUtils;
@@ -32,9 +30,10 @@ public class AnimationManager extends Manager {
         this.plugin.getLogger().info("Loading all the animations for the plugin.");
 
         // Add the default
-        registerAnimation(new CsgoAnimation());
-        registerAnimation(new RingsAnimation());
-        registerAnimation(new WheelAnimation());
+        this.cachedAnimations.put("csgo", new CsgoAnimation());
+        this.cachedAnimations.put("rings", new RingsAnimation());
+        this.cachedAnimations.put("wheel", new WheelAnimation());
+        this.cachedAnimations.put("sparkle", new SparkleAnimation()); // we may need a better name for this.
     }
 
     /**
@@ -44,7 +43,9 @@ public class AnimationManager extends Manager {
      * @return An optional animation.
      */
     public Optional<Animation> getAnimation(String name) {
-        return Optional.ofNullable(this.cachedAnimations.get(name));
+        return this.cachedAnimations.values().stream()
+                .filter(animation -> animation.getName().equalsIgnoreCase(name))
+                .findFirst();
     }
 
     /**
@@ -64,15 +65,13 @@ public class AnimationManager extends Manager {
             case PARTICLES -> {
                 return getParticleAni(config, optional.get());
             }
-
             case GUI -> {
-                // optional inception
                 return Optional.of((GuiAnimation) optional.get());
             }
-
             case FIREWORKS -> {
+                System.out.println(optional.get());
+                return Optional.of((FireworkAnimation) optional.get());
             }
-
             case HOLOGRAM -> {
             }
 

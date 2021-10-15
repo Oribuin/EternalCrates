@@ -1,15 +1,13 @@
 package xyz.oribuin.eternalcrates;
 
-import xyz.oribuin.eternalcrates.animation.Animation;
-import xyz.oribuin.eternalcrates.listener.PlayerListeners;
+import xyz.oribuin.eternalcrates.command.CrateCommand;
+import xyz.oribuin.eternalcrates.listener.AnimationListeners;
 import xyz.oribuin.eternalcrates.manager.AnimationManager;
 import xyz.oribuin.eternalcrates.manager.CrateManager;
 import xyz.oribuin.eternalcrates.manager.DataManager;
+import xyz.oribuin.eternalcrates.manager.MessageManager;
 import xyz.oribuin.orilibrary.OriPlugin;
 import xyz.oribuin.orilibrary.util.NMSUtil;
-
-import java.util.HashSet;
-import java.util.Set;
 
 public class EternalCrates extends OriPlugin {
 
@@ -30,19 +28,19 @@ public class EternalCrates extends OriPlugin {
             this.getManager(DataManager.class);
             this.getManager(AnimationManager.class);
             this.getManager(CrateManager.class);
+            this.getManager(MessageManager.class);
         });
 
         // Register Listeners
-        this.getServer().getPluginManager().registerEvents(new PlayerListeners(this), this);
+        new AnimationListeners(this);
 
-        // Register Plugin Commands
-        // TODO
+        // Register Plugin Command
+        new CrateCommand(this);
 
     }
 
     @Override
     public void disablePlugin() {
-
     }
 
 

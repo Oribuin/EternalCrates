@@ -3,16 +3,11 @@ package xyz.oribuin.eternalcrates.manager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.scheduler.BukkitTask;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.util.PluginUtils;
-import xyz.oribuin.orilibrary.database.DatabaseConnector;
-import xyz.oribuin.orilibrary.database.MySQLConnector;
-import xyz.oribuin.orilibrary.database.SQLiteConnector;
-import xyz.oribuin.orilibrary.manager.Manager;
-import xyz.oribuin.orilibrary.util.FileUtils;
+import xyz.oribuin.orilibrary.manager.DataHandler;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -23,13 +18,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-public class DataManager extends Manager {
+public class DataManager extends DataHandler {
 
     private final EternalCrates plugin = (EternalCrates) this.getPlugin();
     private final Map<Location, Crate> cachedCrates = new HashMap<>();
-    private String tableName;
-
-    private DatabaseConnector connector = null;
+    private final String tableName = this.getTableName();
 
     public DataManager(EternalCrates plugin) {
         super(plugin);
@@ -37,38 +30,10 @@ public class DataManager extends Manager {
 
     @Override
     public void enable() {
-        // I really should make the manager include this method
-
-        final FileConfiguration config = this.plugin.getConfig();
-
-        // Get the default table name or get the default value.
-        this.tableName = config.getString("mysql.tablename") == null
-                ? "eternalcrates"
-                : config.getString("mysql.tablename");
-
-        if (config.getBoolean("mysql.enabled")) {
-
-            // Define all the MySQL Values
-            String hostName = config.getString("mysql.host");
-            int port = config.getInt("mysql.port");
-            String dbname = config.getString("mysql.dbname");
-            String username = config.getString("mysql.username");
-            String password = config.getString("mysql.password");
-            boolean ssl = config.getBoolean("mysql.ssl");
-
-            // Connect to MySQL
-            this.connector = new MySQLConnector(this.plugin, hostName, port, dbname, username, password, ssl);
-        } else {
-
-            // Connect to SQLite
-            FileUtils.createFile(this.plugin, "eternalcrates.db");
-            this.connector = new SQLiteConnector(this.plugin, "eternalcrates.db");
-        }
-
-        this.plugin.getLogger().info("Connected to the database using " + this.connector.connectorName());
+        super.enable();
 
         // Connect to database async.
-        this.async((task) -> this.connector.connect(connection -> {
+        this.async((task) -> this.getConnector().connect(connection -> {
 
             // Create the required tables for the plugin.
             final String query = "CREATE TABLE IF NOT EXISTS " + tableName + "_crates (world TEXT, x DOUBLE, y DOUBLE, z DOUBLE, crate TEXT, PRIMARY KEY(world, x, y, z))";
@@ -102,6 +67,7 @@ public class DataManager extends Manager {
                 if (crate.isEmpty())
                     continue;
 
+                crate.get().setLocation(loc);
                 this.cachedCrates.put(loc, crate.get());
             }
         }
@@ -116,8 +82,9 @@ public class DataManager extends Manager {
     public void saveCrate(Crate crate, Location location) {
         final Location blockLoc = PluginUtils.getBlockLoc(location);
         this.cachedCrates.put(blockLoc, crate);
+        crate.setLocation(blockLoc);
 
-        this.async(t -> this.connector.connect(connection -> {
+        this.async(t -> this.getConnector().connect(connection -> {
             final String query = "REPLACE INTO " + tableName + "_crates (world, x, y, z, crate) VALUES (?, ?, ?, ?, ?)";
             try (PreparedStatement statement = connection.prepareStatement(query)) {
                 statement.setString(1, blockLoc.getWorld().getName());
@@ -139,7 +106,7 @@ public class DataManager extends Manager {
         final Location blockLoc = PluginUtils.getBlockLoc(location);
         this.cachedCrates.remove(blockLoc);
 
-        this.async(t -> this.connector.connect(connection -> {
+        this.async(t -> this.getConnector().connect(connection -> {
             final String query = "DELETE FROM " + tableName + "_crates WHERE world = ? AND x = ? AND y = ? AND z = ?";
             try (PreparedStatement statement = connection.prepareStatement(query)) {
                 statement.setString(1, blockLoc.getWorld().getName());
@@ -153,15 +120,8 @@ public class DataManager extends Manager {
 
     @Override
     public void disable() {
-        // Disable the Database Connector if possible.
-        if (this.connector == null) {
-            this.plugin.getLogger().info("Disconnecting from the database connector (" + connector.connectorName() + ")");
-            this.connector.closeConnection();
-            this.connector = null;
-        }
-
+        super.disable();
     }
-
 
     /**
      * Run a task asynchronously.

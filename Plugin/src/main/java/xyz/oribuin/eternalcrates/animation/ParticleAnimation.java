@@ -5,6 +5,7 @@ import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.scheduler.BukkitTask;
 import xyz.oribuin.eternalcrates.EternalCrates;
+import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.particle.ParticleData;
 
 import java.util.List;
@@ -31,8 +32,7 @@ public abstract class ParticleAnimation extends Animation {
 
     /**
      * Spawn a particle at a location.
-     *
-     * @param loc   The location of the particle
+     *  @param loc   The location of the particle
      * @param count the amount of particles being spawned
      */
     public void spawn(Location loc, int count) {
