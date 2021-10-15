@@ -41,7 +41,7 @@ public class ChickenAnimation extends CustomAnimation {
             }, 60);
         }
 
-        Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), x -> finishFunction(crate, crate.selectReward(), player), 60);
+        Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), x -> finishFunction(crate.selectReward(), player), 60);
     }
 
 }

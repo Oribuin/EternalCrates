@@ -12,7 +12,7 @@ public class EmptyAnimation extends Animation {
     }
 
     public void play(Crate crate, Player player) {
-        this.finishFunction(crate, crate.selectReward(), player);
+        this.finishFunction(crate.selectReward(), player);
     }
 
 }

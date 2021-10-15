@@ -12,13 +12,15 @@ import xyz.oribuin.eternalcrates.event.CrateOpenEvent;
 import xyz.oribuin.eternalcrates.gui.AnimatedGUI;
 import xyz.oribuin.eternalcrates.util.PluginUtils;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Crate {
 
     private final String id;
     private String displayName;
-    private Map<Reward, Integer> rewardMap;
+    private Map<Reward, Double> rewardMap;
     private Animation animation;
     private Location location;
 
@@ -62,8 +64,8 @@ public class Crate {
             case GUI -> new AnimatedGUI(plugin, this, player);
             case PARTICLES -> ((ParticleAnimation) animation).play(this, spawnLocation, 1, player);
             case FIREWORKS -> ((FireworkAnimation) animation).play(this, spawnLocation, player);
-            case NONE -> animation.finishFunction(this, this.selectReward(), player);
-            case CUSTOM ->  ((CustomAnimation) animation).spawn(this, spawnLocation, player);
+            case NONE -> animation.finishFunction(this.selectReward(), player);
+            case CUSTOM -> ((CustomAnimation) animation).spawn(this, spawnLocation, player);
             case HOLOGRAM -> {
             }
         }
@@ -71,19 +73,13 @@ public class Crate {
 
     public Reward selectReward() {
 
-        final List<Reward> rewards = new ArrayList<>(this.getRewardMap().keySet());
-        Collections.shuffle(rewards);
-
         // Select a reward.
-        Map<Reward, Integer> chanceMap = new HashMap<>();
-        rewards.forEach(reward -> chanceMap.put(reward, reward.getChance()));
-        int sum = chanceMap.values().stream().reduce(0, Integer::sum);
-        int current = 0;
-        Random random = new Random();
-
-        // Select a random reward based on chance.
-        int randomNumber = random.nextInt(sum);
-        for (Map.Entry<Reward, Integer> entry : chanceMap.entrySet()) {
+        // https://stackoverflow.com/a/28711505
+        Map<Reward, Double> chanceMap = new HashMap<>(this.rewardMap);
+        double sumOfPercentages = chanceMap.values().stream().reduce(0.0, Double::sum);
+        double current = 0;
+        double randomNumber = ThreadLocalRandom.current().nextDouble(sumOfPercentages);
+        for (Map.Entry<Reward, Double> entry : chanceMap.entrySet()) {
             current += entry.getValue();
             if (randomNumber > current)
                 continue;
@@ -106,11 +102,11 @@ public class Crate {
         this.displayName = displayName;
     }
 
-    public Map<Reward, Integer> getRewardMap() {
+    public Map<Reward, Double> getRewardMap() {
         return rewardMap;
     }
 
-    public void setRewardMap(Map<Reward, Integer> rewardMap) {
+    public void setRewardMap(Map<Reward, Double> rewardMap) {
         this.rewardMap = rewardMap;
     }
 

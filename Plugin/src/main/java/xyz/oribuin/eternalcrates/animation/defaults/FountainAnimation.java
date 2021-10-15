@@ -33,7 +33,7 @@ public class FountainAnimation extends CustomAnimation {
             return;
 
         final Reward reward = crate.selectReward();
-        finishFunction(crate, crate.selectReward(), player);
+        finishFunction(reward, player);
         this.setInAnimation(true);
 
         final List<Item> items = new ArrayList<>();

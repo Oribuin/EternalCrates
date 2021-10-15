@@ -67,7 +67,7 @@ public class AnimatedGUI {
 
             if (rotationCount.get() == animation.getRotationCount()) {
                 baseTask.cancel();
-                animation.finishFunction(crate, finalReward, player);
+                animation.finishFunction(finalReward, player);
             }
         }, 0, 4);
 

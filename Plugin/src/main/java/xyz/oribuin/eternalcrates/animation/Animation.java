@@ -2,10 +2,7 @@ package xyz.oribuin.eternalcrates.animation;
 
 import org.bukkit.entity.Player;
 import xyz.oribuin.eternalcrates.EternalCrates;
-import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.crate.Reward;
-
-import javax.annotation.Nullable;
 
 public abstract class Animation {
 
@@ -23,16 +20,13 @@ public abstract class Animation {
     /**
      * Run the functions for giving the player the reward.
      *
-     * @param crate  The crate the animation is being played for
      * @param reward The reward that the animation has chosen (mostly only applies to gui animations)
      * @param player The player who gets the reward.
      */
-    public void finishFunction(Crate crate, @Nullable Reward reward, Player player) {
-        final Reward finalReward = reward != null ? reward : crate.selectReward();
-
+    public void finishFunction(Reward reward, Player player) {
         this.setInAnimation(false);
         EternalCrates.getInstance().getActiveUsers().remove(player.getUniqueId());
-        finalReward.getActions().forEach(action -> action.executeAction(EternalCrates.getInstance(), player));
+        reward.getActions().forEach(action -> action.executeAction(EternalCrates.getInstance(), player));
     }
 
     public AnimationType getAnimationType() {

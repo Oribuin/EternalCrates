@@ -78,7 +78,6 @@ public class DataManager extends DataHandler {
         if (crate.getLocation() == null)
             return;
 
-        System.out.println("Saving Crate " + crate.getId());
         final Location blockLoc = crate.getLocation();
         crateManager.getCachedCrates().put(crate.getId().toLowerCase(), crate);
 

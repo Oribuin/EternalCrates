@@ -32,14 +32,6 @@ public class CrateManager extends Manager {
     private final AnimationManager animationManager = this.plugin.getManager(AnimationManager.class);
 
     private final Map<String, Crate> cachedCrates = new HashMap<>();
-    private final List<Action> actions = Arrays.asList(
-            new BroadcastAction(),
-            new CloseAction(),
-            new ConsoleAction(),
-            new MessageAction(),
-            new PlayerAction(),
-            new SoundAction()
-    );
 
     public CrateManager(EternalCrates plugin) {
         super(plugin);
@@ -121,7 +113,7 @@ public class CrateManager extends Manager {
             return null;
         }
 
-        final List<Reward> rewards = new ArrayList<>();
+        final Map<Reward, Double> rewards = new HashMap<>();
         final ConfigurationSection section = config.getConfigurationSection("rewards");
         if (section == null)
             return null;
@@ -140,10 +132,16 @@ public class CrateManager extends Manager {
             final List<String> actionSection = section.getStringList(s + ".actions");
             actionSection.forEach(i -> {
 
-                Optional<Action> optional = actions.stream().filter(x -> {
-                    final String formattedAction = "[" + x.actionType().toLowerCase() + "]";
-                    return i.toLowerCase().startsWith(formattedAction);
-                }).findFirst();
+                final List<Action> actions = Arrays.asList(
+                        new BroadcastAction(),
+                        new CloseAction(),
+                        new ConsoleAction(),
+                        new MessageAction(),
+                        new PlayerAction(),
+                        new SoundAction()
+                );
+
+                Optional<Action> optional = actions.stream().filter(x -> i.toLowerCase().startsWith("[" + x.actionType().toLowerCase() + "]")).findFirst();
 
                 if (optional.isEmpty())
                     return;
@@ -161,13 +159,14 @@ public class CrateManager extends Manager {
 
             });
 
-            rewards.add(reward);
+            rewards.put(reward, reward.getChance());
         });
+
 
         final Crate crate = new Crate(name.get());
         crate.setAnimation(animation.get());
         crate.setDisplayName(displayName.get());
-        rewards.forEach(reward -> crate.getRewardMap().put(reward, reward.getChance()));
+        crate.setRewardMap(rewards);
 
 
         return crate;

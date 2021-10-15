@@ -17,8 +17,8 @@ public class Reward {
     
     private final int id;
     private ItemStack displayItem;
-    private Integer chance;
-    private List<Action> actions;
+    private double chance;
+    private final List<Action> actions;
 
     public Reward(int id) {
         this.id = id;
@@ -39,20 +39,16 @@ public class Reward {
         this.displayItem = displayItem;
     }
 
-    public Integer getChance() {
+    public double getChance() {
         return chance;
     }
 
-    public void setChance(Integer chance) {
+    public void setChance(double chance) {
         this.chance = chance;
     }
 
     public List<Action> getActions() {
         return actions;
-    }
-
-    public void setActions(List<Action> actions) {
-        this.actions = actions;
     }
 
 }
