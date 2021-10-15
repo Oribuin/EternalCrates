@@ -11,9 +11,14 @@ import xyz.oribuin.orilibrary.OriPlugin;
 import xyz.oribuin.orilibrary.util.HexUtils;
 import xyz.oribuin.orilibrary.util.NMSUtil;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 public class EternalCrates extends OriPlugin {
 
     private static EternalCrates instance;
+    private List<UUID> activeUsers;
 
     @Override
     public void enablePlugin() {
@@ -24,6 +29,8 @@ public class EternalCrates extends OriPlugin {
             this.getLogger().severe("You cannot use EternalCrates on 1." + NMSUtil.getVersionNumber() + ", We are limited to 1.16+");
             return;
         }
+
+        this.activeUsers = new ArrayList<>();
 
         // Load Plugin Managers Asynchronously.
         this.getServer().getScheduler().runTaskAsynchronously(this, () -> {
@@ -49,6 +56,10 @@ public class EternalCrates extends OriPlugin {
 
     public static EternalCrates getInstance() {
         return instance;
+    }
+
+    public List<UUID> getActiveUsers() {
+        return activeUsers;
     }
 
 }

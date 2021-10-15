@@ -42,8 +42,6 @@ public class CrateListeners implements Listener {
         if (crate.isEmpty())
             return;
 
-
-
         // todo add crate keys
         crate.get().open(plugin, event.getPlayer());
     }

@@ -32,10 +32,16 @@ public abstract class Animation {
      * @param player The player who gets the reward.
      */
     public void finishFunction(Crate crate, @Nullable Reward reward, Player player) {
-        crate.getActiveUsers().remove(player.getUniqueId());
+
+        EternalCrates.getInstance().getActiveUsers().remove(player.getUniqueId());
 
         final Reward finalReward = reward != null ? reward : crate.selectReward();
-        finalReward.getActions().forEach(action -> action.executeAction(EternalCrates.getInstance(), player));
+        System.out.println("Won Reward " + finalReward.getId());
+
+        finalReward.getActions().forEach(action -> {
+            System.out.println("[" + action.actionType() + "] " + action.getMessage());
+            action.executeAction(EternalCrates.getInstance(), player);
+        });
     }
 
     public Consumer<Player> getSoundConsumer() {

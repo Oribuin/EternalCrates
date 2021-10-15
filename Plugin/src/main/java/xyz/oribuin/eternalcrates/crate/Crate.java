@@ -21,7 +21,6 @@ public class Crate {
     private Map<Reward, Integer> rewardMap;
     private Animation animation;
     private Location location;
-    private final List<UUID> activeUsers;
 
     public Crate(final String id) {
         this.id = id;
@@ -29,7 +28,6 @@ public class Crate {
         this.setRewardMap(new HashMap<>());
         this.setAnimation(null);
         this.location = null;
-        this.activeUsers = new ArrayList<>();
     }
 
     /**
@@ -40,7 +38,7 @@ public class Crate {
      */
     public void open(EternalCrates plugin, Player player) {
 
-        if (this.activeUsers.contains(player.getUniqueId()))
+        if (plugin.getActiveUsers().contains(player.getUniqueId()))
             return;
 
         final CrateOpenEvent event = new CrateOpenEvent(this, player);
@@ -48,7 +46,7 @@ public class Crate {
         if (event.isCancelled())
             return;
 
-        this.activeUsers.add(player.getUniqueId());
+        plugin.getActiveUsers().add(player.getUniqueId());
 
         // The crate location or the player location.
         final Location spawnLocation = location != null ? PluginUtils.centerLocation(location) : player.getLocation();
@@ -87,10 +85,6 @@ public class Crate {
         }
 
         return null;
-    }
-
-    public List<UUID> getActiveUsers() {
-        return activeUsers;
     }
 
     public String getId() {
