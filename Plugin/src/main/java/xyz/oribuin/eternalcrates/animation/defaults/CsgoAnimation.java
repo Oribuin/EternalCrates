@@ -11,7 +11,7 @@ public class CsgoAnimation extends GuiAnimation {
 
     public CsgoAnimation() {
         // Don't need to set the winning slot because it will default to the first number in the array
-        super("csgo", new int[]{9, 10, 11, 12, 13, 14, 15, 16, 17});
+        super("csgo", "Oribuin", new int[]{9, 10, 11, 12, 13, 14, 15, 16, 17});
     }
 
     @Override

@@ -20,8 +20,8 @@ public class GuiAnimation extends Animation {
     private int winningSlot;
     private int guiSize;
 
-    public GuiAnimation(String name, int[] rotateSlots) {
-        super(name, AnimationType.GUI);
+    public GuiAnimation(String name, String author, int[] rotateSlots) {
+        super(name, AnimationType.GUI, author);
         this.rotateSlots = rotateSlots;
         this.winningSlot = rotateSlots[0];
         this.startIndex = 0;

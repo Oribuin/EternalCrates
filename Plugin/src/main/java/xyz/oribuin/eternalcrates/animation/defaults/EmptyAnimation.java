@@ -8,7 +8,7 @@ import xyz.oribuin.eternalcrates.crate.Crate;
 public class EmptyAnimation extends Animation {
 
     public EmptyAnimation() {
-        super("none", AnimationType.NONE);
+        super("none", AnimationType.NONE, "Oribuin");
     }
 
     public void play(Crate crate, Player player) {

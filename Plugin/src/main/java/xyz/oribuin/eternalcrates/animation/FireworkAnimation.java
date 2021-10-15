@@ -20,8 +20,8 @@ public abstract class FireworkAnimation extends Animation {
     private final Map<Integer, CustomFirework> fireworkMap;
     private final long delay; // The delay between each firework spawn.
 
-    public FireworkAnimation(String name, long delay) {
-        super(name, AnimationType.FIREWORKS);
+    public FireworkAnimation(String name, String author, long delay) {
+        super(name, AnimationType.FIREWORKS, author);
         this.delay = delay;
         this.fireworkMap = new HashMap<>();
     }

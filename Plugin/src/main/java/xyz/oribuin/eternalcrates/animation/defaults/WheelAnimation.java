@@ -11,7 +11,7 @@ public class WheelAnimation extends GuiAnimation {
 
     public WheelAnimation() {
         // Don't need to set the winning slot because it will default to the first number in the array
-        super("wheel", new int[]{4, 5, 15, 24, 33, 41, 40, 39, 29, 20, 11, 3});
+        super("wheel", "Oribuin", new int[]{4, 5, 15, 24, 33, 41, 40, 39, 29, 20, 11, 3});
     }
 
     @Override

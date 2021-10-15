@@ -178,8 +178,10 @@ public class CrateManager extends Manager {
                 .setLore(this.get(section, key + ".lore", new ArrayList<String>()).stream().map(HexUtils::colorify).collect(Collectors.toList()))
                 .setAmount(Math.max(this.get(section, key + ".amount", 1), 1))
                 .glow(this.get(section, key + ".glow", true))
-                .setTexture(this.get(section, key + ".texture", ""))
-                .setOwner(Bukkit.getOfflinePlayer(UUID.fromString(this.get(section, key + ".owner", ""))));
+                .setTexture(this.get(section, key + ".texture", null));
+
+        if (section.get(key + ".owner") != null)
+            itemBuilder.setOwner(Bukkit.getOfflinePlayer(UUID.fromString(this.get(section, key + ".owner", null))));
 
         // Add any enchantments
         final ConfigurationSection enchants = section.getConfigurationSection(key + ".enchants");

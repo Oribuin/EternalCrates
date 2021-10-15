@@ -17,7 +17,7 @@ public class RingsAnimation extends ParticleAnimation {
     private int step = 0;
 
     public RingsAnimation() {
-        super("rings", 1);
+        super("rings", "Oribuin", 1);
     }
 
     @Override

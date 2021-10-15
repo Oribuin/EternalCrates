@@ -17,8 +17,8 @@ public abstract class ParticleAnimation extends Animation {
     private int speed;
     private int length;
 
-    public ParticleAnimation(String name, int speed) {
-        super(name, AnimationType.PARTICLES);
+    public ParticleAnimation(String name, String author, int speed) {
+        super(name, AnimationType.PARTICLES, author);
         this.speed = speed;
         this.length = 60;
     }

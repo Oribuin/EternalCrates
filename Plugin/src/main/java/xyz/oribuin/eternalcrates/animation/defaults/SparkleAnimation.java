@@ -8,7 +8,7 @@ import xyz.oribuin.eternalcrates.animation.FireworkAnimation;
 public class SparkleAnimation extends FireworkAnimation {
 
     public SparkleAnimation() {
-        super("sparkle", 5);
+        super("sparkle", "Oribuin", 3);
     }
 
     @Override
@@ -20,6 +20,10 @@ public class SparkleAnimation extends FireworkAnimation {
         this.addFirework(loc.clone().subtract(0.0, 4.0, 0.0), this.effect(Color.LIME)); // 3
         this.addFirework(loc.clone().subtract(0.0, 5.0, 0.0), this.effect(Color.AQUA)); // 2
         this.addFirework(loc.clone().subtract(0.0, 6.0, 0.0), this.effect(Color.FUCHSIA)); // 1
+        this.addFirework(loc.clone().subtract(0.0, 7.0, 0.0), FireworkEffect.builder()
+                .withColor(Color.fromRGB(106, 13, 173))
+                .with(FireworkEffect.Type.BURST)
+                .build());
     }
 
     /**
@@ -31,7 +35,6 @@ public class SparkleAnimation extends FireworkAnimation {
     private FireworkEffect effect(Color color) {
         return FireworkEffect.builder()
                 .withColor(color)
-                .flicker(true)
                 .with(FireworkEffect.Type.BALL)
                 .build();
     }

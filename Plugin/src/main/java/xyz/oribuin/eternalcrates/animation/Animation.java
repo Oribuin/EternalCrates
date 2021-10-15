@@ -1,6 +1,5 @@
 package xyz.oribuin.eternalcrates.animation;
 
-import org.apache.logging.log4j.util.TriConsumer;
 import org.bukkit.entity.Player;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.crate.Crate;
@@ -13,14 +12,16 @@ public abstract class Animation {
 
     private final String name;
     private final AnimationType animationType;
+    private final String author;
 
     private boolean hasSound = true;
 
     private Consumer<Player> soundConsumer;
 
-    public Animation(final String name, final AnimationType animationType) {
+    public Animation(final String name, final AnimationType animationType, String author) {
         this.name = name;
         this.animationType = animationType;
+        this.author = author;
     }
 
     /**
@@ -59,4 +60,7 @@ public abstract class Animation {
         this.hasSound = hasSound;
     }
 
+    public String getAuthor() {
+        return author;
+    }
 }
