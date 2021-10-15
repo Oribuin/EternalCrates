@@ -32,7 +32,12 @@ public class AnimatedGUI {
 
         gui.setPersonalClickAction(e -> gui.getDefaultClickFunction().accept(e));
 
-        final List<Reward> rewards = new ArrayList<>(crate.getRewardMap().keySet());
+        // Select a reward.
+        Reward finalReward = crate.selectReward();
+        final List<Reward> rewards = new ArrayList<>();
+        rewards.add(finalReward);
+        rewards.addAll(crate.getRewardMap().keySet());
+
         Collections.shuffle(rewards);
 
         // Add any items missing to make sure we can fill out the slots
@@ -45,8 +50,6 @@ public class AnimatedGUI {
 
         Collections.shuffle(rewards);
 
-        // Select a reward.
-        Reward finalReward = crate.selectReward();
 
         // no not perfect and no I don't like it, but we're dealing with it
         AtomicInteger rotationCount = new AtomicInteger();
@@ -62,7 +65,6 @@ public class AnimatedGUI {
                 baseTask.cancel();
                 animation.finishFunction(crate, finalReward, player);
             }
-
         }, 0, 4);
 
         gui.open(player);
