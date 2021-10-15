@@ -32,8 +32,6 @@ public class AnimatedGUI {
 
         gui.setPersonalClickAction(e -> gui.getDefaultClickFunction().accept(e));
 
-        Reward temp = null;
-
         final List<Reward> rewards = new ArrayList<>(crate.getRewardMap().keySet());
         Collections.shuffle(rewards);
 
@@ -62,14 +60,7 @@ public class AnimatedGUI {
 
             if (rotationCount.get() == animation.getRotationCount()) {
                 baseTask.cancel();
-
-                if (finalReward == null)
-                    return;
-
                 animation.finishFunction(crate, finalReward, player);
-
-                // close the inventory 2 second later, so they can see the reward they won
-                Bukkit.getScheduler().runTaskLater(plugin, player::closeInventory, 40);
             }
 
         }, 0, 4);
