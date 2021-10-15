@@ -16,7 +16,7 @@ public class ChickenAnimation extends CustomAnimation {
     private final Random random = new Random();
 
     public ChickenAnimation() {
-        super("Chicken", "Oribuin");
+        super("chicken", "Oribuin");
     }
 
     @Override
@@ -42,7 +42,6 @@ public class ChickenAnimation extends CustomAnimation {
         }
 
         Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), x -> finishFunction(crate, crate.selectReward(), player), 60);
-
     }
 
 }

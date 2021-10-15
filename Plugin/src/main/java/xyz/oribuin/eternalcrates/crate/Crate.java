@@ -38,8 +38,15 @@ public class Crate {
      */
     public void open(EternalCrates plugin, Player player) {
 
-        if (plugin.getActiveUsers().contains(player.getUniqueId()))
+        if (plugin.getActiveUsers().contains(player.getUniqueId())) {
+            System.out.println("wont run, in active users");
             return;
+        }
+
+        if (animation.isInAnimation()) {
+            System.out.println("wont run, in animation");
+            return;
+        }
 
         final CrateOpenEvent event = new CrateOpenEvent(this, player);
         Bukkit.getPluginManager().callEvent(event);

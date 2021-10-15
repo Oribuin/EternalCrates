@@ -6,17 +6,13 @@ import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.crate.Reward;
 
 import javax.annotation.Nullable;
-import java.util.function.Consumer;
 
 public abstract class Animation {
 
     private final String name;
     private final AnimationType animationType;
     private final String author;
-
-    private boolean hasSound = true;
-
-    private Consumer<Player> soundConsumer;
+    private boolean inAnimation = false;
 
     public Animation(final String name, final AnimationType animationType, String author) {
         this.name = name;
@@ -32,24 +28,14 @@ public abstract class Animation {
      * @param player The player who gets the reward.
      */
     public void finishFunction(Crate crate, @Nullable Reward reward, Player player) {
-
-        EternalCrates.getInstance().getActiveUsers().remove(player.getUniqueId());
-
         final Reward finalReward = reward != null ? reward : crate.selectReward();
-        System.out.println("Won Reward " + finalReward.getId());
 
+        this.setInAnimation(false);
+        EternalCrates.getInstance().getActiveUsers().remove(player.getUniqueId());
         finalReward.getActions().forEach(action -> {
             System.out.println("[" + action.actionType() + "] " + action.getMessage());
             action.executeAction(EternalCrates.getInstance(), player);
         });
-    }
-
-    public Consumer<Player> getSoundConsumer() {
-        return soundConsumer;
-    }
-
-    public void setSoundConsumer(Consumer<Player> soundConsumer) {
-        this.soundConsumer = soundConsumer;
     }
 
     public AnimationType getAnimationType() {
@@ -60,15 +46,16 @@ public abstract class Animation {
         return name;
     }
 
-    public boolean isHasSound() {
-        return hasSound;
-    }
-
-    public void setHasSound(boolean hasSound) {
-        this.hasSound = hasSound;
-    }
-
     public String getAuthor() {
         return author;
     }
+
+    public boolean isInAnimation() {
+        return inAnimation;
+    }
+
+    public void setInAnimation(boolean inAnimation) {
+        this.inAnimation = inAnimation;
+    }
+
 }

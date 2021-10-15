@@ -59,28 +59,12 @@ public class GuiAnimation extends Animation {
         return rotateSlots;
     }
 
-    public int getWinningSlot() {
-        return winningSlot;
-    }
-
-    public void setWinningSlot(int winningSlot) {
-        this.winningSlot = winningSlot;
-    }
-
     public int getGuiSize() {
         return guiSize;
     }
 
-    public void setGuiSize(int guiSize) {
-        this.guiSize = guiSize;
-    }
-
     public BiConsumer<Player, Gui> getSpinConsumer() {
         return spinConsumer;
-    }
-
-    public void setSpinConsumer(BiConsumer<Player, Gui> spinConsumer) {
-        this.spinConsumer = spinConsumer;
     }
 
     public int getRotationCount() {

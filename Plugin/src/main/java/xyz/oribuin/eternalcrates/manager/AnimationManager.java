@@ -38,6 +38,7 @@ public class AnimationManager extends Manager {
         this.cachedAnimations.put("celebration", new CelebrationAnimation());
         // Custom
         this.cachedAnimations.put("chicken", new ChickenAnimation());
+        this.cachedAnimations.put("fountain", new FountainAnimation());
         // Hologram
 
         // Other
