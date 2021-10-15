@@ -5,6 +5,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.animation.Animation;
+import xyz.oribuin.eternalcrates.animation.CustomAnimation;
 import xyz.oribuin.eternalcrates.animation.FireworkAnimation;
 import xyz.oribuin.eternalcrates.animation.ParticleAnimation;
 import xyz.oribuin.eternalcrates.event.CrateOpenEvent;
@@ -54,6 +55,7 @@ public class Crate {
             case PARTICLES -> ((ParticleAnimation) animation).play(this, spawnLocation, 1, player);
             case FIREWORKS -> ((FireworkAnimation) animation).play(this, spawnLocation, player);
             case NONE -> animation.finishFunction(this, this.selectReward(), player);
+            case CUSTOM ->  ((CustomAnimation) animation).spawn(this, spawnLocation, player);
             case HOLOGRAM -> {
             }
         }

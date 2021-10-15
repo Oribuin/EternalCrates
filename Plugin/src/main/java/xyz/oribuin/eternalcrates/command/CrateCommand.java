@@ -2,6 +2,7 @@ package xyz.oribuin.eternalcrates.command;
 
 import org.bukkit.command.CommandSender;
 import xyz.oribuin.eternalcrates.EternalCrates;
+import xyz.oribuin.eternalcrates.animation.AnimationType;
 import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.manager.CrateManager;
 import xyz.oribuin.eternalcrates.manager.MessageManager;
@@ -20,7 +21,9 @@ import java.util.stream.Collectors;
         permission = "eternalcrates.use",
         playerOnly = false,
         subCommands = {
+                AnimationsCommand.class,
                 PreviewCommand.class,
+                ReloadCommand.class,
                 SetCommand.class
         }
 )

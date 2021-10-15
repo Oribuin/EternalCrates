@@ -1,5 +1,6 @@
 package xyz.oribuin.eternalcrates.command;
 
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.command.CommandSender;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.animation.AnimationType;
@@ -31,10 +32,10 @@ public class AnimationsCommand extends SubCommand {
         Arrays.stream(AnimationType.values()).forEach(animationType -> {
 
             // Tell the player the animation type.
-            msg.sendRaw(sender, msg.get("prefix") + "Animations Type: " + animationType.name().toLowerCase());
+            msg.sendRaw(sender, msg.get("prefix") + "Animations Type: " + StringUtils.capitalize(animationType.name().toLowerCase()));
 
             // All the registered animations in that category.
-            animations.getAnimationFromType(animationType).forEach(animation -> msg.sendRaw(sender, "#99ff99" + animation.getName() + " by " + animation.getAuthor()));
+            animations.getAnimationFromType(animationType).forEach(animation -> msg.sendRaw(sender, "&f- #99ff99" + StringUtils.capitalize(animation.getName()) + "&f by " + animation.getAuthor()));
         });
 
     }

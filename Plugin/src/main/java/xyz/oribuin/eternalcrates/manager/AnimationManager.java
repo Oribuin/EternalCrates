@@ -27,10 +27,18 @@ public class AnimationManager extends Manager {
         this.plugin.getLogger().info("Loading all the animations for the plugin.");
 
         // Add the default
+
+        // GUI Animations
         this.cachedAnimations.put("csgo", new CsgoAnimation());
-        this.cachedAnimations.put("rings", new RingsAnimation());
         this.cachedAnimations.put("wheel", new WheelAnimation());
+        // Particle Animations
+        this.cachedAnimations.put("rings", new RingsAnimation());
+        // Firework Particles
         this.cachedAnimations.put("sparkle", new SparkleAnimation()); // we may need a better name for this.
+        this.cachedAnimations.put("celebration", new CelebrationAnimation());
+        // Hologram
+
+        // Other
         this.cachedAnimations.put("none", new EmptyAnimation());
     }
 

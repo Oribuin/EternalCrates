@@ -174,7 +174,7 @@ public class CrateManager extends Manager {
 
         // Yes I am aware this is a mess, I hate it too im sorry
         final Item.Builder itemBuilder = new Item.Builder(material)
-                .setName(HexUtils.colorify(this.get(section, key + ".name", "&cInvalid Name")))
+                .setName(HexUtils.colorify(this.get(section, key + ".name", null)))
                 .setLore(this.get(section, key + ".lore", new ArrayList<String>()).stream().map(HexUtils::colorify).collect(Collectors.toList()))
                 .setAmount(Math.max(this.get(section, key + ".amount", 1), 1))
                 .glow(this.get(section, key + ".glow", true))
