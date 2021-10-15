@@ -32,10 +32,7 @@ public abstract class Animation {
 
         this.setInAnimation(false);
         EternalCrates.getInstance().getActiveUsers().remove(player.getUniqueId());
-        finalReward.getActions().forEach(action -> {
-            System.out.println("[" + action.actionType() + "] " + action.getMessage());
-            action.executeAction(EternalCrates.getInstance(), player);
-        });
+        finalReward.getActions().forEach(action -> action.executeAction(EternalCrates.getInstance(), player));
     }
 
     public AnimationType getAnimationType() {

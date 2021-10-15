@@ -2,7 +2,8 @@ package xyz.oribuin.eternalcrates.action;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import xyz.oribuin.eternalcrates.EternalCrates; 
+import xyz.oribuin.eternalcrates.EternalCrates;
+import xyz.oribuin.eternalcrates.manager.MessageManager;
 import xyz.oribuin.orilibrary.util.HexUtils;
 
 public class BroadcastAction extends Action {
@@ -16,7 +17,7 @@ public class BroadcastAction extends Action {
         if (this.getMessage().length() == 0)
             return;
 
-        Bukkit.broadcast(HexUtils.colorify(this.getMessage()), "");
+        Bukkit.broadcast(HexUtils.colorify(MessageManager.applyPapi(player, this.getMessage())), "");
     }
 
 }

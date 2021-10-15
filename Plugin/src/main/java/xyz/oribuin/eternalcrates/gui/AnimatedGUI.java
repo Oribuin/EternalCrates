@@ -35,8 +35,12 @@ public class AnimatedGUI {
         // Select a reward.
         Reward finalReward = crate.selectReward();
         final List<Reward> rewards = new ArrayList<>();
+
+        // We add the reward first so that it doesnt spin indefinitely
         rewards.add(finalReward);
         rewards.addAll(crate.getRewardMap().keySet());
+
+        // TODO Remove any duplicates of the crate rewards to prevent the gui from only spinning once
 
         Collections.shuffle(rewards);
 

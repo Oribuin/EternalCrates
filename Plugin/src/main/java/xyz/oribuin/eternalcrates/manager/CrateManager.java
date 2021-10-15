@@ -32,6 +32,14 @@ public class CrateManager extends Manager {
     private final AnimationManager animationManager = this.plugin.getManager(AnimationManager.class);
 
     private final Map<String, Crate> cachedCrates = new HashMap<>();
+    private final List<Action> actions = Arrays.asList(
+            new BroadcastAction(),
+            new CloseAction(),
+            new ConsoleAction(),
+            new MessageAction(),
+            new PlayerAction(),
+            new SoundAction()
+    );
 
     public CrateManager(EternalCrates plugin) {
         super(plugin);
@@ -129,37 +137,29 @@ public class CrateManager extends Manager {
             reward.setChance(section.getInt(s + ".chance"));
             // section inception
             // holup that rhymes
-            final ConfigurationSection commandSection = section.getConfigurationSection(s + ".actions");
-            if (commandSection != null) {
-                final List<Action> actions = Arrays.asList(
-                        new BroadcastAction(),
-                        new CloseAction(),
-                        new ConsoleAction(),
-                        new MessageAction(),
-                        new PlayerAction(),
-                        new SoundAction()
-                );
+            final List<String> actionSection = section.getStringList(s + ".actions");
+            actionSection.forEach(i -> {
 
-                commandSection.getKeys(false).forEach(i -> {
+                Optional<Action> optional = actions.stream().filter(x -> {
+                    final String formattedAction = "[" + x.actionType().toLowerCase() + "]";
+                    return i.toLowerCase().startsWith(formattedAction);
+                }).findFirst();
 
-                    Optional<Action> optional = actions.stream().filter(x -> {
-                        final String formattedAction = "[" + x.actionType().toLowerCase() + "]";
-                        return formattedAction.startsWith(i.toLowerCase());
-                    }).findFirst();
+                if (optional.isEmpty())
+                    return;
 
-                    System.out.println(optional.isPresent());
+                Action action = optional.get();
+                final String formattedAction = "[" + action.actionType().toLowerCase() + "]";
+                String actionMessage = i.substring(formattedAction.length());
 
-                    if (optional.isEmpty())
-                        return;
+                // yes this is scuffed
+                while (actionMessage.startsWith(" "))
+                    actionMessage = actionMessage.substring(1);
 
-                    Action action = optional.get();
-                    final String formattedAction = "[" + action.actionType().toLowerCase() + "]";
+                action.setMessage(actionMessage);
+                reward.getActions().add(action);
 
-                    action.setMessage(i.substring(formattedAction.length()));
-                    reward.getActions().add(action);
-
-                });
-            }
+            });
 
             rewards.add(reward);
         });

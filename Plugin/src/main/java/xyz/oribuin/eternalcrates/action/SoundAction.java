@@ -16,7 +16,7 @@ public class SoundAction extends Action {
         if (this.getMessage().length() == 0)
             return;
 
-        player.playSound(player.getLocation(), Sound.valueOf(this.getMessage()), 1f, 1f);
+        player.playSound(player.getLocation(), Sound.valueOf(this.getMessage()), 100f, 1f);
     }
 
 }
