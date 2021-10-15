@@ -9,29 +9,33 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import xyz.oribuin.eternalcrates.EternalCrates;
 
-public record AnimationListeners(EternalCrates plugin) implements Listener {
+public class AnimationListeners implements Listener {
+
+    private final NamespacedKey chickenKey;
 
     public AnimationListeners(final EternalCrates plugin) {
-        this.plugin = plugin;
-        this.plugin.getServer().getPluginManager().registerEvents(this, this.plugin);
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        this.chickenKey = new NamespacedKey(plugin, "chicken");
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onDamage(EntityDamageByEntityEvent event) {
-        if (!event.getDamager().hasMetadata("eternalcrates:firework"))
-            return;
+        final PersistentDataContainer cont = event.getEntity().getPersistentDataContainer();
+        if (event.getDamager().hasMetadata("eternalcrates:firework") || cont.has(chickenKey, PersistentDataType.INTEGER)) {
+            event.setCancelled(true);
+        }
 
-        event.setCancelled(true);
     }
 
     @EventHandler
     public void onDeath(EntityDeathEvent event) {
         final PersistentDataContainer cont = event.getEntity().getPersistentDataContainer();
 
-        if (!cont.has(new NamespacedKey(EternalCrates.getInstance(), "chicken"), PersistentDataType.INTEGER))
+        if (!cont.has(chickenKey, PersistentDataType.INTEGER))
             return;
 
         event.setDroppedExp(0);
         event.getDrops().clear();
     }
+
 }

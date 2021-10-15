@@ -2,6 +2,7 @@ package xyz.oribuin.eternalcrates.manager;
 
 import io.github.bananapuncher714.nbteditor.NBTEditor;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
@@ -47,17 +48,18 @@ public class CrateManager extends Manager {
             PluginUtils.createDefaultFiles(plugin);
         }
 
-        if (folder.listFiles() == null)
+        File[] files = folder.listFiles();
+
+        if (files == null)
             return;
 
-        Arrays.stream(folder.listFiles())
-                .filter(file -> file.getName().toLowerCase().endsWith(".yml"))
+        Arrays.stream(files).filter(file -> file.getName().toLowerCase().endsWith(".yml"))
                 .forEach(file -> {
                     final Crate crate = this.createCreate(YamlConfiguration.loadConfiguration(file));
                     if (crate == null)
                         return;
 
-                    this.cachedCrates.put(crate.getId(), crate);
+                    this.cachedCrates.put(crate.getId().toLowerCase(), crate);
                     this.plugin.getLogger().info("Registered Crate: " + crate.getId() + " with " + crate.getRewardMap().size() + " rewards!");
                 });
     }
@@ -72,6 +74,20 @@ public class CrateManager extends Manager {
         return this.cachedCrates.values()
                 .stream()
                 .filter(crate -> crate.getId().equalsIgnoreCase(id))
+                .findFirst();
+    }
+
+    /**
+     * Get a cached crate from the location of it.
+     *
+     * @param location The location of the crate
+     * @return The optional crate.
+     */
+    public Optional<Crate> getCrate(Location location) {
+        return this.getCachedCrates().values()
+                .stream()
+                .filter(crate -> crate.getLocation() != null)
+                .filter(crate -> crate.getLocation().equals(location))
                 .findFirst();
     }
 
@@ -130,6 +146,8 @@ public class CrateManager extends Manager {
                         final String formattedAction = "[" + x.actionType().toLowerCase() + "]";
                         return formattedAction.startsWith(i.toLowerCase());
                     }).findFirst();
+
+                    System.out.println(optional.isPresent());
 
                     if (optional.isEmpty())
                         return;

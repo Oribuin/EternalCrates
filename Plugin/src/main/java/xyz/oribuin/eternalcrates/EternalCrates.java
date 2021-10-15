@@ -37,9 +37,9 @@ public class EternalCrates extends OriPlugin {
 
         // Load Plugin Managers Asynchronously.
         this.getServer().getScheduler().runTaskAsynchronously(this, () -> {
-            this.getManager(DataManager.class);
             this.getManager(AnimationManager.class);
             this.getManager(CrateManager.class);
+            this.getManager(DataManager.class);
             this.getManager(MessageManager.class);
         });
 

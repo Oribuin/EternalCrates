@@ -12,6 +12,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.event.CrateDestroyEvent;
+import xyz.oribuin.eternalcrates.manager.CrateManager;
 import xyz.oribuin.eternalcrates.manager.DataManager;
 
 import java.util.Optional;
@@ -20,10 +21,12 @@ public class CrateListeners implements Listener {
 
     private final EternalCrates plugin;
     private final DataManager data;
+    private final CrateManager crateManager;
 
     public CrateListeners(EternalCrates plugin) {
         this.plugin = plugin;
         this.data = this.plugin.getManager(DataManager.class);
+        this.crateManager = this.plugin.getManager(CrateManager.class);
     }
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -38,18 +41,19 @@ public class CrateListeners implements Listener {
         if (block == null)
             return;
 
-        final Optional<Crate> crate = this.data.getCrate(block.getLocation());
+        final Optional<Crate> crate = this.crateManager.getCrate(block.getLocation());
         if (crate.isEmpty())
             return;
 
         // todo add crate keys
+        event.setCancelled(true);
         crate.get().open(plugin, event.getPlayer());
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onCrateDestroy(BlockBreakEvent event) {
 
-        final Optional<Crate> crate = this.data.getCrate(event.getBlock().getLocation());
+        final Optional<Crate> crate = this.crateManager.getCrate(event.getBlock().getLocation());
         if (crate.isEmpty())
             return;
 
@@ -66,7 +70,7 @@ public class CrateListeners implements Listener {
         if (crateDestroyEvent.isCancelled())
             return;
 
-        this.data.deleteCrate(crate.get().getLocation());
+        this.data.deleteCrate(crate.get());
     }
 
 }

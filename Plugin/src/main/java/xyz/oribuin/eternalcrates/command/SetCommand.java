@@ -58,7 +58,10 @@ public class SetCommand extends SubCommand {
             return;
         }
 
-        this.plugin.getManager(DataManager.class).saveCrate(crateOptional.get(), targetBlock.getLocation());
-        this.msg.send(sender, "saved-crate", StringPlaceholders.single("%crate%", crateOptional.get().getDisplayName()));
+        final Crate crate = crateOptional.get();
+        crate.setLocation(targetBlock.getLocation());
+
+        this.plugin.getManager(DataManager.class).saveCrate(crate);
+        this.msg.send(sender, "saved-crate", StringPlaceholders.single("crate", crateOptional.get().getDisplayName()));
     }
 }

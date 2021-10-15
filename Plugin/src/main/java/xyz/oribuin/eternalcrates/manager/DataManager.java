@@ -13,7 +13,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -21,9 +21,11 @@ import java.util.function.Consumer;
 public class DataManager extends DataHandler {
 
     private final EternalCrates plugin = (EternalCrates) this.getPlugin();
-    private final Map<Location, Crate> cachedCrates = new HashMap<>();
+    private final CrateManager crateManager;
+
     public DataManager(EternalCrates plugin) {
         super(plugin);
+        this.crateManager = this.plugin.getManager(CrateManager.class);
     }
 
     @Override
@@ -34,7 +36,7 @@ public class DataManager extends DataHandler {
         this.async((task) -> this.getConnector().connect(connection -> {
 
             // Create the required tables for the plugin.
-            final String query = "CREATE TABLE IF NOT EXISTS " + this.getTableName() + "_crates (world TEXT, x DOUBLE, y DOUBLE, z DOUBLE, crate TEXT, PRIMARY KEY(world, x, y, z))";
+            final String query = "CREATE TABLE IF NOT EXISTS " + this.getTableName() + "_crates (crate TEXT, world TEXT, x DOUBLE, y DOUBLE, z DOUBLE, PRIMARY KEY(crate))";
             connection.prepareStatement(query).executeUpdate();
 
             // Cache all the physical crate locations.
@@ -49,24 +51,20 @@ public class DataManager extends DataHandler {
      * @throws SQLException In case there's an error :)
      */
     private void cacheCrates(final Connection connection) throws SQLException {
-        this.cachedCrates.clear();
+
         final String query = "SELECT * FROM " + this.getTableName() + "_crates";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             final ResultSet result = statement.executeQuery();
 
             while (result.next()) {
+                final String name = result.getString("crate");
                 final World world = Bukkit.getWorld(result.getString("world"));
                 final double x = result.getDouble("x");
                 final double y = result.getDouble("y");
                 final double z = result.getDouble("z");
 
                 final Location loc = PluginUtils.getBlockLoc(new Location(world, x, y, z));
-                final Optional<Crate> crate = this.plugin.getManager(CrateManager.class).getCrate(result.getString("crate"));
-                if (crate.isEmpty())
-                    continue;
-
-                crate.get().setLocation(loc);
-                this.cachedCrates.put(loc, crate.get());
+                this.crateManager.getCrate(name.toLowerCase()).ifPresent(crate -> crate.setLocation(loc));
             }
         }
     }
@@ -75,21 +73,23 @@ public class DataManager extends DataHandler {
      * Save a physical crate's location in the config file.
      *
      * @param crate    The crate location;.
-     * @param location The location of the crate.
      */
-    public void saveCrate(Crate crate, Location location) {
-        final Location blockLoc = PluginUtils.getBlockLoc(location);
-        this.cachedCrates.put(blockLoc, crate);
-        crate.setLocation(blockLoc);
+    public void saveCrate(Crate crate) {
+        if (crate.getLocation() == null)
+            return;
+
+        System.out.println("Saving Crate " + crate.getId());
+        final Location blockLoc = crate.getLocation();
+        crateManager.getCachedCrates().put(crate.getId().toLowerCase(), crate);
 
         this.async(t -> this.getConnector().connect(connection -> {
-            final String query = "REPLACE INTO " + this.getTableName() + "_crates (world, x, y, z, crate) VALUES (?, ?, ?, ?, ?)";
+            final String query = "REPLACE INTO " + this.getTableName() + "_crates (crate, world, x, y, z) VALUES (?, ?, ?, ?, ?)";
             try (PreparedStatement statement = connection.prepareStatement(query)) {
-                statement.setString(1, blockLoc.getWorld().getName());
-                statement.setDouble(2, blockLoc.getX());
-                statement.setDouble(3, blockLoc.getY());
-                statement.setDouble(4, blockLoc.getZ());
-                statement.setString(5, crate.getId());
+                statement.setString(1, crate.getId());
+                statement.setString(2, blockLoc.getWorld().getName());
+                statement.setDouble(3, blockLoc.getX());
+                statement.setDouble(4, blockLoc.getY());
+                statement.setDouble(5, blockLoc.getZ());
                 statement.executeUpdate();
             }
         }));
@@ -98,35 +98,26 @@ public class DataManager extends DataHandler {
     /**
      * Delete a crate location from the cache & database.
      *
-     * @param location The location of the crate.
+     * @param crate The crate being deleted.
      */
-    public void deleteCrate(Location location) {
-        final Location blockLoc = PluginUtils.getBlockLoc(location);
-        this.cachedCrates.remove(blockLoc);
+    public void deleteCrate(Crate crate) {
+        if (crate.getLocation() == null)
+            return;
+
+        final Location blockLoc = PluginUtils.getBlockLoc(crate.getLocation());
+        this.crateManager.getCachedCrates().remove(crate.getId());
 
         this.async(t -> this.getConnector().connect(connection -> {
-            final String query = "DELETE FROM " + this.getTableName() + "_crates WHERE world = ? AND x = ? AND y = ? AND z = ?";
+            final String query = "DELETE FROM " + this.getTableName() + "_crates WHERE crate = ? AND WHERE world = ? AND x = ? AND y = ? AND z = ?";
             try (PreparedStatement statement = connection.prepareStatement(query)) {
-                statement.setString(1, blockLoc.getWorld().getName());
-                statement.setDouble(2, blockLoc.getX());
-                statement.setDouble(3, blockLoc.getY());
-                statement.setDouble(4, blockLoc.getZ());
+                statement.setString(1, crate.getId().toLowerCase());
+                statement.setString(2, blockLoc.getWorld().getName());
+                statement.setDouble(3, blockLoc.getX());
+                statement.setDouble(4, blockLoc.getY());
+                statement.setDouble(5, blockLoc.getZ());
                 statement.executeUpdate();
             }
         }));
-    }
-
-    /**
-     * Get a cached crate from the location of it.
-     *
-     * @param location The location of the crate
-     * @return The optional crate.
-     */
-    public Optional<Crate> getCrate(Location location) {
-        return this.cachedCrates.entrySet().stream()
-                .filter(entry -> entry.getKey().equals(PluginUtils.getBlockLoc(location)))
-                .map(Map.Entry::getValue)
-                .findFirst();
     }
 
     @Override
@@ -141,10 +132,6 @@ public class DataManager extends DataHandler {
      */
     public void async(Consumer<BukkitTask> callback) {
         this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, callback);
-    }
-
-    public Map<Location, Crate> getCachedCrates() {
-        return cachedCrates;
     }
 
 }
