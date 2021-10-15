@@ -4,6 +4,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.crate.Crate;
+import xyz.oribuin.eternalcrates.manager.AnimationManager;
 import xyz.oribuin.eternalcrates.manager.CrateManager;
 import xyz.oribuin.eternalcrates.manager.MessageManager;
 import xyz.oribuin.orilibrary.command.SubCommand;
@@ -18,11 +19,12 @@ import java.util.Optional;
 )
 public class PreviewCommand extends SubCommand {
 
-    private final EternalCrates plugin = (EternalCrates) this.getOriPlugin();
-    private final MessageManager msg = this.plugin.getManager(MessageManager.class);
+    private final EternalCrates plugin;
+    private final MessageManager msg;
 
     public PreviewCommand(EternalCrates plugin) {
-        super(plugin);
+        this.plugin = plugin;
+        this.msg = this.plugin.getManager(MessageManager.class);
     }
 
     @Override

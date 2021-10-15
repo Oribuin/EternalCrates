@@ -32,6 +32,8 @@ public abstract class Animation {
      * @param player The player who gets the reward.
      */
     public void finishFunction(Crate crate, @Nullable Reward reward, Player player) {
+        crate.getActiveUsers().remove(player.getUniqueId());
+
         final Reward finalReward = reward != null ? reward : crate.selectReward();
         finalReward.getActions().forEach(action -> action.executeAction(EternalCrates.getInstance(), player));
     }

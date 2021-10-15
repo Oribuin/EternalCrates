@@ -40,6 +40,9 @@ public class Crate {
      */
     public void open(EternalCrates plugin, Player player) {
 
+        if (this.activeUsers.contains(player.getUniqueId()))
+            return;
+
         final CrateOpenEvent event = new CrateOpenEvent(this, player);
         Bukkit.getPluginManager().callEvent(event);
         if (event.isCancelled())

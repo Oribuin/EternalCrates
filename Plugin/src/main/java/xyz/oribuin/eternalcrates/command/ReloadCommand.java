@@ -12,11 +12,12 @@ import xyz.oribuin.orilibrary.command.SubCommand;
 )
 public class ReloadCommand extends SubCommand {
 
-    private final EternalCrates plugin = (EternalCrates) this.getOriPlugin();
-    private final MessageManager msg = this.plugin.getManager(MessageManager.class);
+    private final EternalCrates plugin;
+    private final MessageManager msg;
 
     public ReloadCommand(EternalCrates plugin) {
-        super(plugin);
+        this.plugin = plugin;
+        this.msg = this.plugin.getManager(MessageManager.class);
     }
 
     @Override

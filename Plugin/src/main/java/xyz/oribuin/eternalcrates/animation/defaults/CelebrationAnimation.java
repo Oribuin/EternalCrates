@@ -13,13 +13,12 @@ public class CelebrationAnimation extends FireworkAnimation {
 
     @Override
     public void registerFireworks(Location location) {
-        final Location loc = location.clone();
-        // X-X
-        // X-X
-        addFirework(loc.clone().add(1.0, 0.0, 1.0), effect(Color.WHITE));
-//        addFirework(loc.clone().add(1.0, 0.0, 0.0), effect(Color.fromRGB(162, 191, 254)));
-        addFirework(loc.clone().subtract(1.0, 0.0, 1.0), effect(Color.WHITE));
-//        addFirework(loc.clone().subtract(0.0, 0.0, 1.0), effect(Color.fromRGB(162, 191, 254)));
+        final Location loc = location.clone().add(0, 2, 0);
+        addFirework(loc.clone().subtract(1, 0, 1), ballFirework(Color.WHITE));
+        addFirework(loc.clone().add(1, 0, -1), ballFirework(Color.fromRGB(169, 191, 254)));
+
+        addFirework(loc.clone().add(1, 0, 1), ballFirework(Color.WHITE));
+        addFirework(loc.clone().subtract(1, 0, -1), ballFirework(Color.fromRGB(169, 191, 254)));
     }
 
     /**
@@ -28,7 +27,7 @@ public class CelebrationAnimation extends FireworkAnimation {
      * @param color The color of the firework
      * @return the new firework effect.
      */
-    private FireworkEffect effect(Color color) {
+    private FireworkEffect ballFirework(Color color) {
         return FireworkEffect.builder()
                 .withColor(color)
                 .with(FireworkEffect.Type.BALL)

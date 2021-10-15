@@ -20,11 +20,12 @@ import java.util.Optional;
 )
 public class SetCommand extends SubCommand {
 
-    private final EternalCrates plugin = (EternalCrates) this.getOriPlugin();
-    private final MessageManager msg = this.plugin.getManager(MessageManager.class);
+    private final EternalCrates plugin;
+    private final MessageManager msg;
 
     public SetCommand(EternalCrates plugin) {
-        super(plugin);
+        this.plugin = plugin;
+        this.msg = this.plugin.getManager(MessageManager.class);
     }
 
     @Override

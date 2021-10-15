@@ -24,6 +24,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("unchecked")
 public class CrateManager extends Manager {
 
     private final EternalCrates plugin = (EternalCrates) this.getPlugin();
@@ -177,7 +178,7 @@ public class CrateManager extends Manager {
                 .setName(HexUtils.colorify(this.get(section, key + ".name", null)))
                 .setLore(this.get(section, key + ".lore", new ArrayList<String>()).stream().map(HexUtils::colorify).collect(Collectors.toList()))
                 .setAmount(Math.max(this.get(section, key + ".amount", 1), 1))
-                .glow(this.get(section, key + ".glow", true))
+                .glow(this.get(section, key + ".glow", false))
                 .setTexture(this.get(section, key + ".texture", null));
 
         if (section.get(key + ".owner") != null)

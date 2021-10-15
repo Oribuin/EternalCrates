@@ -19,7 +19,7 @@ dependencies {
     // Frameworks & MySQL APIs
     implementation 'io.github.bananapuncher714:nbteditor:7.17.0'
     implementation 'com.zaxxer:HikariCP:5.0.0'
-    implementation 'xyz.oribuin:orilib:1.3.6'
+    implementation 'xyz.oribuin:orilib:1.3.7'
     implementation 'xyz.oribuin:ori-gui:1.0.6'
 }
 

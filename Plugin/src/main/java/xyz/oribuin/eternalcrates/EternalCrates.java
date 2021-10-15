@@ -8,6 +8,7 @@ import xyz.oribuin.eternalcrates.manager.CrateManager;
 import xyz.oribuin.eternalcrates.manager.DataManager;
 import xyz.oribuin.eternalcrates.manager.MessageManager;
 import xyz.oribuin.orilibrary.OriPlugin;
+import xyz.oribuin.orilibrary.util.HexUtils;
 import xyz.oribuin.orilibrary.util.NMSUtil;
 
 public class EternalCrates extends OriPlugin {

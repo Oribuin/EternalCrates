@@ -17,12 +17,14 @@ import java.util.Arrays;
 )
 public class AnimationsCommand extends SubCommand {
 
-    private final EternalCrates plugin = (EternalCrates) this.getOriPlugin();
-    private final MessageManager msg = this.plugin.getManager(MessageManager.class);
-    private final AnimationManager animations = this.plugin.getManager(AnimationManager.class);
+    private final EternalCrates plugin;
+    private final MessageManager msg;
+    private final AnimationManager animations;
 
     public AnimationsCommand(EternalCrates plugin) {
-        super(plugin);
+        this.plugin = plugin;
+        this.msg = this.plugin.getManager(MessageManager.class);
+        this.animations = this.plugin.getManager(AnimationManager.class);
     }
 
     @Override
