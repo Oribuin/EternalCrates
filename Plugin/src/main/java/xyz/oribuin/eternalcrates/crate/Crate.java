@@ -20,6 +20,7 @@ public class Crate {
     private Map<Reward, Integer> rewardMap;
     private Animation animation;
     private Location location;
+    private final List<UUID> activeUsers;
 
     public Crate(final String id) {
         this.id = id;
@@ -27,6 +28,7 @@ public class Crate {
         this.setRewardMap(new HashMap<>());
         this.setAnimation(null);
         this.location = null;
+        this.activeUsers = new ArrayList<>();
     }
 
     /**
@@ -42,6 +44,8 @@ public class Crate {
         if (event.isCancelled())
             return;
 
+        this.activeUsers.add(player.getUniqueId());
+
         // The crate location or the player location.
         final Location spawnLocation = location != null ? PluginUtils.centerLocation(location) : player.getLocation();
 
@@ -49,7 +53,8 @@ public class Crate {
             case GUI -> new AnimatedGUI(plugin, this, player);
             case PARTICLES -> ((ParticleAnimation) animation).play(this, spawnLocation, 1, player);
             case FIREWORKS -> ((FireworkAnimation) animation).play(this, spawnLocation, player);
-            case NONE, HOLOGRAM -> {
+            case NONE -> animation.finishFunction(this, this.selectReward(), player);
+            case HOLOGRAM -> {
             }
         }
     }
@@ -77,6 +82,10 @@ public class Crate {
         }
 
         return null;
+    }
+
+    public List<UUID> getActiveUsers() {
+        return activeUsers;
     }
 
     public String getId() {

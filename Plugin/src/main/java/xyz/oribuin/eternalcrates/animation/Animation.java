@@ -17,7 +17,6 @@ public abstract class Animation {
     private boolean hasSound = true;
 
     private Consumer<Player> soundConsumer;
-    private TriConsumer<Player, Reward, Crate> rewardConsumer;
 
     public Animation(final String name, final AnimationType animationType) {
         this.name = name;
@@ -60,11 +59,4 @@ public abstract class Animation {
         this.hasSound = hasSound;
     }
 
-    public TriConsumer<Player, Reward, Crate> getRewardConsumer() {
-        return rewardConsumer;
-    }
-
-    public void setRewardConsumer(TriConsumer<Player, Reward, Crate> rewardConsumer) {
-        this.rewardConsumer = rewardConsumer;
-    }
 }
