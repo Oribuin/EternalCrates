@@ -123,8 +123,8 @@ public class MessageManager extends Manager {
 
     public enum Messages {
         PREFIX("#99ff99&lEternalCrates &8| &f"),
-        PREVIEWING_CRATE("You are previewing the %crate% crate!"),
-        INVALID_CRATE("Please provide a valid crate name."),
+        PREVIEWING_CRATE("You are previewing %crate%!"),
+        SAVED_CRATE("You have set this block to %crate%!"),
 
         RELOAD("You have reloaded EternalCrates!"),
         DISABLED_WORLD("You cannot do this in this world."),
@@ -133,6 +133,8 @@ public class MessageManager extends Manager {
         INVALID_ARGS("Please use the correct command usage, %usage%"),
         INVALID_AMOUNT("&fPlease provide a valid number."),
         UNKNOWN_CMD("&fPlease include a valid command."),
+        INVALID_CRATE("Please provide a valid crate name."),
+        INVALID_BLOCK("Please look at a valid block"),
         PLAYER_ONLY("&fOnly a player can execute this command."),
         CONSOLE_ONLY("&fOnly console can execute this command.");
 

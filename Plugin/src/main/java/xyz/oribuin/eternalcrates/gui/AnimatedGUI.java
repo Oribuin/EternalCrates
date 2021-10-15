@@ -52,28 +52,27 @@ public class AnimatedGUI {
 
         // no not perfect and no I don't like it, but we're dealing with it
         AtomicInteger rotationCount = new AtomicInteger();
-        Bukkit.getScheduler().runTaskTimer(plugin, (bukkitTask) -> {
+        Bukkit.getScheduler().runTaskTimer(plugin, (baseTask) -> {
 
             final Reward rotatedReward = animation.rotateItems(gui, rewards);
             animation.getSpinConsumer().accept(player, gui);
 
-            if (rotatedReward == finalReward) {
+            if (rotatedReward == finalReward)
                 rotationCount.getAndIncrement();
-            }
 
             if (rotationCount.get() == animation.getRotationCount()) {
+                baseTask.cancel();
+
                 if (finalReward == null)
                     return;
 
-                finalReward.getActions().forEach(action -> action.executeAction(plugin, player));
+                animation.finishFunction(crate, finalReward, player);
 
                 // close the inventory 2 second later, so they can see the reward they won
                 Bukkit.getScheduler().runTaskLater(plugin, player::closeInventory, 40);
-                bukkitTask.cancel();
             }
 
         }, 0, 4);
-
 
         gui.open(player);
     }

@@ -6,6 +6,6 @@ public enum AnimationType {
     PARTICLES,
     FIREWORKS,
     HOLOGRAM,
-    CUSTOM,
+    NONE
 
 }

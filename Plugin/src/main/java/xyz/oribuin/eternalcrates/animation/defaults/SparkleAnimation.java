@@ -13,13 +13,13 @@ public class SparkleAnimation extends FireworkAnimation {
 
     @Override
     public void registerFireworks(Location location) {
-        final Location loc = location.clone().add(0.0, 6.0, 0.0);
-        this.addFirework(subtracted(loc), this.effect(Color.RED)); // 6
-        this.addFirework(subtracted(loc), this.effect(Color.ORANGE)); // 5
-        this.addFirework(subtracted(loc), this.effect(Color.YELLOW)); // 4
-        this.addFirework(subtracted(loc), this.effect(Color.LIME)); // 3
-        this.addFirework(subtracted(loc), this.effect(Color.AQUA)); // 2
-        this.addFirework(subtracted(loc), this.effect(Color.FUCHSIA)); // 1
+        final Location loc = location.clone().add(0.0, 7.0, 0.0);
+        this.addFirework(loc.clone().subtract(0.0, 1.0, 0.0), this.effect(Color.RED)); // 6
+        this.addFirework(loc.clone().subtract(0.0, 2.0, 0.0), this.effect(Color.ORANGE)); // 5
+        this.addFirework(loc.clone().subtract(0.0, 3.0, 0.0), this.effect(Color.YELLOW)); // 4
+        this.addFirework(loc.clone().subtract(0.0, 4.0, 0.0), this.effect(Color.LIME)); // 3
+        this.addFirework(loc.clone().subtract(0.0, 5.0, 0.0), this.effect(Color.AQUA)); // 2
+        this.addFirework(loc.clone().subtract(0.0, 6.0, 0.0), this.effect(Color.FUCHSIA)); // 1
     }
 
     /**
@@ -36,13 +36,4 @@ public class SparkleAnimation extends FireworkAnimation {
                 .build();
     }
 
-    /**
-     * The location with 1 Y axis subtracted from it, these methods are made for pure laziness
-     *
-     * @param loc The base location
-     * @return The new subtracted location
-     */
-    private Location subtracted(Location loc) {
-        return loc.subtract(0.0, 1.0, 0.0);
-    }
 }

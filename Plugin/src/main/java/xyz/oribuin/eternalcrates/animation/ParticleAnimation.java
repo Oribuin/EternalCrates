@@ -3,6 +3,7 @@ package xyz.oribuin.eternalcrates.animation;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Particle;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.crate.Crate;
@@ -32,16 +33,21 @@ public abstract class ParticleAnimation extends Animation {
 
     /**
      * Spawn a particle at a location.
-     *  @param loc   The location of the particle
+     *
+     * @param loc   The location of the particle
      * @param count the amount of particles being spawned
      */
-    public void spawn(Location loc, int count) {
+    public void play(Crate crate, Location loc, int count, Player player) {
         final BukkitTask task = Bukkit.getScheduler().runTaskTimerAsynchronously(EternalCrates.getInstance(), () -> {
             this.updateTimer();
             this.particleLocations(loc.clone().add(0.0, 1.0, 0.0)).forEach(location -> particleData.spawn(location, count));
         }, 0, this.speed);
 
-        Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), task::cancel, this.getLength());
+        Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), x -> {
+            task.cancel();
+            finishFunction(crate, crate.selectReward(), player);
+        }, this.getLength());
+
     }
 
     public void setParticleData(ParticleData particleData) {

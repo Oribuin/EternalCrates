@@ -22,8 +22,6 @@ public class DataManager extends DataHandler {
 
     private final EternalCrates plugin = (EternalCrates) this.getPlugin();
     private final Map<Location, Crate> cachedCrates = new HashMap<>();
-    private final String tableName = this.getTableName();
-
     public DataManager(EternalCrates plugin) {
         super(plugin);
     }
@@ -36,7 +34,7 @@ public class DataManager extends DataHandler {
         this.async((task) -> this.getConnector().connect(connection -> {
 
             // Create the required tables for the plugin.
-            final String query = "CREATE TABLE IF NOT EXISTS " + tableName + "_crates (world TEXT, x DOUBLE, y DOUBLE, z DOUBLE, crate TEXT, PRIMARY KEY(world, x, y, z))";
+            final String query = "CREATE TABLE IF NOT EXISTS " + this.getTableName() + "_crates (world TEXT, x DOUBLE, y DOUBLE, z DOUBLE, crate TEXT, PRIMARY KEY(world, x, y, z))";
             connection.prepareStatement(query).executeUpdate();
 
             // Cache all the physical crate locations.
@@ -52,7 +50,7 @@ public class DataManager extends DataHandler {
      */
     private void cacheCrates(final Connection connection) throws SQLException {
         this.cachedCrates.clear();
-        final String query = "SELECT * FROM " + tableName + "_crates";
+        final String query = "SELECT * FROM " + this.getTableName() + "_crates";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             final ResultSet result = statement.executeQuery();
 
@@ -85,7 +83,7 @@ public class DataManager extends DataHandler {
         crate.setLocation(blockLoc);
 
         this.async(t -> this.getConnector().connect(connection -> {
-            final String query = "REPLACE INTO " + tableName + "_crates (world, x, y, z, crate) VALUES (?, ?, ?, ?, ?)";
+            final String query = "REPLACE INTO " + this.getTableName() + "_crates (world, x, y, z, crate) VALUES (?, ?, ?, ?, ?)";
             try (PreparedStatement statement = connection.prepareStatement(query)) {
                 statement.setString(1, blockLoc.getWorld().getName());
                 statement.setDouble(2, blockLoc.getX());
@@ -107,7 +105,7 @@ public class DataManager extends DataHandler {
         this.cachedCrates.remove(blockLoc);
 
         this.async(t -> this.getConnector().connect(connection -> {
-            final String query = "DELETE FROM " + tableName + "_crates WHERE world = ? AND x = ? AND y = ? AND z = ?";
+            final String query = "DELETE FROM " + this.getTableName() + "_crates WHERE world = ? AND x = ? AND y = ? AND z = ?";
             try (PreparedStatement statement = connection.prepareStatement(query)) {
                 statement.setString(1, blockLoc.getWorld().getName());
                 statement.setDouble(2, blockLoc.getX());
@@ -116,6 +114,19 @@ public class DataManager extends DataHandler {
                 statement.executeUpdate();
             }
         }));
+    }
+
+    /**
+     * Get a cached crate from the location of it.
+     *
+     * @param location The location of the crate
+     * @return The optional crate.
+     */
+    public Optional<Crate> getCrate(Location location) {
+        return this.cachedCrates.entrySet().stream()
+                .filter(entry -> entry.getKey().equals(PluginUtils.getBlockLoc(location)))
+                .map(Map.Entry::getValue)
+                .findFirst();
     }
 
     @Override

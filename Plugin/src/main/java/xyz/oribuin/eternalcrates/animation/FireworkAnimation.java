@@ -5,13 +5,14 @@ import org.bukkit.FireworkEffect;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Firework;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import xyz.oribuin.eternalcrates.EternalCrates;
+import xyz.oribuin.eternalcrates.crate.Crate;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class FireworkAnimation extends Animation {
@@ -42,27 +43,29 @@ public abstract class FireworkAnimation extends Animation {
 
     /**
      * Play the animation at the crate location
+     *
+     * @param crate The crate the animation is being played for
+     * @param loc   The location of the fireworks.
      */
-    public void play(Location loc) {
+    public void play(Crate crate, Location loc, Player player) {
 
         // Remove all the fireworks and register them again when the animation is played.
         this.fireworkMap.clear();
-        this.registerFireworks(loc.clone());
+        this.registerFireworks(loc);
 
         final AtomicInteger startNumber = new AtomicInteger();
 
-        final TreeSet<Integer> treeSet = new TreeSet<>(this.fireworkMap.keySet());
-        treeSet.forEach(integer -> {
-
+        this.fireworkMap.keySet().forEach(integer -> {
             final CustomFirework customFirework = this.fireworkMap.get(integer);
+
             // Just because intellij is annoying.
             final World world = customFirework.location.getWorld();
             if (world == null)
                 return;
 
+            // Spawn the firework
             Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), () -> {
 
-                // Spawn the firework
                 Firework firework = world.spawn(customFirework.location, Firework.class, fireWork -> {
                     final FireworkMeta meta = fireWork.getFireworkMeta();
 
@@ -72,10 +75,14 @@ public abstract class FireworkAnimation extends Animation {
                     fireWork.setFireworkMeta(meta);
                 });
 
+                if (startNumber.get() == this.fireworkMap.size()) {
+                    this.finishFunction(crate, crate.selectReward(), player);
+                }
                 firework.detonate();
                 // Delay each effect by each firework that has been set off.
             }, startNumber.incrementAndGet() * delay);
         });
+
     }
 
     /**

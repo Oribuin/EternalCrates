@@ -1,6 +1,6 @@
 name: EternalCrates
 main: xyz.oribuin.eternalcrates.EternalCrates
 version: '1.0'
-api-version: '1.16'
+api-version: '1.13'
 author: Oribuin
 description: A new crate plugin focused on functional, performance and animation.

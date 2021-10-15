@@ -1,12 +1,15 @@
 package xyz.oribuin.eternalcrates.crate;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.animation.Animation;
 import xyz.oribuin.eternalcrates.animation.FireworkAnimation;
 import xyz.oribuin.eternalcrates.animation.ParticleAnimation;
+import xyz.oribuin.eternalcrates.event.CrateOpenEvent;
 import xyz.oribuin.eternalcrates.gui.AnimatedGUI;
+import xyz.oribuin.eternalcrates.util.PluginUtils;
 
 import java.util.*;
 
@@ -34,14 +37,19 @@ public class Crate {
      */
     public void open(EternalCrates plugin, Player player) {
 
+        final CrateOpenEvent event = new CrateOpenEvent(this, player);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled())
+            return;
+
         // The crate location or the player location.
-        final Location spawnLocation = location != null ? location : player.getLocation();
+        final Location spawnLocation = location != null ? PluginUtils.centerLocation(location) : player.getLocation();
 
         switch (animation.getAnimationType()) {
             case GUI -> new AnimatedGUI(plugin, this, player);
-            case PARTICLES -> ((ParticleAnimation) animation).spawn(spawnLocation, 1);
-            case FIREWORKS -> ((FireworkAnimation) animation).play(spawnLocation);
-            case CUSTOM, HOLOGRAM -> {
+            case PARTICLES -> ((ParticleAnimation) animation).play(this, spawnLocation, 1, player);
+            case FIREWORKS -> ((FireworkAnimation) animation).play(this, spawnLocation, player);
+            case NONE, HOLOGRAM -> {
             }
         }
     }

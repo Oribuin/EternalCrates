@@ -1,6 +1,7 @@
 package xyz.oribuin.eternalcrates.animation;
 
 import org.bukkit.entity.Player;
+import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.crate.Reward;
 import xyz.oribuin.gui.Gui;
 

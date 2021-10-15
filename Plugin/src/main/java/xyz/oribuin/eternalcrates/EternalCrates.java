@@ -2,6 +2,7 @@ package xyz.oribuin.eternalcrates;
 
 import xyz.oribuin.eternalcrates.command.CrateCommand;
 import xyz.oribuin.eternalcrates.listener.AnimationListeners;
+import xyz.oribuin.eternalcrates.listener.CrateListeners;
 import xyz.oribuin.eternalcrates.manager.AnimationManager;
 import xyz.oribuin.eternalcrates.manager.CrateManager;
 import xyz.oribuin.eternalcrates.manager.DataManager;
@@ -32,7 +33,8 @@ public class EternalCrates extends OriPlugin {
         });
 
         // Register Listeners
-        new AnimationListeners(this);
+        this.getServer().getPluginManager().registerEvents(new AnimationListeners(this), this);
+        this.getServer().getPluginManager().registerEvents(new CrateListeners(this), this);
 
         // Register Plugin Command
         new CrateCommand(this);

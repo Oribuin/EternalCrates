@@ -19,7 +19,10 @@ import java.util.stream.Collectors;
         usage = "/crates",
         permission = "eternalcrates.use",
         playerOnly = false,
-        subCommands = {PreviewCommand.class}
+        subCommands = {
+                PreviewCommand.class,
+                SetCommand.class
+        }
 )
 public class CrateCommand extends Command {
 
@@ -54,18 +57,18 @@ public class CrateCommand extends Command {
     public List<String> completeString(CommandSender sender, String label, String[] args) {
         final List<String> tabComplete = new ArrayList<>();
         switch (args.length) {
-            case 1 -> tabComplete.addAll(this.getSubCommands()
+            case 0, 1 -> tabComplete.addAll(this.getSubCommands()
                     .stream()
                     .map(SubCommand::getInfo)
                     .map(info -> info.names()[0])
-                    .filter(s -> args[0].startsWith(s))
+//                    .filter(s -> args[0].startsWith(s))
                     .collect(Collectors.toList()));
             case 2 -> {
                 return crateManager.getCachedCrates()
-                            .values()
-                            .stream()
-                            .map(Crate::getId)
-                            .collect(Collectors.toList());
+                        .values()
+                        .stream()
+                        .map(Crate::getId)
+                        .collect(Collectors.toList());
             }
         }
 
