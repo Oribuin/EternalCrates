@@ -1,5 +1,9 @@
 package xyz.oribuin.eternalcrates;
 
+import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
+import org.bukkit.entity.Chicken;
+import org.bukkit.persistence.PersistentDataType;
 import xyz.oribuin.eternalcrates.command.CrateCommand;
 import xyz.oribuin.eternalcrates.listener.AnimationListeners;
 import xyz.oribuin.eternalcrates.listener.CrateListeners;
@@ -8,7 +12,6 @@ import xyz.oribuin.eternalcrates.manager.CrateManager;
 import xyz.oribuin.eternalcrates.manager.DataManager;
 import xyz.oribuin.eternalcrates.manager.MessageManager;
 import xyz.oribuin.orilibrary.OriPlugin;
-import xyz.oribuin.orilibrary.util.HexUtils;
 import xyz.oribuin.orilibrary.util.NMSUtil;
 
 import java.util.ArrayList;
@@ -51,6 +54,11 @@ public class EternalCrates extends OriPlugin {
 
     @Override
     public void disablePlugin() {
+        // Let's make sure there's no chickens left
+        this.getServer().getWorlds().forEach(world -> world.getEntitiesByClasses(Chicken.class).forEach(chicken -> {
+            if (chicken.getPersistentDataContainer().has(new NamespacedKey(this, "chicken"), PersistentDataType.INTEGER))
+                chicken.remove();
+        }));
     }
 
 

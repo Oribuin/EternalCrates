@@ -36,6 +36,8 @@ public class AnimationManager extends Manager {
         // Firework Particles
         this.cachedAnimations.put("sparkle", new SparkleAnimation()); // we may need a better name for this.
         this.cachedAnimations.put("celebration", new CelebrationAnimation());
+        // Custom
+        this.cachedAnimations.put("chicken", new ChickenAnimation());
         // Hologram
 
         // Other
@@ -75,8 +77,13 @@ public class AnimationManager extends Manager {
                 return Optional.of((GuiAnimation) optional.get());
             }
             case FIREWORKS -> {
-                System.out.println(optional.get());
                 return Optional.of((FireworkAnimation) optional.get());
+            }
+            case CUSTOM -> {
+                return Optional.of((CustomAnimation) optional.get());
+            }
+            case NONE -> {
+                return Optional.of((EmptyAnimation) optional.get());
             }
             case HOLOGRAM -> {
             }

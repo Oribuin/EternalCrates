@@ -75,9 +75,10 @@ public abstract class FireworkAnimation extends Animation {
                     fireWork.setFireworkMeta(meta);
                 });
 
-                if (startNumber.get() == this.fireworkMap.size()) {
+                if (integer == this.fireworkMap.size()) {
                     this.finishFunction(crate, crate.selectReward(), player);
                 }
+
                 firework.detonate();
                 // Delay each effect by each firework that has been set off.
             }, startNumber.incrementAndGet() * delay);

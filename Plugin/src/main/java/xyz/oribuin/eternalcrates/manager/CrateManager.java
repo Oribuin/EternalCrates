@@ -92,8 +92,10 @@ public class CrateManager extends Manager {
 
         // this line isn't dumb
         final Optional<? extends Animation> animation = animationManager.getAnimationFromConfig(config);
-        if (animation.isEmpty())
+        if (animation.isEmpty()) {
+            this.plugin.getLogger().warning("Unable to load the crate due to an invalid animation.");
             return null;
+        }
 
         final List<Reward> rewards = new ArrayList<>();
         final ConfigurationSection section = config.getConfigurationSection("rewards");
