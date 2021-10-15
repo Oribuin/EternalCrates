@@ -40,7 +40,7 @@ public abstract class ParticleAnimation extends Animation {
     public void play(Crate crate, Location loc, int count, Player player) {
         final BukkitTask task = Bukkit.getScheduler().runTaskTimerAsynchronously(EternalCrates.getInstance(), () -> {
             this.updateTimer();
-            this.particleLocations(loc.clone()).forEach(location -> particleData.spawn(location, count));
+            this.particleLocations(loc.clone()).forEach(location -> particleData.spawn(player, location, count));
         }, 0, this.speed);
 
         Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), x -> {
