@@ -173,20 +173,13 @@ public class CrateManager extends Manager {
             return null;
 
         // Yes I am aware this is a mess, I hate it too im sorry
-        final Item.Builder itemBuilder = new Item.Builder(material);
-        if (section.get(key + ".name") != null)
-            itemBuilder.setName(HexUtils.colorify(section.getString(key + ".name")));
-        if (section.get(key + ".lore") != null)
-            itemBuilder.setLore(section.getStringList(key + ".lore").stream().map(HexUtils::colorify).collect(Collectors.toList()));
-        if (section.get(key + ".amount") != null)
-            itemBuilder.setAmount(section.getInt(key + ".amount"));
-        if (section.get(key + ".glow") != null)
-            itemBuilder.glow(section.getBoolean(key + ".glow"));
-        if (section.get(key + ".texture") != null)
-            itemBuilder.setTexture(section.getString(key + ".texture"));
-        if (section.get(key + ".owner") != null)
-            itemBuilder.setOwner(Bukkit.getOfflinePlayer(UUID.fromString(section.getString(key + ".owner"))));
-
+        final Item.Builder itemBuilder = new Item.Builder(material)
+                .setName(HexUtils.colorify(this.get(section, key + ".name", "&cInvalid Name")))
+                .setLore(this.get(section, key + ".lore", new ArrayList<String>()).stream().map(HexUtils::colorify).collect(Collectors.toList()))
+                .setAmount(Math.max(this.get(section, key + ".amount", 1), 1))
+                .glow(this.get(section, key + ".glow", true))
+                .setTexture(this.get(section, key + ".texture", ""))
+                .setOwner(Bukkit.getOfflinePlayer(UUID.fromString(this.get(section, key + ".owner", ""))));
 
         // Add any enchantments
         final ConfigurationSection enchants = section.getConfigurationSection(key + ".enchants");
@@ -200,7 +193,7 @@ public class CrateManager extends Manager {
                 }
 
                 // Add enchantment to item
-                itemBuilder.addEnchant(enchantment, enchants.get(s) != null ? enchants.getInt(s) : 1);
+                itemBuilder.addEnchant(enchantment, this.get(enchants, s, 1));
             });
 
         ItemStack item = itemBuilder.create();
@@ -211,8 +204,31 @@ public class CrateManager extends Manager {
                 item = NBTEditor.set(item, nbt.get(s), s);
         }
 
-
         return item;
+    }
+
+    /**
+     * Get a value from a configuration file.
+     *
+     * @param config The file configuration
+     * @param path   The path to the option.
+     * @param def    The default value for the option.
+     * @return The config option or the default.
+     */
+    public <T> T get(FileConfiguration config, String path, T def) {
+        return config.get(path) != null ? (T) config.get(path) : def;
+    }
+
+    /**
+     * Get a value from a configuration section.
+     *
+     * @param section The configuration section
+     * @param path    The path to the option.
+     * @param def     The default value for the option.
+     * @return The config option or the default.
+     */
+    public <T> T get(ConfigurationSection section, String path, T def) {
+        return section.get(path) != null ? (T) section.get(path) : def;
     }
 
     public Map<String, Crate> getCachedCrates() {
