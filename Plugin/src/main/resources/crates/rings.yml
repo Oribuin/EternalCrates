@@ -17,6 +17,23 @@ key:
     - '&7A key to open the rings crate!'
     - ''
     - '&7Right-Click on the #99ff99&lRings &7crate to open!'
+preview-gui:
+  # This is the lore than will appear before the rest of the message lore
+  item-lore:
+    - '#99ff99&lChance &7| &f%chance%%'
+  border-item:
+    material: GRAY_STAINED_GLASS_PANE
+    name: ' '
+  next-page:
+    material: PAPER
+    name: '#99ff99&lNext &fPage »'
+    lore:
+      - '&7Click to go onto the next page.'
+  previous-page:
+    material: PAPER
+    name: '#99ff99&lPrevious &fPage »'
+    lore:
+      - '&7Click to go onto the previous page.'
 rewards:
   '1':
     material: STONE

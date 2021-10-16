@@ -126,6 +126,7 @@ public class MessageManager extends Manager {
         PREVIEWING_CRATE("You are previewing %crate%!"),
         SAVED_CRATE("You have set this block to %crate%!"),
         GAVE_KEY("You have given #99ff99%player% &fx%amount% #99ff99%crate%&f keys!"),
+        INVALID_KEY("You need a %crate% key for this!"),
 
         RELOAD("You have reloaded EternalCrates!"),
         DISABLED_WORLD("You cannot do this in this world."),

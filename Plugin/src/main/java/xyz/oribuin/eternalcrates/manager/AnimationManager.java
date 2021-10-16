@@ -94,8 +94,6 @@ public class AnimationManager extends Manager {
             case NONE -> {
                 return Optional.of((EmptyAnimation) optional.get());
             }
-            case HOLOGRAM -> {
-            }
 
         }
 

@@ -75,8 +75,6 @@ public class Crate {
             case FIREWORKS -> ((FireworkAnimation) animation).play(this, spawnLocation, player);
             case NONE -> animation.finishFunction(this.selectReward(), player);
             case CUSTOM -> ((CustomAnimation) animation).spawn(this, spawnLocation, player);
-            case HOLOGRAM -> {
-            }
         }
 
         return true;

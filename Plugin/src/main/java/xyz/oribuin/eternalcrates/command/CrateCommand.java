@@ -2,7 +2,6 @@ package xyz.oribuin.eternalcrates.command;
 
 import org.bukkit.command.CommandSender;
 import xyz.oribuin.eternalcrates.EternalCrates;
-import xyz.oribuin.eternalcrates.animation.AnimationType;
 import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.manager.CrateManager;
 import xyz.oribuin.eternalcrates.manager.MessageManager;
@@ -23,7 +22,6 @@ import java.util.stream.Collectors;
         subCommands = {
                 AnimationsCommand.class,
                 GiveCommand.class,
-                PreviewCommand.class,
                 ReloadCommand.class,
                 SetCommand.class,
         }
@@ -52,7 +50,7 @@ public class CrateCommand extends Command {
         this.getSubCommands().stream()
                 .map(SubCommand::getInfo)
                 .filter(info -> sender.hasPermission(info.permission()))
-                .map(info -> msg.get("prefix") + "&f| " + info.usage())
+                .map(info -> msg.get("prefix") + info.usage())
                 .forEach(s -> msg.sendRaw(sender, s));
 
     }
@@ -65,14 +63,30 @@ public class CrateCommand extends Command {
                     .stream()
                     .map(SubCommand::getInfo)
                     .map(info -> info.names()[0])
-//                    .filter(s -> args[0].startsWith(s))
                     .collect(Collectors.toList()));
             case 2 -> {
-                return crateManager.getCachedCrates()
-                        .values()
-                        .stream()
-                        .map(Crate::getId)
-                        .collect(Collectors.toList());
+                if (args[0].equalsIgnoreCase("set"))
+                    return crateManager.getCachedCrates()
+                            .values()
+                            .stream()
+                            .map(Crate::getId)
+                            .collect(Collectors.toList());
+
+                if (args[0].equalsIgnoreCase("give"))
+                    return playerList(sender);
+            }
+            case 3 -> {
+                if (args[0].equalsIgnoreCase("give"))
+                    return crateManager.getCachedCrates()
+                            .values()
+                            .stream()
+                            .map(Crate::getId)
+                            .collect(Collectors.toList());
+            }
+
+            case 4 -> {
+                if (args[0].equalsIgnoreCase("give"))
+                    tabComplete.add("<amount>");
             }
         }
 
