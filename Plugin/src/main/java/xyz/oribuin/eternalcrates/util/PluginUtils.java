@@ -71,7 +71,9 @@ public final class PluginUtils {
     public static void createDefaultFiles(final EternalCrates plugin) {
         final List<FileConfiguration> configs = new ArrayList<>();
 
-        final String[] fileNames = new String[]{"csgo", "rings", "sparkles", "wheel"};
+        final String[] fileNames = new String[]{
+                "celebration", "chicken", "csgo", "fountain", "rings", "sparkles", "wheel"
+        };
         Arrays.stream(fileNames).forEach(s -> FileUtils.createFile(plugin, "crates", s + ".yml"));
     }
 

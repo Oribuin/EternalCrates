@@ -1,7 +1,8 @@
-name: Wheel
-display-name: 'Wheel Crate'
+name: Celebration
+display-name: 'Celebration Crate'
 animation:
-  name: 'wheel'
+    name: 'celebration'
+    
 rewards:
   '1':
     material: STONE
