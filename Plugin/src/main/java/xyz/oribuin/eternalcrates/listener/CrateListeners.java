@@ -76,7 +76,6 @@ public class CrateListeners implements Listener {
             return;
 
         if (crate.get().open(plugin, event.getPlayer())) {
-            event.getPlayer().sendMessage("Opening crate " + crate.get().getDisplayName());
             item.setAmount(item.getAmount() - 1);
         }
     }
