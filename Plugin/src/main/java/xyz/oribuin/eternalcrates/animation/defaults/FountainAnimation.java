@@ -37,9 +37,12 @@ public class FountainAnimation extends CustomAnimation {
 
         final List<Item> items = new ArrayList<>();
 
+
         final ThreadLocalRandom random = ThreadLocalRandom.current();
 
         rewards.forEach(reward -> {
+            this.finishFunction(reward, player);
+
             for (int i = 0; i < rewards.size() * 10; i++) {
                 Item item = world.spawn(location.clone(), Item.class, x -> {
                     x.setItemStack(reward.getDisplayItem());
@@ -58,6 +61,7 @@ public class FountainAnimation extends CustomAnimation {
         });
 
         Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), x -> {
+
             this.setInAnimation(false);
             items.forEach(Item::remove);
         }, 60);

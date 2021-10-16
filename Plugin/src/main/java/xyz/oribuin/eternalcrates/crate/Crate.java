@@ -2,6 +2,7 @@ package xyz.oribuin.eternalcrates.crate;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import xyz.oribuin.eternalcrates.EternalCrates;
@@ -28,6 +29,7 @@ public class Crate {
     private Location location;
     private ItemStack key;
     private int maxRewards;
+    private FileConfiguration config;
 
     public Crate(final String id) {
         this.id = id;
@@ -36,6 +38,7 @@ public class Crate {
         this.setAnimation(null);
         this.location = null;
         this.maxRewards = 1;
+        this.config = null;
     }
 
     /**
@@ -79,6 +82,11 @@ public class Crate {
         return true;
     }
 
+    /**
+     * Select a list of rewards won from the max reward count
+     *
+     * @return The list of rewards.
+     */
     public List<Reward> createRewards() {
         final List<Reward> rewards = new ArrayList<>();
         for (int i = 0; i < this.maxRewards; i++)
@@ -156,6 +164,14 @@ public class Crate {
 
     public void setMaxRewards(int maxRewards) {
         this.maxRewards = maxRewards;
+    }
+
+    public FileConfiguration getConfig() {
+        return config;
+    }
+
+    public void setConfig(FileConfiguration config) {
+        this.config = config;
     }
 
 }

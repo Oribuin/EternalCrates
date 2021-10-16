@@ -167,6 +167,7 @@ public class CrateManager extends Manager {
         crate.setDisplayName(displayName.get());
         crate.setRewardMap(rewards);
         crate.setMaxRewards(Math.max(PluginUtils.get(config, "max-rewards", 1), 1));
+        crate.setConfig(config);
         ItemStack item = new Item.Builder(animationManager.itemFromConfig(config, "key"))
                 .setNBT(plugin, "crateKey", crate.getId().toLowerCase())
                 .create();

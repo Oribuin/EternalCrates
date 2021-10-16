@@ -1,6 +1,8 @@
 package xyz.oribuin.eternalcrates.listener;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
@@ -76,7 +78,11 @@ public class CrateListeners implements Listener {
             return;
 
         if (crate.get().open(plugin, event.getPlayer())) {
-            item.setAmount(item.getAmount() - 1);
+            // because bukkit is inconsistent as shit
+            if (item.getAmount() > 1)
+                item.setAmount(item.getAmount() - 1);
+            else
+                item.setType(Material.AIR);
         }
     }
 

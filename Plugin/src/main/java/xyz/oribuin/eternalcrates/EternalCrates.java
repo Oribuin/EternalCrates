@@ -1,12 +1,12 @@
 package xyz.oribuin.eternalcrates;
 
-import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Chicken;
 import org.bukkit.persistence.PersistentDataType;
 import xyz.oribuin.eternalcrates.command.CrateCommand;
 import xyz.oribuin.eternalcrates.listener.AnimationListeners;
 import xyz.oribuin.eternalcrates.listener.CrateListeners;
+import xyz.oribuin.eternalcrates.listener.PlayerListeners;
 import xyz.oribuin.eternalcrates.manager.AnimationManager;
 import xyz.oribuin.eternalcrates.manager.CrateManager;
 import xyz.oribuin.eternalcrates.manager.DataManager;
@@ -46,6 +46,7 @@ public class EternalCrates extends OriPlugin {
         // Register Listeners
         this.getServer().getPluginManager().registerEvents(new AnimationListeners(this), this);
         this.getServer().getPluginManager().registerEvents(new CrateListeners(this), this);
+        this.getServer().getPluginManager().registerEvents(new PlayerListeners(this), this);
 
         // Register Plugin Command
         new CrateCommand(this);
