@@ -25,23 +25,21 @@ public class EternalCrates extends OriPlugin {
 
     @Override
     public void enablePlugin() {
-        instance = this;
-
         // Make sure the server is using 1.16+
         if (NMSUtil.getVersionNumber() < 16) {
             this.getLogger().severe("You cannot use EternalCrates on 1." + NMSUtil.getVersionNumber() + ", We are limited to 1.16+");
             return;
         }
+        instance = this;
 
+        // Refresh active users list
         this.activeUsers = new ArrayList<>();
 
-        // Load Plugin Managers Asynchronously.
-        this.getServer().getScheduler().runTaskAsynchronously(this, () -> {
-            this.getManager(AnimationManager.class);
-            this.getManager(CrateManager.class);
-            this.getManager(DataManager.class);
-            this.getManager(MessageManager.class);
-        });
+        // Load Other Plugin Managers Later Asynchronously.
+        this.getManager(AnimationManager.class);
+        this.getManager(CrateManager.class);
+        this.getManager(DataManager.class);
+        this.getManager(MessageManager.class);
 
         // Register Listeners
         this.getServer().getPluginManager().registerEvents(new AnimationListeners(this), this);
@@ -50,7 +48,6 @@ public class EternalCrates extends OriPlugin {
 
         // Register Plugin Command
         new CrateCommand(this);
-
     }
 
     @Override

@@ -12,6 +12,7 @@ import org.bukkit.inventory.ItemStack;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.animation.*;
 import xyz.oribuin.eternalcrates.animation.defaults.*;
+import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.particle.ParticleData;
 import xyz.oribuin.eternalcrates.util.PluginUtils;
 import xyz.oribuin.gui.Item;
@@ -73,31 +74,20 @@ public class AnimationManager extends Manager {
      */
     public Optional<? extends Animation> getAnimationFromConfig(final FileConfiguration config) {
 
-        // get the base optional animation.
-        final Optional<Animation> optional = this.getAnimation(config.getString("animation.name"));
-        if (optional.isEmpty())
+        // get the base animation.
+        Optional<? extends Animation> animation = this.getAnimation(config.getString("animation.name"));
+        if (animation.isEmpty())
             return Optional.empty();
 
-        switch (optional.get().getAnimationType()) {
-            case PARTICLES -> {
-                return getParticleAni(config, optional.get());
-            }
-            case GUI -> {
-                return getGuiAnimation(config, optional.get());
-            }
-            case FIREWORKS -> {
-                return Optional.of((FireworkAnimation) optional.get());
-            }
-            case CUSTOM -> {
-                return Optional.of((CustomAnimation) optional.get());
-            }
-            case NONE -> {
-                return Optional.of((EmptyAnimation) optional.get());
-            }
-
+        switch (animation.get().getAnimationType()) {
+            case PARTICLES -> animation = getParticleAni(config, animation.get());
+            case GUI -> animation = getGuiAnimation(config, animation.get());
+            case FIREWORKS -> animation = Optional.of((FireworkAnimation) animation.get());
+            case CUSTOM -> animation = Optional.of((CustomAnimation) animation.get());
+            case NONE -> animation = Optional.of((EmptyAnimation) animation.get());
         }
 
-        return Optional.empty();
+        return animation;
     }
 
     private Optional<ParticleAnimation> getParticleAni(final FileConfiguration config, final Animation animation) {
@@ -169,9 +159,22 @@ public class AnimationManager extends Manager {
      *
      * @param animation The animation being registered.
      */
-    public static void registerAnimation(Animation animation) {
-        EternalCrates.getInstance().getLogger().info("Registered Crate Animation: " + animation.getName());
-        EternalCrates.getInstance().getManager(AnimationManager.class).getCachedAnimations().put(animation.getName(), animation);
+    public static void register(Animation animation) {
+        final EternalCrates plugin = EternalCrates.getInstance();
+        plugin.getLogger().info("Registered Crate Animation: " + animation.getName());
+        plugin.getManager(AnimationManager.class).getCachedAnimations().put(animation.getName(), animation);
+
+        final CrateManager crateManager = plugin.getManager(CrateManager.class);
+
+        // Recreate any crates that weren't registered as animations.
+        new HashSet<>(crateManager.getUnregisteredCrates().entrySet()).forEach(x -> {
+            crateManager.getUnregisteredCrates().remove(x.getKey());
+
+            Crate crate = crateManager.createCreate(x.getValue());
+            if (crate != null) {
+                crateManager.getCachedCrates().put(crate.getId(), crate);
+            }
+        });
     }
 
     /**

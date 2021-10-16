@@ -31,6 +31,7 @@ public class CrateManager extends Manager {
     private final AnimationManager animationManager = this.plugin.getManager(AnimationManager.class);
 
     private final Map<String, Crate> cachedCrates = new HashMap<>();
+    private final Map<String, FileConfiguration> unregisteredCrates = new HashMap<>();
 
     public CrateManager(EternalCrates plugin) {
         super(plugin);
@@ -54,12 +55,12 @@ public class CrateManager extends Manager {
 
         Arrays.stream(files).filter(file -> file.getName().toLowerCase().endsWith(".yml"))
                 .forEach(file -> {
-                    final Crate crate = this.createCreate(YamlConfiguration.loadConfiguration(file));
+                    final FileConfiguration config = YamlConfiguration.loadConfiguration(file);
+                    final Crate crate = this.createCreate(config);
                     if (crate == null)
                         return;
 
                     this.cachedCrates.put(crate.getId().toLowerCase(), crate);
-                    this.plugin.getLogger().info("Registered Crate: " + crate.getId() + " with " + crate.getRewardMap().size() + " rewards!");
                 });
     }
 
@@ -97,6 +98,7 @@ public class CrateManager extends Manager {
      * @return The crate.
      */
     public Crate createCreate(final FileConfiguration config) {
+
         final Optional<String> name = Optional.ofNullable(config.getString("name"));
         if (name.isEmpty())
             return null;
@@ -108,7 +110,8 @@ public class CrateManager extends Manager {
         // this line isn't dumb
         final Optional<? extends Animation> animation = animationManager.getAnimationFromConfig(config);
         if (animation.isEmpty()) {
-            this.plugin.getLogger().warning("Unable to load the crate due to an invalid animation.");
+            this.plugin.getLogger().warning("Unable to register crate " + name.get());
+            this.unregisteredCrates.put(name.get().toLowerCase(), config);
             return null;
         }
 
@@ -187,10 +190,15 @@ public class CrateManager extends Manager {
         final PersistentDataContainer cont = meta.getPersistentDataContainer();
         cont.set(new NamespacedKey(plugin, "crateKey"), PersistentDataType.STRING, crate.getId().toLowerCase());
         item.setItemMeta(meta);
-
         crate.setKey(item);
-
+        this.plugin.getLogger().info("Registered Crate: " + crate.getId() + " with " + crate.getRewardMap().size() + " rewards!");
         return crate;
+    }
+
+
+    @Override
+    public void disable() {
+        this.cachedCrates.clear();
     }
 
     /**
@@ -219,6 +227,10 @@ public class CrateManager extends Manager {
 
     public Map<String, Crate> getCachedCrates() {
         return cachedCrates;
+    }
+
+    public Map<String, FileConfiguration> getUnregisteredCrates() {
+        return unregisteredCrates;
     }
 
 }

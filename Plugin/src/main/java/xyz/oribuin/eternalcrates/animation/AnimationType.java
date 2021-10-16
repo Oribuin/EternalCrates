@@ -5,8 +5,8 @@ public enum AnimationType {
     GUI,
     PARTICLES,
     FIREWORKS,
-//    HOLOGRAM, Unused until I added a hologram API
+    //    HOLOGRAM, Unused until I added a hologram API
     CUSTOM,
-    NONE
+    NONE,
 
 }

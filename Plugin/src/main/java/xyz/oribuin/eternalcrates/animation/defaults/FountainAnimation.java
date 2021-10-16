@@ -20,8 +20,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class FountainAnimation extends CustomAnimation {
 
-    private final Random random = new Random();
-
     public FountainAnimation() {
         super("fountain", "Oribuin");
     }
@@ -36,8 +34,6 @@ public class FountainAnimation extends CustomAnimation {
         this.setInAnimation(true);
 
         final List<Item> items = new ArrayList<>();
-
-
         final ThreadLocalRandom random = ThreadLocalRandom.current();
 
         rewards.forEach(reward -> {
@@ -61,7 +57,6 @@ public class FountainAnimation extends CustomAnimation {
         });
 
         Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), x -> {
-
             this.setInAnimation(false);
             items.forEach(Item::remove);
         }, 60);
