@@ -1,17 +1,24 @@
 package xyz.oribuin.eternalcrates.manager;
 
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.action.*;
 import xyz.oribuin.eternalcrates.animation.Animation;
 import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.crate.Reward;
 import xyz.oribuin.eternalcrates.util.PluginUtils;
+import xyz.oribuin.gui.Item;
 import xyz.oribuin.orilibrary.manager.Manager;
+import xyz.oribuin.orilibrary.util.HexUtils;
 
 import java.io.File;
 import java.util.*;
@@ -112,7 +119,7 @@ public class CrateManager extends Manager {
 
         final AtomicInteger id = new AtomicInteger(0);
         section.getKeys(false).forEach(s -> {
-            final ItemStack item = this.animationManager.itemFromSection(config, section.getCurrentPath() + "." + s);
+            final ItemStack item = this.animationManager.itemFromConfig(config, section.getCurrentPath() + "." + s);
             if (item == null)
                 return;
 
@@ -159,7 +166,28 @@ public class CrateManager extends Manager {
         crate.setAnimation(animation.get());
         crate.setDisplayName(displayName.get());
         crate.setRewardMap(rewards);
+        crate.setMaxRewards(Math.max(PluginUtils.get(config, "max-rewards", 1), 1));
+        ItemStack item = new Item.Builder(animationManager.itemFromConfig(config, "key"))
+                .setNBT(plugin, "crateKey", crate.getId().toLowerCase())
+                .create();
 
+        if (item == null) {
+            item = new Item.Builder(Material.TRIPWIRE_HOOK)
+                    .setName(HexUtils.colorify("#99ff99&lCrate Key &7» &f" + crate.getId()))
+                    .glow(true)
+                    .setLore(HexUtils.colorify("&7A key to open the " + crate.getId().toLowerCase() + " crate!"),
+                            "",
+                            HexUtils.colorify("&7Right-Click on the #99ff99&l" + crate.getId() + " &7crate to open")
+                    )
+                    .create();
+        }
+        final ItemMeta meta = item.getItemMeta();
+        assert meta != null;
+        final PersistentDataContainer cont = meta.getPersistentDataContainer();
+        cont.set(new NamespacedKey(plugin, "crateKey"), PersistentDataType.STRING, crate.getId().toLowerCase());
+        item.setItemMeta(meta);
+
+        crate.setKey(item);
 
         return crate;
     }

@@ -1,7 +1,16 @@
 name: Fountain
 display-name: 'Fountain Crate'
+max-rewards: 1
 animation:
   name: 'fountain'
+key:
+  material: TRIPWIRE_HOOK
+  glow: true
+  name: '#99ff99&lCrate Key &7» &fFountain'
+  lore:
+    - '&7A key to open the fountain crate!'
+    - ''
+    - '&7Right-Click on the #99ff99&lFountain &7crate to open!'
 rewards:
   '1':
     material: STONE

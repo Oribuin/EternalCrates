@@ -22,9 +22,10 @@ import java.util.stream.Collectors;
         playerOnly = false,
         subCommands = {
                 AnimationsCommand.class,
+                GiveCommand.class,
                 PreviewCommand.class,
                 ReloadCommand.class,
-                SetCommand.class
+                SetCommand.class,
         }
 )
 public class CrateCommand extends Command {

@@ -1,8 +1,16 @@
 name: Celebration
 display-name: 'Celebration Crate'
+max-rewards: 1
 animation:
     name: 'celebration'
-    
+key:
+  material: TRIPWIRE_HOOK
+  glow: true
+  name: '#99ff99&lCrate Key &7» &fCelebration'
+  lore:
+    - '&7A key to open the celebration crate!'
+    - ''
+    - '&7Right-Click on the #99ff99&lCelebration &7crate to open!'
 rewards:
   '1':
     material: STONE

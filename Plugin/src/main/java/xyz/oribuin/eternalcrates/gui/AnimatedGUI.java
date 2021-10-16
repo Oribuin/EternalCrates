@@ -46,7 +46,8 @@ public class AnimatedGUI {
                 .forEach(entry -> gui.setItem(entry.getKey(), entry.getValue(), e -> {}));
 
         // Select a reward.
-        Reward finalReward = crate.selectReward();
+        final List<Reward> wonRewards = crate.createRewards();
+        Reward finalReward = wonRewards.get(0);
         List<Reward> rewards = new ArrayList<>();
 
         // We add the reward first so that it doesnt spin indefinitely
@@ -85,7 +86,7 @@ public class AnimatedGUI {
 
             if (rotationCount.get() == animation.getRotationCount()) {
                 baseTask.cancel();
-                animation.finishFunction(finalReward, player);
+                wonRewards.forEach(reward -> animation.finishFunction(reward, player));
             }
         }, 0, 4);
 

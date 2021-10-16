@@ -132,7 +132,7 @@ public class AnimationManager extends Manager {
         if (!(animation instanceof GuiAnimation gui))
             return Optional.empty();
 
-        final ItemStack item = itemFromSection(config, "animation.filler-item");
+        final ItemStack item = itemFromConfig(config, "animation.filler-item");
 
         gui.setFillerItem(item);
 
@@ -142,7 +142,7 @@ public class AnimationManager extends Manager {
 
         // Add all the extra items to the gui
         section.getKeys(false).forEach(s -> {
-            ItemStack extraItem = itemFromSection(config, "animation.extras." + s);
+            ItemStack extraItem = itemFromConfig(config, "animation.extras." + s);
             int slot = PluginUtils.get(config, "animation.extras." + s + ".slot", 1);
             gui.getExtras().put(slot, extraItem);
         });
@@ -177,14 +177,14 @@ public class AnimationManager extends Manager {
     }
 
     /**
-     * Create an ItemStack from a config section, Please avert your eyes from this monstrosity.
+     * Create an ItemStack from a config  Please avert your eyes from this monstrosity.
      *
-     * @param section The config section the item is from.
-     * @param path    The path to the item.
+     * @param config The config the item is from.
+     * @param path   The path to the item.
      * @return The new ly created itemstack.
      */
-    public ItemStack itemFromSection(final FileConfiguration section, final String path) {
-        final String materialName = section.getString(path + ".material");
+    public ItemStack itemFromConfig(final FileConfiguration config, final String path) {
+        final String materialName = config.getString(path + ".material");
         if (materialName == null)
             return null;
 
@@ -195,17 +195,17 @@ public class AnimationManager extends Manager {
 
         // Yes I am aware this is a mess, I hate it too im sorry
         final Item.Builder itemBuilder = new Item.Builder(material)
-                .setName(HexUtils.colorify(PluginUtils.get(section, path + ".name", null)))
-                .setLore(PluginUtils.get(section, path + ".lore", new ArrayList<String>()).stream().map(HexUtils::colorify).collect(Collectors.toList()))
-                .setAmount(Math.max(PluginUtils.get(section, path + ".amount", 1), 1))
-                .glow(PluginUtils.get(section, path + ".glow", false))
-                .setTexture(PluginUtils.get(section, path + ".texture", null));
+                .setName(HexUtils.colorify(PluginUtils.get(config, path + ".name", null)))
+                .setLore(PluginUtils.get(config, path + ".lore", new ArrayList<String>()).stream().map(HexUtils::colorify).collect(Collectors.toList()))
+                .setAmount(Math.max(PluginUtils.get(config, path + ".amount", 1), 1))
+                .glow(PluginUtils.get(config, path + ".glow", false))
+                .setTexture(PluginUtils.get(config, path + ".texture", null));
 
-        if (section.get(path + ".owner") != null)
-            itemBuilder.setOwner(Bukkit.getOfflinePlayer(UUID.fromString(PluginUtils.get(section, path + ".owner", null))));
+        if (config.get(path + ".owner") != null)
+            itemBuilder.setOwner(Bukkit.getOfflinePlayer(UUID.fromString(PluginUtils.get(config, path + ".owner", null))));
 
         // Add any enchantments
-        final ConfigurationSection enchants = section.getConfigurationSection(path + ".enchants");
+        final ConfigurationSection enchants = config.getConfigurationSection(path + ".enchants");
         if (enchants != null)
             enchants.getKeys(false).forEach(s -> {
 
@@ -221,7 +221,7 @@ public class AnimationManager extends Manager {
 
         ItemStack item = itemBuilder.create();
         // Add any nbt tags somehow, I pray this works.
-        final ConfigurationSection nbt = section.getConfigurationSection(path + ".nbt");
+        final ConfigurationSection nbt = config.getConfigurationSection(path + ".nbt");
         if (nbt != null) {
             for (String s : nbt.getKeys(false))
                 item = NBTEditor.set(item, nbt.get(s), s);

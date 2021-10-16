@@ -1,5 +1,6 @@
 name: CSGO
 display-name: 'Csgo Crate'
+max-rewards: 1
 animation:
   name: 'csgo'
   gui:
@@ -16,7 +17,14 @@ animation:
       name: '#99ff99Your Reward!'
       material: HOPPER
       slot: 22
-
+key:
+  material: TRIPWIRE_HOOK
+  glow: true
+  name: '#99ff99&lCrate Key &7» &fCSGO'
+  lore:
+    - '&7A key to open the CSGO crate!'
+    - ''
+    - '&7Right-Click on the #99ff99&lCSGO &7crate to open!'
 rewards:
   '1':
     material: STONE

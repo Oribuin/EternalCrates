@@ -37,7 +37,7 @@ public abstract class ParticleAnimation extends Animation {
      * @param loc   The location of the particle
      * @param count the amount of particles being spawned
      */
-    public void play(Crate crate, Location loc, int count, Player player) {;
+    public void play(Crate crate, Location loc, int count, Player player) {
 
         final BukkitTask task = Bukkit.getScheduler().runTaskTimerAsynchronously(EternalCrates.getInstance(), () -> {
             this.updateTimer();
@@ -46,7 +46,9 @@ public abstract class ParticleAnimation extends Animation {
 
         Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), x -> {
             task.cancel();
-            finishFunction(crate.selectReward(), player);
+            for (int i = 0; i < crate.getMaxRewards(); i++)
+                finishFunction(crate.selectReward(), player);
+
         }, this.getLength());
 
     }

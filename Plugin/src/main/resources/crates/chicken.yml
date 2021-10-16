@@ -1,7 +1,16 @@
 name: Chicken
 display-name: 'Chicken Crate'
+max-rewards: 1
 animation:
   name: 'chicken'
+key:
+  material: TRIPWIRE_HOOK
+  glow: true
+  name: '#99ff99&lCrate Key &7» &fChicken'
+  lore:
+    - '&7A key to open the chicken crate!'
+    - ''
+    - '&7Right-Click on the #99ff99&lChicken &7crate to open!'
 rewards:
   '1':
     material: STONE

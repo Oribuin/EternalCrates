@@ -3,6 +3,7 @@ package xyz.oribuin.eternalcrates.crate;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.animation.Animation;
 import xyz.oribuin.eternalcrates.animation.CustomAnimation;
@@ -12,7 +13,9 @@ import xyz.oribuin.eternalcrates.event.CrateOpenEvent;
 import xyz.oribuin.eternalcrates.gui.AnimatedGUI;
 import xyz.oribuin.eternalcrates.util.PluginUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -23,6 +26,8 @@ public class Crate {
     private Map<Reward, Double> rewardMap;
     private Animation animation;
     private Location location;
+    private ItemStack key;
+    private int maxRewards;
 
     public Crate(final String id) {
         this.id = id;
@@ -30,6 +35,7 @@ public class Crate {
         this.setRewardMap(new HashMap<>());
         this.setAnimation(null);
         this.location = null;
+        this.maxRewards = 1;
     }
 
     /**
@@ -38,22 +44,22 @@ public class Crate {
      * @param plugin The plugin instance.
      * @param player The player who is opening the crate
      */
-    public void open(EternalCrates plugin, Player player) {
+    public boolean open(EternalCrates plugin, Player player) {
 
         if (plugin.getActiveUsers().contains(player.getUniqueId())) {
             System.out.println("wont run, in active users");
-            return;
+            return false;
         }
 
         if (animation.isInAnimation()) {
             System.out.println("wont run, in animation");
-            return;
+            return false;
         }
 
         final CrateOpenEvent event = new CrateOpenEvent(this, player);
         Bukkit.getPluginManager().callEvent(event);
         if (event.isCancelled())
-            return;
+            return false;
 
         plugin.getActiveUsers().add(player.getUniqueId());
 
@@ -69,6 +75,16 @@ public class Crate {
             case HOLOGRAM -> {
             }
         }
+
+        return true;
+    }
+
+    public List<Reward> createRewards() {
+        final List<Reward> rewards = new ArrayList<>();
+        for (int i = 0; i < this.maxRewards; i++)
+            rewards.add(this.selectReward());
+
+        return rewards;
     }
 
     public Reward selectReward() {
@@ -124,6 +140,22 @@ public class Crate {
 
     public void setLocation(Location location) {
         this.location = location;
+    }
+
+    public ItemStack getKey() {
+        return key;
+    }
+
+    public void setKey(ItemStack key) {
+        this.key = key;
+    }
+
+    public int getMaxRewards() {
+        return maxRewards;
+    }
+
+    public void setMaxRewards(int maxRewards) {
+        this.maxRewards = maxRewards;
     }
 
 }

@@ -1,8 +1,16 @@
 name: Sparkles
 display-name: 'Sparkles Crate'
+max-rewards: 2
 animation:
     name: 'sparkle'
-    
+key:
+  material: TRIPWIRE_HOOK
+  glow: true
+  name: '#99ff99&lCrate Key &7» &fSparkles'
+  lore:
+    - '&7A key to open the sparkles crate!'
+    - ''
+    - '&7Right-Click on the #99ff99&lSparkles &7crate to open!'
 rewards:
   '1':
     material: STONE

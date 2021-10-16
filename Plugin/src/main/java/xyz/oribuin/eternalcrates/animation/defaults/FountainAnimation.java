@@ -32,28 +32,30 @@ public class FountainAnimation extends CustomAnimation {
         if (world == null)
             return;
 
-        final Reward reward = crate.selectReward();
-        finishFunction(reward, player);
+        final List<Reward> rewards = crate.createRewards();
         this.setInAnimation(true);
 
         final List<Item> items = new ArrayList<>();
 
         final ThreadLocalRandom random = ThreadLocalRandom.current();
-        for (int i = 0; i < 20; i++) {
-            Item item = world.spawn(location.clone(), Item.class, x -> {
-                x.setItemStack(reward.getDisplayItem());
-                x.setPickupDelay(Integer.MAX_VALUE);
-                x.setInvulnerable(true);
-                x.getPersistentDataContainer().set(new NamespacedKey(EternalCrates.getInstance(), "item"), PersistentDataType.INTEGER, 1);
-            });
 
-            double vectorX = random.nextDouble(-0.2, 0.2);
-            double vectorY = random.nextDouble(0.5);
-            double vectorZ = random.nextDouble(-0.2, 0.2);
+        rewards.forEach(reward -> {
+            for (int i = 0; i < rewards.size() * 10; i++) {
+                Item item = world.spawn(location.clone(), Item.class, x -> {
+                    x.setItemStack(reward.getDisplayItem());
+                    x.setPickupDelay(Integer.MAX_VALUE);
+                    x.setInvulnerable(true);
+                    x.getPersistentDataContainer().set(new NamespacedKey(EternalCrates.getInstance(), "item"), PersistentDataType.INTEGER, 1);
+                });
 
-            item.setVelocity(item.getVelocity().clone().add(new Vector(vectorX, vectorY, vectorZ)));
-            items.add(item);
-        }
+                double vectorX = random.nextDouble(-0.2, 0.2);
+                double vectorY = random.nextDouble(0.5);
+                double vectorZ = random.nextDouble(-0.2, 0.2);
+
+                item.setVelocity(item.getVelocity().clone().add(new Vector(vectorX, vectorY, vectorZ)));
+                items.add(item);
+            }
+        });
 
         Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), x -> {
             this.setInAnimation(false);

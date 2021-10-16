@@ -7,9 +7,7 @@ import org.bukkit.persistence.PersistentDataType;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.animation.CustomAnimation;
 import xyz.oribuin.eternalcrates.crate.Crate;
-import xyz.oribuin.eternalcrates.manager.AnimationManager;
 
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class ChickenAnimation extends CustomAnimation {

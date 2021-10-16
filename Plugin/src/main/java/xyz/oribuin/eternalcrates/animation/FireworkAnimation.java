@@ -80,7 +80,7 @@ public abstract class FireworkAnimation extends Animation {
 
                 if (integer == this.fireworkMap.size()) {
                     this.setInAnimation(false);
-                    this.finishFunction(crate.selectReward(), player);
+                    crate.createRewards().forEach(reward -> this.finishFunction(reward, player));
                 }
 
                 firework.detonate();
