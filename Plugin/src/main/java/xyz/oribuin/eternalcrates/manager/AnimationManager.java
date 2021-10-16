@@ -1,14 +1,22 @@
 package xyz.oribuin.eternalcrates.manager;
 
+import io.github.bananapuncher714.nbteditor.NBTEditor;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.ItemStack;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.animation.*;
 import xyz.oribuin.eternalcrates.animation.defaults.*;
 import xyz.oribuin.eternalcrates.particle.ParticleData;
 import xyz.oribuin.eternalcrates.util.PluginUtils;
+import xyz.oribuin.gui.Item;
 import xyz.oribuin.orilibrary.manager.Manager;
+import xyz.oribuin.orilibrary.util.HexUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -75,7 +83,7 @@ public class AnimationManager extends Manager {
                 return getParticleAni(config, optional.get());
             }
             case GUI -> {
-                return Optional.of((GuiAnimation) optional.get());
+                return getGuiAnimation(config, optional.get());
             }
             case FIREWORKS -> {
                 return Optional.of((FireworkAnimation) optional.get());
@@ -103,22 +111,43 @@ public class AnimationManager extends Manager {
                 .orElse(Particle.FLAME);
 
         final ParticleData particleData = new ParticleData(particle);
-
-        particleData.setNote(config.getInt("animation.note"));
-        if (config.getString("animation.color") != null)
-            particleData.setDustColor(PluginUtils.fromHex(config.getString("animation.color")));
-
-        if (config.getString("animation.transition") != null)
-            particleData.setDustColor(PluginUtils.fromHex(config.getString("animation.transition")));
-
-        if (config.getString("animation.item") != null)
-            particleData.setItemMaterial(Material.matchMaterial(config.getString("animation.item")));
-
-        if (config.getString("animation.block") != null)
-            particleData.setBlockMaterial(Material.matchMaterial(config.getString("animation.block")));
+        particleData.setDustColor(PluginUtils.fromHex(PluginUtils.get(config, "animation.color", "#FFFFFF")));
+        particleData.setTransitionColor(PluginUtils.fromHex(PluginUtils.get(config, "animation.transition", "#ff0000")));
+        particleData.setNote(PluginUtils.get(config, "animation.note", 1));
+        particleData.setItemMaterial(Material.matchMaterial(PluginUtils.get(config, "animation.item", "DIRT")));
+        particleData.setBlockMaterial(Material.matchMaterial(PluginUtils.get(config, "animation.block", "BLOCK")));
 
         particleAni.setParticleData(particleData);
         return Optional.of(particleAni);
+    }
+
+    /**
+     * Get a gui animation values from the config.
+     *
+     * @param config    The file configuration
+     * @param animation The base animation
+     * @return The GUI Animation.
+     */
+    public Optional<GuiAnimation> getGuiAnimation(FileConfiguration config, Animation animation) {
+        if (!(animation instanceof GuiAnimation gui))
+            return Optional.empty();
+
+        final ItemStack item = itemFromSection(config, "animation.filler-item");
+
+        gui.setFillerItem(item);
+
+        final ConfigurationSection section = config.getConfigurationSection("animation.extras");
+        if (section == null)
+            return Optional.of(gui);
+
+        // Add all the extra items to the gui
+        section.getKeys(false).forEach(s -> {
+            ItemStack extraItem = itemFromSection(config, "animation.extras." + s);
+            int slot = PluginUtils.get(config, "animation.extras." + s + ".slot", 1);
+            gui.getExtras().put(slot, extraItem);
+        });
+
+        return Optional.of(gui);
     }
 
     /**
@@ -145,6 +174,60 @@ public class AnimationManager extends Manager {
     public static void registerAnimation(Animation animation) {
         EternalCrates.getInstance().getLogger().info("Registered Crate Animation: " + animation.getName());
         EternalCrates.getInstance().getManager(AnimationManager.class).getCachedAnimations().put(animation.getName(), animation);
+    }
+
+    /**
+     * Create an ItemStack from a config section, Please avert your eyes from this monstrosity.
+     *
+     * @param section The config section the item is from.
+     * @param path    The path to the item.
+     * @return The new ly created itemstack.
+     */
+    public ItemStack itemFromSection(final FileConfiguration section, final String path) {
+        final String materialName = section.getString(path + ".material");
+        if (materialName == null)
+            return null;
+
+        final Material material = Material.matchMaterial(materialName.toUpperCase());
+
+        if (material == null || !material.isItem())
+            return null;
+
+        // Yes I am aware this is a mess, I hate it too im sorry
+        final Item.Builder itemBuilder = new Item.Builder(material)
+                .setName(HexUtils.colorify(PluginUtils.get(section, path + ".name", null)))
+                .setLore(PluginUtils.get(section, path + ".lore", new ArrayList<String>()).stream().map(HexUtils::colorify).collect(Collectors.toList()))
+                .setAmount(Math.max(PluginUtils.get(section, path + ".amount", 1), 1))
+                .glow(PluginUtils.get(section, path + ".glow", false))
+                .setTexture(PluginUtils.get(section, path + ".texture", null));
+
+        if (section.get(path + ".owner") != null)
+            itemBuilder.setOwner(Bukkit.getOfflinePlayer(UUID.fromString(PluginUtils.get(section, path + ".owner", null))));
+
+        // Add any enchantments
+        final ConfigurationSection enchants = section.getConfigurationSection(path + ".enchants");
+        if (enchants != null)
+            enchants.getKeys(false).forEach(s -> {
+
+                // Get enchantment by name
+                final Enchantment enchantment = Enchantment.getByKey(NamespacedKey.minecraft(s.toLowerCase()));
+                if (enchantment == null) {
+                    return;
+                }
+
+                // Add enchantment to item
+                itemBuilder.addEnchant(enchantment, PluginUtils.get(enchants, s, 1));
+            });
+
+        ItemStack item = itemBuilder.create();
+        // Add any nbt tags somehow, I pray this works.
+        final ConfigurationSection nbt = section.getConfigurationSection(path + ".nbt");
+        if (nbt != null) {
+            for (String s : nbt.getKeys(false))
+                item = NBTEditor.set(item, nbt.get(s), s);
+        }
+
+        return item;
     }
 
 }

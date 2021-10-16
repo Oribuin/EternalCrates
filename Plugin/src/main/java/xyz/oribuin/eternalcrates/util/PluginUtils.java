@@ -2,6 +2,7 @@ package xyz.oribuin.eternalcrates.util;
 
 import org.bukkit.Color;
 import org.bukkit.Location;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.orilibrary.util.FileUtils;
@@ -97,4 +98,29 @@ public final class PluginUtils {
         return Color.fromRGB(color.getRed(), color.getGreen(), color.getBlue());
     }
 
+    /**
+     * Get a configuration value or default from the file config
+     *
+     * @param config The configuration file.
+     * @param path   The path to the value
+     * @param def    The default value if the original value doesnt exist
+     * @return The config value or default value.
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T get(FileConfiguration config, String path, T def) {
+        return config.get(path) != null ? (T) config.get(path) : def;
+    }
+
+    /**
+     * Get a value from a configuration section.
+     *
+     * @param section The configuration section
+     * @param path    The path to the option.
+     * @param def     The default value for the option.
+     * @return The config option or the default.
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T get(ConfigurationSection section, String path, T def) {
+        return section.get(path) != null ? (T) section.get(path) : def;
+    }
 }

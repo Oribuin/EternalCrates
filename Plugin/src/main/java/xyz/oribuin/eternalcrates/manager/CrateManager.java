@@ -1,14 +1,9 @@
 package xyz.oribuin.eternalcrates.manager;
 
-import io.github.bananapuncher714.nbteditor.NBTEditor;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.action.*;
@@ -16,14 +11,11 @@ import xyz.oribuin.eternalcrates.animation.Animation;
 import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.crate.Reward;
 import xyz.oribuin.eternalcrates.util.PluginUtils;
-import xyz.oribuin.gui.Item;
 import xyz.oribuin.orilibrary.manager.Manager;
-import xyz.oribuin.orilibrary.util.HexUtils;
 
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 @SuppressWarnings("unchecked")
 public class CrateManager extends Manager {
@@ -92,7 +84,7 @@ public class CrateManager extends Manager {
     }
 
     /**
-     * Create a creation from a file configuration
+     * Create a creation from a file configuration, Seriously avert your eyes holy shit
      *
      * @param config The config the crate is being created from
      * @return The crate.
@@ -120,7 +112,7 @@ public class CrateManager extends Manager {
 
         final AtomicInteger id = new AtomicInteger(0);
         section.getKeys(false).forEach(s -> {
-            final ItemStack item = this.itemFromSection(section, s);
+            final ItemStack item = this.animationManager.itemFromSection(config, section.getCurrentPath() + "." + s);
             if (item == null)
                 return;
 
@@ -170,63 +162,6 @@ public class CrateManager extends Manager {
 
 
         return crate;
-    }
-
-
-    // Avert your eyes, please
-
-    /**
-     * Create an ItemStack from a config section
-     *
-     * @param section The config section the item is from.
-     * @param key     The key to the item.
-     * @return The new ly created itemstack.
-     */
-    public ItemStack itemFromSection(final ConfigurationSection section, final String key) {
-        final String materialName = section.getString(key + ".material");
-        if (materialName == null)
-            return null;
-
-        final Material material = Material.matchMaterial(materialName.toUpperCase());
-
-        if (material == null || !material.isItem())
-            return null;
-
-        // Yes I am aware this is a mess, I hate it too im sorry
-        final Item.Builder itemBuilder = new Item.Builder(material)
-                .setName(HexUtils.colorify(this.get(section, key + ".name", null)))
-                .setLore(this.get(section, key + ".lore", new ArrayList<String>()).stream().map(HexUtils::colorify).collect(Collectors.toList()))
-                .setAmount(Math.max(this.get(section, key + ".amount", 1), 1))
-                .glow(this.get(section, key + ".glow", false))
-                .setTexture(this.get(section, key + ".texture", null));
-
-        if (section.get(key + ".owner") != null)
-            itemBuilder.setOwner(Bukkit.getOfflinePlayer(UUID.fromString(this.get(section, key + ".owner", null))));
-
-        // Add any enchantments
-        final ConfigurationSection enchants = section.getConfigurationSection(key + ".enchants");
-        if (enchants != null)
-            enchants.getKeys(false).forEach(s -> {
-
-                // Get enchantment by name
-                final Enchantment enchantment = Enchantment.getByKey(NamespacedKey.minecraft(s.toLowerCase()));
-                if (enchantment == null) {
-                    return;
-                }
-
-                // Add enchantment to item
-                itemBuilder.addEnchant(enchantment, this.get(enchants, s, 1));
-            });
-
-        ItemStack item = itemBuilder.create();
-        // Add any nbt tags somehow, I pray this works.
-        final ConfigurationSection nbt = section.getConfigurationSection(key + ".nbt");
-        if (nbt != null) {
-            for (String s : nbt.getKeys(false))
-                item = NBTEditor.set(item, nbt.get(s), s);
-        }
-
-        return item;
     }
 
     /**

@@ -2,6 +2,21 @@ name: CSGO
 display-name: 'Csgo Crate'
 animation:
   name: 'csgo'
+  gui:
+  filler-item:
+    name: ' '
+    material: GRAY_STAINED_GLASS_PANE
+    amount: 1
+  extras:
+    1:
+      name: '#99ff99Your Reward!'
+      material: HOPPER
+      slot: 4
+    2:
+      name: '#99ff99Your Reward!'
+      material: HOPPER
+      slot: 22
+
 rewards:
   '1':
     material: STONE
