@@ -7,10 +7,12 @@ import org.bukkit.inventory.ItemStack;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.manager.CrateManager;
+import xyz.oribuin.eternalcrates.manager.DataManager;
 import xyz.oribuin.eternalcrates.manager.MessageManager;
 import xyz.oribuin.orilibrary.command.SubCommand;
 import xyz.oribuin.orilibrary.util.StringPlaceholders;
 
+import java.util.List;
 import java.util.Optional;
 
 @SubCommand.Info(
@@ -73,7 +75,16 @@ public class GiveCommand extends SubCommand {
         int finalAmount = Math.max(Math.min(amount, 64), 1);
 
         item.setAmount(finalAmount);
-        target.getInventory().addItem(item);
+        if (target.getInventory().firstEmpty() == -1) {
+            final DataManager data = this.plugin.getManager(DataManager.class);
+            List<ItemStack> items = data.getItems(target.getUniqueId());
+
+            items.add(item);
+            data.saveUser(target.getUniqueId(), items);
+        } else {
+            target.getInventory().addItem(item);
+        }
+
 
         this.msg.send(sender, "saved-crate", StringPlaceholders.builder("crate", crateOptional.get().getDisplayName())
                 .addPlaceholder("amount", finalAmount)

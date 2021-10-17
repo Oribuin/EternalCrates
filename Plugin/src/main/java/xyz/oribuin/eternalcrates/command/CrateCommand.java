@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
         playerOnly = false,
         subCommands = {
                 AnimationsCommand.class,
+                ClaimCommand.class,
                 GiveCommand.class,
                 ReloadCommand.class,
                 SetCommand.class,

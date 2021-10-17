@@ -9,3 +9,20 @@ mysql:
   ssl: false
   # just for some spicy extra configuration
   table-name: 'eternalcrates'
+
+# Configure the claim gui here
+claim-gui:
+  title: 'Unclaimed Crate Keys'
+  border-item:
+    material: GRAY_STAINED_GLASS_PANE
+    name: ' '
+  next-page:
+    material: PAPER
+    name: '#99ff99&lNext &fPage »'
+    lore:
+      - '&7Click to go onto the next page.'
+  previous-page:
+    material: PAPER
+    name: '#99ff99&lPrevious &fPage »'
+    lore:
+      - '&7Click to go onto the previous page.'
