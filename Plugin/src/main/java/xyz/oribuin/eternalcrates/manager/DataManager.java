@@ -135,7 +135,6 @@ public class DataManager extends DataHandler {
      * @param items The unclaimed crate keys.
      */
     public void saveUser(UUID uuid, List<ItemStack> items) {
-        this.plugin.getLogger().warning("Saving user with " + items.size() + " items");
         this.cachedUsers.put(uuid, items);
 
         final String query = "REPLACE INTO " + this.getTableName() + "_items (player, items) VALUES (?, ?)";

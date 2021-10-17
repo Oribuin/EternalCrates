@@ -103,6 +103,29 @@ public class CrateListeners implements Listener {
         }
     }
 
+    @EventHandler
+    public void onKeyInteract(PlayerInteractEvent event) {
+
+        final ItemStack item = event.getItem();
+        if (item == null) {
+            return;
+        }
+
+        // Make sure the item has meta.
+        final ItemMeta meta = item.getItemMeta();
+        if (meta == null) {
+            return;
+        }
+
+        // Check if the crate key is a valid key
+        final PersistentDataContainer cont = meta.getPersistentDataContainer();
+        if (!cont.has(key, PersistentDataType.STRING)) {
+            return;
+        }
+
+        event.setCancelled(true);
+    }
+
     @EventHandler(priority = EventPriority.HIGH)
     public void onCratePreview(PlayerInteractEvent event) {
         final Player player = event.getPlayer();

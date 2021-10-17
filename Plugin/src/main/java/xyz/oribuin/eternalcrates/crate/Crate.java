@@ -49,13 +49,13 @@ public class Crate {
      */
     public boolean open(EternalCrates plugin, Player player) {
 
+        // Check if the user can open ac rate
         if (plugin.getActiveUsers().contains(player.getUniqueId())) {
-            System.out.println("wont run, in active users");
             return false;
         }
 
-        if (animation.isInAnimation()) {
-            System.out.println("wont run, in animation");
+        // Check if the crate is in animation.
+        if (animation.isActive()) {
             return false;
         }
 

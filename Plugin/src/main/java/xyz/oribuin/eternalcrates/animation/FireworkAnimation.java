@@ -48,10 +48,10 @@ public abstract class FireworkAnimation extends Animation {
      * @param loc   The location of the fireworks.
      */
     public void play(Crate crate, Location loc, Player player) {
-        if (this.isInAnimation())
+        if (this.isActive())
             return;
 
-        this.setInAnimation(true);
+        this.setActive(true);
         // Remove all the fireworks and register them again when the animation is played.
         this.fireworkMap.clear();
         this.registerFireworks(loc);
@@ -79,7 +79,7 @@ public abstract class FireworkAnimation extends Animation {
                 });
 
                 if (integer == this.fireworkMap.size()) {
-                    this.setInAnimation(false);
+                    this.setActive(false);
                     crate.createRewards().forEach(reward -> this.finishFunction(reward, player));
                 }
 

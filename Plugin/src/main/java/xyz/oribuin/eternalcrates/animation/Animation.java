@@ -2,7 +2,6 @@ package xyz.oribuin.eternalcrates.animation;
 
 import org.bukkit.entity.Player;
 import xyz.oribuin.eternalcrates.EternalCrates;
-import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.crate.Reward;
 
 public abstract class Animation {
@@ -10,7 +9,7 @@ public abstract class Animation {
     private final String name;
     private final AnimationType animationType;
     private final String author;
-    private boolean inAnimation = false;
+    private boolean active = false;
 
     public Animation(final String name, final AnimationType animationType, String author) {
         this.name = name;
@@ -26,7 +25,7 @@ public abstract class Animation {
      */
     public void finishFunction(Reward reward, Player player) {
 
-        this.setInAnimation(false);
+        this.setActive(false);
         EternalCrates.getInstance().getActiveUsers().remove(player.getUniqueId());
         reward.getActions().forEach(action -> action.executeAction(EternalCrates.getInstance(), player));
     }
@@ -43,12 +42,12 @@ public abstract class Animation {
         return author;
     }
 
-    public boolean isInAnimation() {
-        return inAnimation;
+    public boolean isActive() {
+        return active;
     }
 
-    public void setInAnimation(boolean inAnimation) {
-        this.inAnimation = inAnimation;
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
 }

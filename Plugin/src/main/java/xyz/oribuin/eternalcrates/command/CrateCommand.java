@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
         subCommands = {
                 AnimationsCommand.class,
                 ClaimCommand.class,
+                GiveallCommand.class,
                 GiveCommand.class,
                 ReloadCommand.class,
                 SetCommand.class,

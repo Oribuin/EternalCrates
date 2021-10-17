@@ -16,16 +16,16 @@ import java.util.List;
 import java.util.Optional;
 
 @SubCommand.Info(
-        names = {"give"},
-        permission = "eternalcrates.give",
-        usage = "/crate give <player> <crate> [amount]"
+        names = {"giveall"},
+        permission = "eternalcrates.giveall",
+        usage = "/crate giveall <crate> [amount]"
 )
-public class GiveCommand extends SubCommand {
+public class GiveallCommand extends SubCommand {
 
     private final EternalCrates plugin;
     private final MessageManager msg;
 
-    public GiveCommand(EternalCrates plugin) {
+    public GiveallCommand(EternalCrates plugin) {
         this.plugin = plugin;
         this.msg = this.plugin.getManager(MessageManager.class);
     }
@@ -39,20 +39,13 @@ public class GiveCommand extends SubCommand {
         }
 
         // Check argument length
-        if (args.length < 3) {
+        if (args.length < 2) {
             this.msg.send(sender, "invalid-args", StringPlaceholders.single("usage", this.getInfo().usage()));
             return;
         }
 
-        // Check if the player exists
-        final Player target = Bukkit.getPlayer(args[1]);
-        if (target == null) {
-            this.msg.send(sender, "invalid-player");
-            return;
-        }
-
         final CrateManager crateManager = this.plugin.getManager(CrateManager.class);
-        final Optional<Crate> crateOptional = crateManager.getCrate(args[2]);
+        final Optional<Crate> crateOptional = crateManager.getCrate(args[1]);
 
         // Check if the crate exists.
         if (crateOptional.isEmpty()) {
@@ -64,7 +57,7 @@ public class GiveCommand extends SubCommand {
         int amount = 1;
         if (args.length == 4) {
             try {
-                amount = Integer.parseInt(args[3]);
+                amount = Integer.parseInt(args[2]);
             } catch (NumberFormatException ignored) {
             }
         }
@@ -76,25 +69,28 @@ public class GiveCommand extends SubCommand {
 
         final StringPlaceholders placeholders = StringPlaceholders.builder("crate", crateOptional.get().getDisplayName())
                 .addPlaceholder("amount", finalAmount)
-                .addPlaceholder("player", target.getName())
                 .addPlaceholder("sender", player.getName())
                 .build();
 
         item.setAmount(finalAmount);
 
-        this.msg.send(target, "given-key", placeholders);
-        this.msg.send(sender, "gave-key", placeholders);
+        Bukkit.getOnlinePlayers().forEach(target -> {
 
-        if (target.getInventory().firstEmpty() == -1) {
-            final DataManager data = this.plugin.getManager(DataManager.class);
-            List<ItemStack> items = data.getItems(target.getUniqueId());
+            this.msg.send(target, "given-key", placeholders);
 
-            items.add(item);
-            data.saveUser(target.getUniqueId(), items);
-            this.msg.send(target, "saved-key", placeholders);
-        } else {
-            target.getInventory().addItem(item);
-        }
+            if (target.getInventory().firstEmpty() == -1) {
+                final DataManager data = this.plugin.getManager(DataManager.class);
+                List<ItemStack> items = data.getItems(target.getUniqueId());
 
+                items.add(item);
+                data.saveUser(target.getUniqueId(), items);
+                this.msg.send(target, "saved-key", placeholders);
+            } else {
+                target.getInventory().addItem(item);
+            }
+
+        });
+
+        this.msg.send(sender, "gaveall-key", placeholders);
     }
 }

@@ -15,7 +15,6 @@ import xyz.oribuin.eternalcrates.crate.Reward;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class FountainAnimation extends CustomAnimation {
@@ -31,7 +30,7 @@ public class FountainAnimation extends CustomAnimation {
             return;
 
         final List<Reward> rewards = crate.createRewards();
-        this.setInAnimation(true);
+        this.setActive(true);
 
         final List<Item> items = new ArrayList<>();
         final ThreadLocalRandom random = ThreadLocalRandom.current();
@@ -57,7 +56,7 @@ public class FountainAnimation extends CustomAnimation {
         });
 
         Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), x -> {
-            this.setInAnimation(false);
+            this.setActive(false);
             items.forEach(Item::remove);
         }, 60);
     }
