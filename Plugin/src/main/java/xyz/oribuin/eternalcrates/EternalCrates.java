@@ -1,7 +1,7 @@
 package xyz.oribuin.eternalcrates;
 
 import org.bukkit.NamespacedKey;
-import org.bukkit.entity.Chicken;
+import org.bukkit.entity.Entity;
 import org.bukkit.persistence.PersistentDataType;
 import xyz.oribuin.eternalcrates.command.CrateCommand;
 import xyz.oribuin.eternalcrates.listener.AnimationListeners;
@@ -52,11 +52,11 @@ public class EternalCrates extends OriPlugin {
 
     @Override
     public void disablePlugin() {
-        // Let's make sure there's no chickens left
-        this.getServer().getWorlds().forEach(world -> world.getEntitiesByClasses(Chicken.class).forEach(chicken -> {
-            if (chicken.getPersistentDataContainer().has(new NamespacedKey(this, "chicken"), PersistentDataType.INTEGER))
-                chicken.remove();
-        }));
+        // Let's make sure there's no EternalCrates Entities left
+        final NamespacedKey key = new NamespacedKey(this, "entity");
+        this.getServer().getWorlds().forEach(world -> world.getEntities().stream()
+                .filter(entity -> entity.getPersistentDataContainer().has(key, PersistentDataType.INTEGER))
+                .forEach(Entity::remove));
     }
 
 

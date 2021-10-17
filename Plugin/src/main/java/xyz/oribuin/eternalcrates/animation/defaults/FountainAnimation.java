@@ -44,7 +44,7 @@ public class FountainAnimation extends CustomAnimation {
                     x.setItemStack(reward.getDisplayItem());
                     x.setPickupDelay(Integer.MAX_VALUE);
                     x.setInvulnerable(true);
-                    x.getPersistentDataContainer().set(new NamespacedKey(EternalCrates.getInstance(), "item"), PersistentDataType.INTEGER, 1);
+                    x.getPersistentDataContainer().set(new NamespacedKey(EternalCrates.getInstance(), "entity"), PersistentDataType.INTEGER, 1);
                 });
 
                 double vectorX = random.nextDouble(-0.2, 0.2);
