@@ -113,10 +113,12 @@ public class DataManager extends DataHandler {
             return;
 
         final Location blockLoc = PluginUtils.getBlockLoc(crate.getLocation());
-        this.crateManager.getCachedCrates().remove(crate.getId());
+        crate.setLocation(null);
+        this.crateManager.getCachedCrates().put(crate.getId(), crate);
+
 
         this.async(t -> this.getConnector().connect(connection -> {
-            final String query = "DELETE FROM " + this.getTableName() + "_crates WHERE crate = ? AND WHERE world = ? AND x = ? AND y = ? AND z = ?";
+            final String query = "DELETE FROM " + this.getTableName() + "_crates WHERE crate = ? AND world = ? AND x = ? AND y = ? AND z = ?";
             try (PreparedStatement statement = connection.prepareStatement(query)) {
                 statement.setString(1, crate.getId().toLowerCase());
                 statement.setString(2, blockLoc.getWorld().getName());

@@ -125,6 +125,7 @@ public class MessageManager extends Manager {
         PREFIX("#99ff99&lEternalCrates &8| &f"),
         PREVIEWING_CRATE("You are previewing %crate%!"),
         SAVED_CRATE("You have set this block to %crate%!"),
+        UNSET_CRATE("You have removed the %crate% block!"),
         GAVE_KEY("You have given #99ff99%player% &fx%amount% #99ff99%crate%&f keys!"),
         GAVEALL_KEY("You have given everyone &fx%amount% #99ff99%crate%&f keys!"),
         INVALID_KEY("You need a %crate% key for this!"),

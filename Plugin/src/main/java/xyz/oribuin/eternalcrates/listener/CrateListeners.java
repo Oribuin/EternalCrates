@@ -130,6 +130,9 @@ public class CrateListeners implements Listener {
     public void onCratePreview(PlayerInteractEvent event) {
         final Player player = event.getPlayer();
 
+        if (player.isSneaking())
+            return;
+
         if (event.getHand() != EquipmentSlot.HAND || event.getAction() != Action.LEFT_CLICK_BLOCK)
             return;
 
@@ -161,7 +164,7 @@ public class CrateListeners implements Listener {
         if (!event.getPlayer().isSneaking())
             return;
 
-        if (event.getPlayer().hasPermission("eternalcrates.destroy"))
+        if (!event.getPlayer().hasPermission("eternalcrates.destroy"))
             return;
 
         final CrateDestroyEvent crateDestroyEvent = new CrateDestroyEvent(crate.get(), event.getPlayer());
@@ -169,6 +172,7 @@ public class CrateListeners implements Listener {
         if (crateDestroyEvent.isCancelled())
             return;
 
+        this.msg.send(event.getPlayer(), "unset-crate", StringPlaceholders.single("crate", crate.get().getId()));
         this.data.deleteCrate(crate.get());
     }
 
