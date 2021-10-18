@@ -12,9 +12,14 @@ dependencies {
     compileOnly 'org.spigotmc:spigot:1.17'
 
     // Plugin APIS
-    compileOnly 'com.sk89q.worldguard:worldguard-bukkit:7.0.4'
-    compileOnly 'world.bentobox:bentobox:1.17.3-SNAPSHOT'
     compileOnly 'me.clip:placeholderapi:2.10.9'
+    
+    // Hologram Plugins
+    compileOnly 'com.gmail.filoghost:holographicdisplays:2.4.3'
+    compileOnly 'com.sainttx:holograms:2.13'
+    compileOnly 'me.gholo:gholo:3.1.0.0'
+    compileOnly 'com.zrips:cmi:9.0.1.3'
+    compileOnly 'com.zrips:cmilib:1.0.2.14'
 
     // Frameworks & MySQL APIs
     implementation 'io.github.bananapuncher714:nbteditor:7.17.0'
