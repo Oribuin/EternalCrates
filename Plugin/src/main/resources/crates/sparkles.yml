@@ -1,6 +1,7 @@
 name: Sparkles
 display-name: 'Sparkles Crate'
 max-rewards: 2
+min-gui-slots: 2
 animation:
     name: 'sparkle'
 key:

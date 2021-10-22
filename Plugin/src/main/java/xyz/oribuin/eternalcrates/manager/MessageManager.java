@@ -131,6 +131,11 @@ public class MessageManager extends Manager {
         INVALID_KEY("You need a %crate% key for this!"),
         GIVEN_KEY("You were given a %crate% key!"),
         SAVED_KEY("Your crate key has been sent to your /crates claim"),
+        IN_ANIMATION("You cannot do this because the crate is in animation."),
+        NOT_ENOUGH_SLOTS("You do not have enough free inventory slots to open this crate."),
+        USING_CRATE("You are already opening a crate."),
+        HELP_FORMAT("%prefix% &f%usage%"),
+        LIST_FORMAT("%prefix% &f%crate% &7- #99ff99%rewards% &7rewards #99ff99(%location%)"),
 
         RELOAD("You have reloaded EternalCrates!"),
         DISABLED_WORLD("You cannot do this in this world."),

@@ -1,6 +1,7 @@
 name: Rings
 display-name: 'Rings Crate'
 max-rewards: 1
+min-gui-slots: 1
 animation:
     name: 'rings'
     particle: 'DUST_COLOR_TRANSITION'

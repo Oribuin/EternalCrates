@@ -110,7 +110,7 @@ public class CrateManager extends Manager {
         // this line isn't dumb
         final Optional<? extends Animation> animation = animationManager.getAnimationFromConfig(config);
         if (animation.isEmpty()) {
-            this.plugin.getLogger().warning("Unable to register crate " + name.get());
+//            this.plugin.getLogger().warning("Unable to register crate " + name.get());
             this.unregisteredCrates.put(name.get().toLowerCase(), config);
             return null;
         }
@@ -170,6 +170,7 @@ public class CrateManager extends Manager {
         crate.setDisplayName(displayName.get());
         crate.setRewardMap(rewards);
         crate.setMaxRewards(Math.max(PluginUtils.get(config, "max-rewards", 1), 1));
+        crate.setMinGuiSlots(Math.max(PluginUtils.get(config, "min-inv-slots", crate.getMaxRewards()), crate.getMaxRewards()));
         crate.setConfig(config);
         ItemStack item = new Item.Builder(animationManager.itemFromConfig(config, "key"))
                 .setNBT(plugin, "crateKey", crate.getId().toLowerCase())

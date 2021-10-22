@@ -28,7 +28,7 @@ public class ChickenAnimation extends CustomAnimation {
 
             Chicken chicken = world.spawn(location.clone().add(xOffset, 5, zOffset), Chicken.class, x -> {
                 x.setInvulnerable(true);
-                x.getPersistentDataContainer().set(new NamespacedKey(EternalCrates.getInstance(), "entity"), PersistentDataType.INTEGER, 1);
+                x.getPersistentDataContainer().set(EternalCrates.getEntityKey(), PersistentDataType.INTEGER, 1);
                 x.setCollidable(false);
             });
 

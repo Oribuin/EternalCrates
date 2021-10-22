@@ -85,7 +85,7 @@ public abstract class FireworkAnimation extends Animation {
 
                 firework.detonate();
                 // Delay each effect by each firework that has been set off.
-            }, startNumber.incrementAndGet() * delay);
+            }, integer == 0 ? 1 : startNumber.incrementAndGet() * delay);
         });
 
     }

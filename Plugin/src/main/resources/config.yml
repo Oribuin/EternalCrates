@@ -10,6 +10,16 @@ mysql:
   # just for some spicy extra configuration
   table-name: 'eternalcrates'
 
+# Configure the command usage for the help page.
+command-usage:
+  animations: '/crate animations'
+  claim: '/crate claim'
+  giveall: '/crate giveall <crate> [amount]'
+  give: '/crate give <player> <crate> [amount]'
+  list: '/crate list'
+  reload: '/crate reload'
+  set: '/crate set <crate>'
+
 # Configure the claim gui here
 claim-gui:
   title: 'Unclaimed Crate Keys'

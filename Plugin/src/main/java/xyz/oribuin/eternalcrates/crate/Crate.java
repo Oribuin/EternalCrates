@@ -29,6 +29,7 @@ public class Crate {
     private Location location;
     private ItemStack key;
     private int maxRewards;
+    private int minGuiSlots;
     private FileConfiguration config;
 
     public Crate(final String id) {
@@ -38,6 +39,7 @@ public class Crate {
         this.setAnimation(null);
         this.location = null;
         this.maxRewards = 1;
+        this.minGuiSlots = this.maxRewards;
         this.config = null;
     }
 
@@ -47,22 +49,26 @@ public class Crate {
      * @param plugin The plugin instance.
      * @param player The player who is opening the crate
      */
-    public boolean open(EternalCrates plugin, Player player) {
+    public void open(EternalCrates plugin, Player player) {
 
-        // Check if the user can open ac rate
-        if (plugin.getActiveUsers().contains(player.getUniqueId())) {
-            return false;
-        }
-
-        // Check if the crate is in animation.
-        if (animation.isActive()) {
-            return false;
-        }
+        //        // Check if they have enough slots to open it.
+        //        if (PluginUtils.getSpareSlots(player) < this.minGuiSlots)
+        //            return false;
+        //
+        //        // Check if the user can open ac rate
+        //        if (plugin.getActiveUsers().contains(player.getUniqueId())) {
+        //            return false;
+        //        }
+        //
+        //        // Check if the crate is in animation.
+        //        if (animation.isActive()) {
+        //            return false;
+        //        }
 
         final CrateOpenEvent event = new CrateOpenEvent(this, player);
         Bukkit.getPluginManager().callEvent(event);
         if (event.isCancelled())
-            return false;
+            return;
 
         plugin.getActiveUsers().add(player.getUniqueId());
 
@@ -76,8 +82,6 @@ public class Crate {
             case NONE -> animation.finishFunction(this.selectReward(), player);
             case CUSTOM -> ((CustomAnimation) animation).spawn(this, spawnLocation, player);
         }
-
-        return true;
     }
 
     /**
@@ -172,4 +176,11 @@ public class Crate {
         this.config = config;
     }
 
+    public int getMinGuiSlots() {
+        return minGuiSlots;
+    }
+
+    public void setMinGuiSlots(int minGuiSlots) {
+        this.minGuiSlots = minGuiSlots;
+    }
 }

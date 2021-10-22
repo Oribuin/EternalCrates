@@ -1,6 +1,7 @@
 name: Chicken
 display-name: 'Chicken Crate'
 max-rewards: 1
+min-gui-slots: 1
 animation:
   name: 'chicken'
 preview-gui:

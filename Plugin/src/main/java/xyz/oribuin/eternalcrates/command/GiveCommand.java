@@ -32,11 +32,6 @@ public class GiveCommand extends SubCommand {
 
     @Override
     public void executeArgument(CommandSender sender, String[] args) {
-        // Check if player.
-        if (!(sender instanceof Player player)) {
-            this.msg.send(sender, "player-only");
-            return;
-        }
 
         // Check argument length
         if (args.length < 3) {
@@ -77,7 +72,7 @@ public class GiveCommand extends SubCommand {
         final StringPlaceholders placeholders = StringPlaceholders.builder("crate", crateOptional.get().getDisplayName())
                 .addPlaceholder("amount", finalAmount)
                 .addPlaceholder("player", target.getName())
-                .addPlaceholder("sender", player.getName())
+                .addPlaceholder("sender", sender.getName())
                 .build();
 
         item.setAmount(finalAmount);

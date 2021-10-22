@@ -21,8 +21,20 @@ allprojects {
         maven { url "https://repo.extendedclip.com/content/repositories/placeholderapi/" }
         maven { url "https://repo.codemc.org/repository/maven-public/" }
         maven { url "https://maven.enginehub.org/repo/" }
-    }
 
+        repositories {
+            maven {
+                url = 'https://repo.rosewooddev.io/repository/maven-public'
+                credentials {
+                    username project.mavenUser
+                    password project.mavenPassword
+                    authentication {
+                        basic(BasicAuthentication)
+                    }
+                }
+            }
+        }
+    }
 }
 
 dependencies {

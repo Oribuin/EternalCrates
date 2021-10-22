@@ -1,6 +1,7 @@
 name: Celebration
 display-name: 'Celebration Crate'
 max-rewards: 1
+min-gui-slots: 1
 animation:
   name: 'celebration'
 preview-gui:

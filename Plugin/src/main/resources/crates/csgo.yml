@@ -1,6 +1,7 @@
 name: CSGO
 display-name: 'Csgo Crate'
 max-rewards: 1
+min-gui-slots: 1
 animation:
   name: 'csgo'
   gui:

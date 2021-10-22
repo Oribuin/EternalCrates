@@ -21,6 +21,7 @@ import java.util.UUID;
 public class EternalCrates extends OriPlugin {
 
     private static EternalCrates instance;
+    private static NamespacedKey entityKey;
     private List<UUID> activeUsers;
 
     @Override
@@ -30,7 +31,9 @@ public class EternalCrates extends OriPlugin {
             this.getLogger().severe("You cannot use EternalCrates on 1." + NMSUtil.getVersionNumber() + ", We are limited to 1.16+");
             return;
         }
+
         instance = this;
+        entityKey = new NamespacedKey(this, "entity");
 
         // Refresh active users list
         this.activeUsers = new ArrayList<>();
@@ -53,15 +56,18 @@ public class EternalCrates extends OriPlugin {
     @Override
     public void disablePlugin() {
         // Let's make sure there's no EternalCrates Entities left
-        final NamespacedKey key = new NamespacedKey(this, "entity");
         this.getServer().getWorlds().forEach(world -> world.getEntities().stream()
-                .filter(entity -> entity.getPersistentDataContainer().has(key, PersistentDataType.INTEGER))
+                .filter(entity -> entity.getPersistentDataContainer().has(entityKey, PersistentDataType.INTEGER))
                 .forEach(Entity::remove));
     }
 
 
     public static EternalCrates getInstance() {
         return instance;
+    }
+
+    public static NamespacedKey getEntityKey() {
+        return entityKey;
     }
 
     public List<UUID> getActiveUsers() {

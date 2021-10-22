@@ -37,13 +37,14 @@ public class FountainAnimation extends CustomAnimation {
 
         rewards.forEach(reward -> {
             this.finishFunction(reward, player);
+            this.setActive(true);
 
             for (int i = 0; i < rewards.size() * 10; i++) {
                 Item item = world.spawn(location.clone(), Item.class, x -> {
                     x.setItemStack(reward.getDisplayItem());
                     x.setPickupDelay(Integer.MAX_VALUE);
                     x.setInvulnerable(true);
-                    x.getPersistentDataContainer().set(new NamespacedKey(EternalCrates.getInstance(), "entity"), PersistentDataType.INTEGER, 1);
+                    x.getPersistentDataContainer().set(EternalCrates.getEntityKey(), PersistentDataType.INTEGER, 1);
                 });
 
                 double vectorX = random.nextDouble(-0.2, 0.2);

@@ -2,8 +2,10 @@ package xyz.oribuin.eternalcrates.util;
 
 import org.bukkit.Color;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.orilibrary.util.FileUtils;
 
@@ -123,4 +125,28 @@ public final class PluginUtils {
     public static <T> T get(ConfigurationSection section, String path, T def) {
         return section.get(path) != null ? (T) section.get(path) : def;
     }
+
+    /**
+     * Get the total number of spare slots in a player's inventory
+     *
+     * @param player The player
+     * @return The amount of empty slots.
+     */
+    public static int getSpareSlots(Player player) {
+        return (int) Arrays.stream(player.getInventory().getContents())
+                .filter(itemStack -> itemStack == null || itemStack.getType() == Material.AIR)
+                .count();
+    }
+
+    /**
+     * Gets a location as a string key
+     *
+     * @param location The location
+     * @return the location as a string key
+     * @author Esophose
+     */
+    public static String locationAsKey(Location location) {
+        return String.format("%s-%.2f-%.2f-%.2f", location.getWorld().getName(), location.getX(), location.getY(), location.getZ());
+    }
+
 }

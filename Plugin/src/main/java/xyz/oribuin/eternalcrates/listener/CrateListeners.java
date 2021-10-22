@@ -23,6 +23,7 @@ import xyz.oribuin.eternalcrates.gui.PreviewGUI;
 import xyz.oribuin.eternalcrates.manager.CrateManager;
 import xyz.oribuin.eternalcrates.manager.DataManager;
 import xyz.oribuin.eternalcrates.manager.MessageManager;
+import xyz.oribuin.eternalcrates.util.PluginUtils;
 import xyz.oribuin.orilibrary.util.StringPlaceholders;
 
 import java.util.Optional;
@@ -92,15 +93,32 @@ public class CrateListeners implements Listener {
             return;
         }
 
-        if (crate.get().open(plugin, event.getPlayer())) {
-            // because bukkit is inconsistent as shit
-            if (item.getAmount() == 1)
-                event.getPlayer().getInventory().setItemInMainHand(null); // setting item type doesn't work apparently, thank you spigot for your amazing api
-            else
-                item.setAmount(item.getAmount() - 1);
-
-            event.getPlayer().updateInventory();
+        // Check if they have enough slots to open it.
+        if (PluginUtils.getSpareSlots(player) < crate.get().getMinGuiSlots()) {
+            this.msg.send(player, "not-enough-slots");
+            return;
         }
+
+        // Check if the user can open ac rate
+        if (plugin.getActiveUsers().contains(player.getUniqueId())) {
+            this.msg.send(player, "using-crate");
+            return;
+        }
+
+        // Check if the crate is in animation.
+        if (crate.get().getAnimation().isActive()) {
+            this.msg.sendRaw(player, "in-animation");
+            return;
+        }
+
+        // because bukkit is inconsistent as shit
+        if (item.getAmount() == 1)
+            event.getPlayer().getInventory().setItemInMainHand(null); // setting item type doesn't work apparently, thank you spigot for your amazing api
+        else
+            item.setAmount(item.getAmount() - 1);
+
+        crate.get().open(plugin, player);
+
     }
 
     @EventHandler

@@ -1,12 +1,15 @@
 package xyz.oribuin.eternalcrates.command;
 
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.manager.CrateManager;
 import xyz.oribuin.eternalcrates.manager.MessageManager;
+import xyz.oribuin.eternalcrates.util.PluginUtils;
 import xyz.oribuin.orilibrary.command.Command;
 import xyz.oribuin.orilibrary.command.SubCommand;
+import xyz.oribuin.orilibrary.util.StringPlaceholders;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +27,7 @@ import java.util.stream.Collectors;
                 ClaimCommand.class,
                 GiveallCommand.class,
                 GiveCommand.class,
+                ListCommand.class,
                 ReloadCommand.class,
                 SetCommand.class,
         }
@@ -48,13 +52,20 @@ public class CrateCommand extends Command {
             return;
         }
 
+        final StringPlaceholders.Builder builder = StringPlaceholders.builder("prefix", msg.get("prefix"));
+        final FileConfiguration config = this.plugin.getConfig();
+
         // Send the help command to the user.
         this.getSubCommands().stream()
                 .map(SubCommand::getInfo)
                 .filter(info -> sender.hasPermission(info.permission()))
-                .map(info -> msg.get("prefix") + info.usage())
-                .forEach(s -> msg.sendRaw(sender, s));
+                .forEach(info -> {
+                    final StringPlaceholders placeholders = builder
+                            .addPlaceholder("usage", PluginUtils.get(config, "command-usage." + info.names()[0].toLowerCase(), info.usage()))
+                            .build();
 
+                    msg.sendRaw(sender, msg.get("help-format"), placeholders);
+                });
     }
 
     @Override
