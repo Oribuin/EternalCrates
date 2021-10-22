@@ -10,6 +10,13 @@ mysql:
   # just for some spicy extra configuration
   table-name: 'eternalcrates'
 
+
+# Overall misc settings for crates.
+crate-settings:
+  # Should the plugin prevent item pickup during crate animation?
+  # Default: false
+  item-pickup-in-animation: false
+
 # Configure the command usage for the help page.
 command-usage:
   animations: '/crate animations'

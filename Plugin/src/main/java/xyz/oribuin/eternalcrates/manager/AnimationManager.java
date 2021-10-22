@@ -35,8 +35,7 @@ public class AnimationManager extends Manager {
     public void enable() {
         this.plugin.getLogger().info("Loading all the animations for the plugin.");
 
-        // Add the default
-
+        // Add the default animation
         // GUI Animations
         this.cachedAnimations.put("csgo", new CsgoAnimation());
         this.cachedAnimations.put("wheel", new WheelAnimation());
