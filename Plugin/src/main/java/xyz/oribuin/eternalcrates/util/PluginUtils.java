@@ -133,7 +133,11 @@ public final class PluginUtils {
      * @return The amount of empty slots.
      */
     public static int getSpareSlots(Player player) {
-        return (int) Arrays.stream(player.getInventory().getContents())
+        final List<Integer> slots = new ArrayList<>();
+        for (int i = 0; i < 36; i++)
+            slots.add(i);
+
+        return (int) slots.stream().map(integer -> player.getInventory().getItem(integer))
                 .filter(itemStack -> itemStack == null || itemStack.getType() == Material.AIR)
                 .count();
     }
