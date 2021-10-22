@@ -22,6 +22,7 @@ public class ReloadCommand extends SubCommand {
 
     @Override
     public void executeArgument(CommandSender sender, String[] args) {
+        this.plugin.saveDefaultConfig();
         this.plugin.reload();
         this.msg.send(sender, "reload");
     }
