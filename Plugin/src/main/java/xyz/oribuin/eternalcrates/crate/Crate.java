@@ -10,6 +10,8 @@ import xyz.oribuin.eternalcrates.animation.Animation;
 import xyz.oribuin.eternalcrates.animation.CustomAnimation;
 import xyz.oribuin.eternalcrates.animation.FireworkAnimation;
 import xyz.oribuin.eternalcrates.animation.ParticleAnimation;
+import xyz.oribuin.eternalcrates.event.AnimationEndEvent;
+import xyz.oribuin.eternalcrates.event.AnimationStartEvent;
 import xyz.oribuin.eternalcrates.event.CrateOpenEvent;
 import xyz.oribuin.eternalcrates.gui.AnimatedGUI;
 import xyz.oribuin.eternalcrates.util.PluginUtils;
@@ -50,21 +52,6 @@ public class Crate {
      * @param player The player who is opening the crate
      */
     public void open(EternalCrates plugin, Player player) {
-
-        //        // Check if they have enough slots to open it.
-        //        if (PluginUtils.getSpareSlots(player) < this.minGuiSlots)
-        //            return false;
-        //
-        //        // Check if the user can open ac rate
-        //        if (plugin.getActiveUsers().contains(player.getUniqueId())) {
-        //            return false;
-        //        }
-        //
-        //        // Check if the crate is in animation.
-        //        if (animation.isActive()) {
-        //            return false;
-        //        }
-
         final CrateOpenEvent event = new CrateOpenEvent(this, player);
         Bukkit.getPluginManager().callEvent(event);
         if (event.isCancelled())
@@ -74,6 +61,8 @@ public class Crate {
 
         // The crate location or the player location.
         final Location spawnLocation = location != null ? PluginUtils.centerLocation(location) : player.getLocation();
+
+        Bukkit.getPluginManager().callEvent(new AnimationStartEvent(this, this.getAnimation()));
 
         switch (animation.getAnimationType()) {
             case GUI -> new AnimatedGUI(plugin, this, player);

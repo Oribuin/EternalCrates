@@ -1,8 +1,10 @@
 package xyz.oribuin.eternalcrates.animation;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.crate.Reward;
+import xyz.oribuin.eternalcrates.event.AnimationEndEvent;
 
 public abstract class Animation {
 
@@ -24,6 +26,7 @@ public abstract class Animation {
      * @param player The player who gets the reward.
      */
     public void finishFunction(Reward reward, Player player) {
+        Bukkit.getPluginManager().callEvent(new AnimationEndEvent(this));
 
         this.setActive(false);
         EternalCrates.getInstance().getActiveUsers().remove(player.getUniqueId());
