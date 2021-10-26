@@ -42,7 +42,7 @@ public class DataManager extends DataHandler {
         this.async((task) -> this.getConnector().connect(connection -> {
 
             // Create the required tables for the plugin.
-            final String query = "CREATE TABLE IF NOT EXISTS " + this.getTableName() + "_crates (crate TEXT, world TEXT, x DOUBLE, y DOUBLE, z DOUBLE, PRIMARY KEY(crate))";
+            final String query = "CREATE TABLE IF NOT EXISTS " + this.getTableName() + "_crates (crate TEXT, world TEXT, x DOUBLE, y DOUBLE, z DOUBLE, PRIMARY KEY(x, y, z, world))";
             connection.prepareStatement(query).executeUpdate();
 
             final String itemsQuery = "CREATE TABLE IF NOT EXISTS " + this.getTableName() + "_items (player VARCHAR(50), items VARBINARY(2456), PRIMARY KEY(player))";
@@ -116,9 +116,8 @@ public class DataManager extends DataHandler {
         crate.setLocation(null);
         this.crateManager.getCachedCrates().put(crate.getId(), crate);
 
-
         this.async(t -> this.getConnector().connect(connection -> {
-            final String query = "DELETE FROM " + this.getTableName() + "_crates WHERE crate = ? AND world = ? AND x = ? AND y = ? AND z = ?";
+            final String query = "DELETE FROM " + this.getTableName() + "_crates AND world = ? AND x = ? AND y = ? AND z = ?";
             try (PreparedStatement statement = connection.prepareStatement(query)) {
                 statement.setString(1, crate.getId().toLowerCase());
                 statement.setString(2, blockLoc.getWorld().getName());
