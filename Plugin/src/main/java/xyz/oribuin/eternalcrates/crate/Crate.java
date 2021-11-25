@@ -26,7 +26,7 @@ public class Crate {
 
     private final String id;
     private String displayName;
-    private Map<Reward, Double> rewardMap;
+    private Map<Integer, Reward> rewardMap;
     private Animation animation;
     private Location location;
     private ItemStack key;
@@ -90,7 +90,8 @@ public class Crate {
 
         // Select a reward.
         // https://stackoverflow.com/a/28711505
-        Map<Reward, Double> chanceMap = new HashMap<>(this.rewardMap);
+        Map<Reward, Double> chanceMap = new HashMap<>();
+        this.rewardMap.forEach((integer, reward) -> chanceMap.put(reward, reward.getChance()));
         double sumOfPercentages = chanceMap.values().stream().reduce(0.0, Double::sum);
         double current = 0;
         double randomNumber = ThreadLocalRandom.current().nextDouble(sumOfPercentages);
@@ -115,14 +116,6 @@ public class Crate {
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
-    }
-
-    public Map<Reward, Double> getRewardMap() {
-        return rewardMap;
-    }
-
-    public void setRewardMap(Map<Reward, Double> rewardMap) {
-        this.rewardMap = rewardMap;
     }
 
     public Animation getAnimation() {
@@ -171,5 +164,13 @@ public class Crate {
 
     public void setMinGuiSlots(int minGuiSlots) {
         this.minGuiSlots = minGuiSlots;
+    }
+
+    public Map<Integer, Reward> getRewardMap() {
+        return rewardMap;
+    }
+
+    public void setRewardMap(Map<Integer, Reward> rewardMap) {
+        this.rewardMap = rewardMap;
     }
 }

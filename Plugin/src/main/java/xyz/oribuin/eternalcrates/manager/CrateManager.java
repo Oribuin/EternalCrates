@@ -115,7 +115,7 @@ public class CrateManager extends Manager {
             return null;
         }
 
-        final Map<Reward, Double> rewards = new HashMap<>();
+        final Map<Integer, Reward> rewards = new HashMap<>();
         final ConfigurationSection section = config.getConfigurationSection("rewards");
         if (section == null)
             return null;
@@ -161,7 +161,7 @@ public class CrateManager extends Manager {
 
             });
 
-            rewards.put(reward, reward.getChance());
+            rewards.put(reward.getId(), reward);
         });
 
 

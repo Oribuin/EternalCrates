@@ -52,7 +52,7 @@ public class AnimatedGUI {
 
         // We add the reward first so that it doesnt spin indefinitely
         rewards.add(finalReward);
-        rewards.addAll(crate.getRewardMap().keySet());
+        rewards.addAll(crate.getRewardMap().values());
 
         // Add any items missing to make sure we can fill out the slots
         for (int i = 0; rewards.size() < animation.getRotateSlots().length; i++) {

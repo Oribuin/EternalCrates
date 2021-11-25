@@ -69,9 +69,9 @@ public class PreviewGUI {
         // Add all the rewards to the gui.
         new HashMap<>(crate.getRewardMap()).entrySet()
                 .stream()
-                .sorted(Comparator.comparingDouble(Map.Entry::getValue)) // sort by lowest chance first
+                .sorted(Comparator.comparingDouble(Map.Entry::getKey)) // sort by lowest chance first
                 .forEach(entry -> {
-                    final ItemStack item = entry.getKey().getDisplayItem().clone();
+                    final ItemStack item = entry.getValue().getDisplayItem().clone();
                     final ItemMeta meta = item.getItemMeta();
                     if (meta == null)
                         return;
