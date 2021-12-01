@@ -4,3 +4,5 @@ version: '1.0'
 api-version: '1.13'
 author: Oribuin
 description: A new crate plugin focused on functional, performance and animation.
+softdepend:
+  - PlaceholderAPI
