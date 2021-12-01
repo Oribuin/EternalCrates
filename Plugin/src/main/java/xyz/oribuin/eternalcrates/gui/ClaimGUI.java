@@ -81,7 +81,8 @@ public class ClaimGUI {
             borderSlots.add(i);
 
         // Add the border items
-        gui.setItems(borderSlots, this.getItem("claim-gui.border-item"), e -> {});
+        gui.setItems(borderSlots, this.getItem("claim-gui.border-item"), e -> {
+        });
 
         // Next Page Item
         gui.setItem(44, this.getItem("claim-gui.next-page"), e -> gui.next(player));

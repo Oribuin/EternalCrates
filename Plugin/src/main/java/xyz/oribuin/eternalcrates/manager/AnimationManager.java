@@ -1,6 +1,5 @@
 package xyz.oribuin.eternalcrates.manager;
 
-import io.github.bananapuncher714.nbteditor.NBTEditor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -13,6 +12,8 @@ import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.animation.*;
 import xyz.oribuin.eternalcrates.animation.defaults.*;
 import xyz.oribuin.eternalcrates.crate.Crate;
+import xyz.oribuin.eternalcrates.nms.NMSAdapter;
+import xyz.oribuin.eternalcrates.nms.NMSHandler;
 import xyz.oribuin.eternalcrates.particle.ParticleData;
 import xyz.oribuin.eternalcrates.util.PluginUtils;
 import xyz.oribuin.gui.Item;
@@ -29,6 +30,29 @@ public class AnimationManager extends Manager {
 
     public AnimationManager(EternalCrates plugin) {
         super(plugin);
+    }
+
+    /**
+     * Register an animation into the plugin.
+     *
+     * @param animation The animation being registered.
+     */
+    public static void register(Animation animation) {
+        final EternalCrates plugin = EternalCrates.getInstance();
+        plugin.getLogger().info("Registered Crate Animation: " + animation.getName());
+        plugin.getManager(AnimationManager.class).getCachedAnimations().put(animation.getName(), animation);
+
+        final CrateManager crateManager = plugin.getManager(CrateManager.class);
+
+        // Recreate any crates that weren't registered as animations.
+        new HashSet<>(crateManager.getUnregisteredCrates().entrySet()).forEach(x -> {
+            crateManager.getUnregisteredCrates().remove(x.getKey());
+
+            Crate crate = crateManager.createCreate(x.getValue());
+            if (crate != null) {
+                crateManager.getCachedCrates().put(crate.getId(), crate);
+            }
+        });
     }
 
     @Override
@@ -154,29 +178,6 @@ public class AnimationManager extends Manager {
     }
 
     /**
-     * Register an animation into the plugin.
-     *
-     * @param animation The animation being registered.
-     */
-    public static void register(Animation animation) {
-        final EternalCrates plugin = EternalCrates.getInstance();
-        plugin.getLogger().info("Registered Crate Animation: " + animation.getName());
-        plugin.getManager(AnimationManager.class).getCachedAnimations().put(animation.getName(), animation);
-
-        final CrateManager crateManager = plugin.getManager(CrateManager.class);
-
-        // Recreate any crates that weren't registered as animations.
-        new HashSet<>(crateManager.getUnregisteredCrates().entrySet()).forEach(x -> {
-            crateManager.getUnregisteredCrates().remove(x.getKey());
-
-            Crate crate = crateManager.createCreate(x.getValue());
-            if (crate != null) {
-                crateManager.getCachedCrates().put(crate.getId(), crate);
-            }
-        });
-    }
-
-    /**
      * Create an ItemStack from a config  Please avert your eyes from this monstrosity.
      *
      * @param config The config the item is from.
@@ -223,8 +224,33 @@ public class AnimationManager extends Manager {
         // Add any nbt tags somehow, I pray this works.
         final ConfigurationSection nbt = config.getConfigurationSection(path + ".nbt");
         if (nbt != null) {
-            for (String s : nbt.getKeys(false))
-                item = NBTEditor.set(item, nbt.get(s), s);
+            NMSHandler handler = NMSAdapter.getHandler();
+
+            for (String s : nbt.getKeys(false)) {
+                Object obj = nbt.get(s);
+
+                // this is a goddamn sin, I hate this
+                if (obj instanceof String)
+                    item = handler.setString(item, s, nbt.getString(s));
+
+                // you've coded for 3 years and can't do it any better?
+                if (obj instanceof Long)
+                    item = handler.setLong(item, s, nbt.getLong(s));
+
+                // lord no
+                if (obj instanceof Integer)
+                    item = handler.setInt(item, s, nbt.getInt(s));
+
+                // please make it stop
+                if (obj instanceof Boolean)
+                    item = handler.setBoolean(item, s, nbt.getBoolean(s));
+
+                // goddamn
+                if (obj instanceof Double)
+                    item = handler.setDouble(item, s, nbt.getDouble(s));
+
+                // thank god its over
+            }
         }
 
         return item;

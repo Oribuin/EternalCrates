@@ -1,7 +1,7 @@
 package xyz.oribuin.eternalcrates.action;
 
 import org.bukkit.entity.Player;
-import xyz.oribuin.eternalcrates.EternalCrates; 
+import xyz.oribuin.eternalcrates.EternalCrates;
 
 public class CloseAction extends Action {
 

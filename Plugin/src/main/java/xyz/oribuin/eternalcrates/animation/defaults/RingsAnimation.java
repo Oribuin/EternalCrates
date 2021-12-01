@@ -2,7 +2,6 @@ package xyz.oribuin.eternalcrates.animation.defaults;
 
 import org.bukkit.Location;
 import xyz.oribuin.eternalcrates.animation.ParticleAnimation;
-import xyz.oribuin.eternalcrates.manager.AnimationManager;
 import xyz.oribuin.eternalcrates.util.MathL;
 
 import java.util.ArrayList;

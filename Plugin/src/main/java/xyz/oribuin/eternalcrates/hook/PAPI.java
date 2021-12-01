@@ -20,7 +20,7 @@ public class PAPI extends PlaceholderExpansion {
     /**
      * Parse a message through PlaceholderAPI
      *
-     * @param player The player the messages are applied to
+     * @param player  The player the messages are applied to
      * @param message the message being parsed
      * @return the parsed message
      */

@@ -10,7 +10,6 @@ import xyz.oribuin.eternalcrates.animation.Animation;
 import xyz.oribuin.eternalcrates.animation.CustomAnimation;
 import xyz.oribuin.eternalcrates.animation.FireworkAnimation;
 import xyz.oribuin.eternalcrates.animation.ParticleAnimation;
-import xyz.oribuin.eternalcrates.event.AnimationEndEvent;
 import xyz.oribuin.eternalcrates.event.AnimationStartEvent;
 import xyz.oribuin.eternalcrates.event.CrateOpenEvent;
 import xyz.oribuin.eternalcrates.gui.AnimatedGUI;

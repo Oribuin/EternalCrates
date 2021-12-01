@@ -13,9 +13,9 @@ public abstract class CustomAnimation extends Animation {
     /**
      * The function for when the player spawns
      *
-     * @param crate The crate being opened.
+     * @param crate    The crate being opened.
      * @param location The location of the crate
-     * @param player The player who is opening the crate.
+     * @param player   The player who is opening the crate.
      */
     public abstract void spawn(Crate crate, Location location, Player player);
 }
