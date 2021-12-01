@@ -1,24 +1,23 @@
 package xyz.oribuin.eternalcrates.crate;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-
-import net.md_5.bungee.api.ChatColor;
 import xyz.oribuin.eternalcrates.action.Action;
 import xyz.oribuin.gui.Item;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Oribuin
  */
 public class Reward {
-    
+
     private final int id;
+    private final List<Action> actions;
     private ItemStack displayItem;
     private double chance;
-    private final List<Action> actions;
 
     public Reward(int id) {
         this.id = id;

@@ -31,6 +31,10 @@ public abstract class ParticleAnimation extends Animation {
         return particleData;
     }
 
+    public void setParticleData(ParticleData particleData) {
+        this.particleData = particleData;
+    }
+
     /**
      * Spawn a particle at a location.
      *
@@ -51,10 +55,6 @@ public abstract class ParticleAnimation extends Animation {
 
         }, this.getLength());
 
-    }
-
-    public void setParticleData(ParticleData particleData) {
-        this.particleData = particleData;
     }
 
     public int getSpeed() {

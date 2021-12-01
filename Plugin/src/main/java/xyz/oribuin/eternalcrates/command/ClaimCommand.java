@@ -1,16 +1,11 @@
 package xyz.oribuin.eternalcrates.command;
 
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import xyz.oribuin.eternalcrates.EternalCrates;
-import xyz.oribuin.eternalcrates.animation.AnimationType;
 import xyz.oribuin.eternalcrates.gui.ClaimGUI;
-import xyz.oribuin.eternalcrates.manager.AnimationManager;
 import xyz.oribuin.eternalcrates.manager.MessageManager;
 import xyz.oribuin.orilibrary.command.SubCommand;
-
-import java.util.Arrays;
 
 @SubCommand.Info(
         names = {"claim"},

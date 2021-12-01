@@ -18,13 +18,13 @@ public class CrateOpenEvent extends PlayerEvent implements Cancellable {
         this.crate = crate;
     }
 
-    @NotNull
-    @Override
-    public HandlerList getHandlers() {
+    public static HandlerList getHandlersList() {
         return list;
     }
 
-    public static HandlerList getHandlersList() {
+    @NotNull
+    @Override
+    public HandlerList getHandlers() {
         return list;
     }
 

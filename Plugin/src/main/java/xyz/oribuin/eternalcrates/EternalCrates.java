@@ -24,6 +24,8 @@ public class EternalCrates extends OriPlugin {
     private static NamespacedKey entityKey;
     private List<UUID> activeUsers;
 
+
+
     @Override
     public void enablePlugin() {
         // Make sure the server is using 1.16+
@@ -61,6 +63,9 @@ public class EternalCrates extends OriPlugin {
                 .forEach(Entity::remove));
     }
 
+    public List<UUID> getActiveUsers() {
+        return activeUsers;
+    }
 
     public static EternalCrates getInstance() {
         return instance;
@@ -68,10 +73,6 @@ public class EternalCrates extends OriPlugin {
 
     public static NamespacedKey getEntityKey() {
         return entityKey;
-    }
-
-    public List<UUID> getActiveUsers() {
-        return activeUsers;
     }
 
 }

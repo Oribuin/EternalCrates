@@ -48,7 +48,9 @@ public class CrateCommand extends Command {
     @Override
     public void runFunction(CommandSender sender, String label, String[] args) {
         if (args.length > 0) {
-            this.runSubCommands(sender, args, x -> {}, x -> {});
+            this.runSubCommands(sender, args, x -> {
+            }, x -> {
+            });
             return;
         }
 

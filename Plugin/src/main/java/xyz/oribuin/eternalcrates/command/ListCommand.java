@@ -2,7 +2,6 @@ package xyz.oribuin.eternalcrates.command;
 
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.FileConfiguration;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.manager.CrateManager;
 import xyz.oribuin.eternalcrates.manager.MessageManager;

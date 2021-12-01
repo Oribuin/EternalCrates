@@ -37,13 +37,15 @@ public class AnimatedGUI {
         // Add filler items to the gui
         if (animation.getFillerItem() != null) {
             for (int i = 0; i < animation.getGuiSize(); i++)
-                gui.setItem(i, animation.getFillerItem(), event -> {});
+                gui.setItem(i, animation.getFillerItem(), event -> {
+                });
         }
 
         // Add extra items to the gui
         animation.getExtras().entrySet().stream()
                 .filter(entry -> Arrays.stream(animation.getRotateSlots()).noneMatch(value -> value == entry.getKey()))
-                .forEach(entry -> gui.setItem(entry.getKey(), entry.getValue(), e -> {}));
+                .forEach(entry -> gui.setItem(entry.getKey(), entry.getValue(), e -> {
+                }));
 
         // Select a reward.
         final List<Reward> wonRewards = crate.createRewards();
