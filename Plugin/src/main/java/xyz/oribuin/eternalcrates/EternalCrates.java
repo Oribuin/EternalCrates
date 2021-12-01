@@ -24,13 +24,7 @@ public class EternalCrates extends OriPlugin {
     private static NamespacedKey entityKey;
     private List<UUID> activeUsers;
 
-    public static EternalCrates getInstance() {
-        return instance;
-    }
 
-    public static NamespacedKey getEntityKey() {
-        return entityKey;
-    }
 
     @Override
     public void enablePlugin() {
@@ -71,6 +65,14 @@ public class EternalCrates extends OriPlugin {
 
     public List<UUID> getActiveUsers() {
         return activeUsers;
+    }
+
+    public static EternalCrates getInstance() {
+        return instance;
+    }
+
+    public static NamespacedKey getEntityKey() {
+        return entityKey;
     }
 
 }

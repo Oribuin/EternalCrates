@@ -13,6 +13,7 @@ import xyz.oribuin.eternalcrates.animation.*;
 import xyz.oribuin.eternalcrates.animation.defaults.*;
 import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.nms.NMSAdapter;
+import xyz.oribuin.eternalcrates.nms.NMSHandler;
 import xyz.oribuin.eternalcrates.particle.ParticleData;
 import xyz.oribuin.eternalcrates.util.PluginUtils;
 import xyz.oribuin.gui.Item;
@@ -223,8 +224,33 @@ public class AnimationManager extends Manager {
         // Add any nbt tags somehow, I pray this works.
         final ConfigurationSection nbt = config.getConfigurationSection(path + ".nbt");
         if (nbt != null) {
-            for (String s : nbt.getKeys(false))
-                item = NMSAdapter.getHandler().setString(item, s, nbt.getString(s));
+            NMSHandler handler = NMSAdapter.getHandler();
+
+            for (String s : nbt.getKeys(false)) {
+                Object obj = nbt.get(s);
+
+                // this is a goddamn sin, I hate this
+                if (obj instanceof String)
+                    item = handler.setString(item, s, nbt.getString(s));
+
+                // you've coded for 3 years and can't do it any better?
+                if (obj instanceof Long)
+                    item = handler.setLong(item, s, nbt.getLong(s));
+
+                // lord no
+                if (obj instanceof Integer)
+                    item = handler.setInt(item, s, nbt.getInt(s));
+
+                // please make it stop
+                if (obj instanceof Boolean)
+                    item = handler.setBoolean(item, s, nbt.getBoolean(s));
+
+                // goddamn
+                if (obj instanceof Double)
+                    item = handler.setDouble(item, s, nbt.getDouble(s));
+
+                // thank god its over
+            }
         }
 
         return item;
