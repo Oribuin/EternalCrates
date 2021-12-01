@@ -119,11 +119,10 @@ public class DataManager extends DataHandler {
         this.async(t -> this.getConnector().connect(connection -> {
             final String query = "DELETE FROM " + this.getTableName() + "_crates WHERE world = ? AND x = ? AND y = ? AND z = ?";
             try (PreparedStatement statement = connection.prepareStatement(query)) {
-                statement.setString(1, crate.getId().toLowerCase());
-                statement.setString(2, blockLoc.getWorld().getName());
-                statement.setDouble(3, blockLoc.getX());
-                statement.setDouble(4, blockLoc.getY());
-                statement.setDouble(5, blockLoc.getZ());
+                statement.setString(1, blockLoc.getWorld().getName());
+                statement.setDouble(2, blockLoc.getX());
+                statement.setDouble(3, blockLoc.getY());
+                statement.setDouble(4, blockLoc.getZ());
                 statement.executeUpdate();
             }
         }));
