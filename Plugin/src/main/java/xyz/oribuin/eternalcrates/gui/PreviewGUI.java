@@ -54,16 +54,19 @@ public class PreviewGUI {
             borderSlots.add(i);
 
         // Add the border items
-        this.getItem("preview-gui.border-item").ifPresent(item -> gui.setItems(borderSlots, item, e -> {}));
+        this.getItem("preview-gui.border-item").ifPresent(item -> gui.setItems(borderSlots, item, e -> {
+        }));
 
         // Next Page Item
         if (gui.getPage() < gui.getTotalPages()) {
-            this.getItem("preview-gui.next-page").ifPresent(item -> gui.setItem(36, item, e -> {}));
+            this.getItem("preview-gui.next-page").ifPresent(item -> gui.setItem(36, item, e -> {
+            }));
         }
 
         // Previous Page Item
         if (gui.getPage() > 1) {
-            this.getItem("next-gui.previous-page").ifPresent(item -> gui.setItem(44, item, e -> {}));
+            this.getItem("next-gui.previous-page").ifPresent(item -> gui.setItem(44, item, e -> {
+            }));
         }
 
         // Add all the rewards to the gui.
@@ -77,8 +80,8 @@ public class PreviewGUI {
                         return;
 
                     List<String> newLore = new ArrayList<>(this.crate.getConfig().getStringList("preview-gui.item-lore"))
-                            .stream().
-                            map(s -> StringPlaceholders.single("chance", entry.getValue()).apply(s))
+                            .stream()
+                            .map(s -> StringPlaceholders.single("chance", entry.getValue().getChance()).apply(s))
                             .collect(Collectors.toList());
 
                     if (meta.getLore() != null)
@@ -88,7 +91,8 @@ public class PreviewGUI {
                             .collect(Collectors.toList());
                     meta.setLore(newLore);
                     item.setItemMeta(meta);
-                    gui.addPageItem(item, event -> {});
+                    gui.addPageItem(item, event -> {
+                    });
                 });
 
         gui.open(player);

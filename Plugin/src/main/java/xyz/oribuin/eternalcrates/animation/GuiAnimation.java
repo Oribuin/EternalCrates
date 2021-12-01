@@ -18,9 +18,9 @@ public class GuiAnimation extends Animation {
     private final int rotationSpeed;
     private final int winningSlot;
     private final int guiSize;
+    private final Map<Integer, ItemStack> extras;
     private int startIndex;
     private ItemStack fillerItem;
-    private final Map<Integer, ItemStack> extras;
 
     public GuiAnimation(String name, String author, int[] rotateSlots) {
         super(name, AnimationType.GUI, author);
@@ -32,7 +32,8 @@ public class GuiAnimation extends Animation {
         this.rotationSpeed = 3;
         this.fillerItem = null;
         this.extras = new HashMap<>();
-        this.spinConsumer = (player, gui) -> {};
+        this.spinConsumer = (player, gui) -> {
+        };
     }
 
 
@@ -48,7 +49,8 @@ public class GuiAnimation extends Animation {
 
         for (int i = 0; i < rotateSlots.length; i++) {
             int index = (startIndex + i) % rotateSlots.length;
-            gui.setItem(this.rotateSlots[i], rewards.get(index).getDisplayItem().clone(), e -> {});
+            gui.setItem(this.rotateSlots[i], rewards.get(index).getDisplayItem().clone(), e -> {
+            });
             gui.update();
 
             if (rotateSlots[i] == winningSlot)

@@ -3,10 +3,12 @@ package xyz.oribuin.eternalcrates.v1_16_R3;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_16_R3.util.CraftNamespacedKey;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import xyz.oribuin.eternalcrates.nms.NMSHandler;
 
 import java.lang.reflect.Field;
@@ -41,6 +43,46 @@ public class NMSHandlerImpl implements NMSHandler {
         entityPlayer.playerConnection.sendPacket(packet);
 
         return null;
+    }
+
+    @Override
+    public ItemStack setString(ItemStack item, String key, String value) {
+        final net.minecraft.server.v1_16_R3.ItemStack itemStack = CraftItemStack.asNMSCopy(item);
+        NBTTagCompound tag = itemStack.getOrCreateTag();
+        tag.setString(key, value);
+        return CraftItemStack.asBukkitCopy(itemStack);
+    }
+
+    @Override
+    public ItemStack setInt(ItemStack item, String key, int value) {
+        final net.minecraft.server.v1_16_R3.ItemStack itemStack = CraftItemStack.asNMSCopy(item);
+        NBTTagCompound tag = itemStack.getOrCreateTag();
+        tag.setInt(key, value);
+        return CraftItemStack.asBukkitCopy(itemStack);
+    }
+
+    @Override
+    public ItemStack setLong(ItemStack item, String key, long value) {
+        final net.minecraft.server.v1_16_R3.ItemStack itemStack = CraftItemStack.asNMSCopy(item);
+        NBTTagCompound tag = itemStack.getOrCreateTag();
+        tag.setLong(key, value);
+        return CraftItemStack.asBukkitCopy(itemStack);
+    }
+
+    @Override
+    public ItemStack setDouble(ItemStack item, String key, double value) {
+        final net.minecraft.server.v1_16_R3.ItemStack itemStack = CraftItemStack.asNMSCopy(item);
+        NBTTagCompound tag = itemStack.getOrCreateTag();
+        tag.setDouble(key, value);
+        return CraftItemStack.asBukkitCopy(itemStack);
+    }
+
+    @Override
+    public ItemStack setBoolean(ItemStack item, String key, boolean value) {
+        final net.minecraft.server.v1_16_R3.ItemStack itemStack = CraftItemStack.asNMSCopy(item);
+        NBTTagCompound tag = itemStack.getOrCreateTag();
+        tag.setBoolean(key, value);
+        return CraftItemStack.asBukkitCopy(itemStack);
     }
 
     private int getNewEntityId() {

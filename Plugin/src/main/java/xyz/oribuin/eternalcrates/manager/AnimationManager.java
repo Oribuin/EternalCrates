@@ -1,6 +1,5 @@
 package xyz.oribuin.eternalcrates.manager;
 
-import io.github.bananapuncher714.nbteditor.NBTEditor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -13,6 +12,7 @@ import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.animation.*;
 import xyz.oribuin.eternalcrates.animation.defaults.*;
 import xyz.oribuin.eternalcrates.crate.Crate;
+import xyz.oribuin.eternalcrates.nms.NMSAdapter;
 import xyz.oribuin.eternalcrates.particle.ParticleData;
 import xyz.oribuin.eternalcrates.util.PluginUtils;
 import xyz.oribuin.gui.Item;
@@ -29,6 +29,29 @@ public class AnimationManager extends Manager {
 
     public AnimationManager(EternalCrates plugin) {
         super(plugin);
+    }
+
+    /**
+     * Register an animation into the plugin.
+     *
+     * @param animation The animation being registered.
+     */
+    public static void register(Animation animation) {
+        final EternalCrates plugin = EternalCrates.getInstance();
+        plugin.getLogger().info("Registered Crate Animation: " + animation.getName());
+        plugin.getManager(AnimationManager.class).getCachedAnimations().put(animation.getName(), animation);
+
+        final CrateManager crateManager = plugin.getManager(CrateManager.class);
+
+        // Recreate any crates that weren't registered as animations.
+        new HashSet<>(crateManager.getUnregisteredCrates().entrySet()).forEach(x -> {
+            crateManager.getUnregisteredCrates().remove(x.getKey());
+
+            Crate crate = crateManager.createCreate(x.getValue());
+            if (crate != null) {
+                crateManager.getCachedCrates().put(crate.getId(), crate);
+            }
+        });
     }
 
     @Override
@@ -154,29 +177,6 @@ public class AnimationManager extends Manager {
     }
 
     /**
-     * Register an animation into the plugin.
-     *
-     * @param animation The animation being registered.
-     */
-    public static void register(Animation animation) {
-        final EternalCrates plugin = EternalCrates.getInstance();
-        plugin.getLogger().info("Registered Crate Animation: " + animation.getName());
-        plugin.getManager(AnimationManager.class).getCachedAnimations().put(animation.getName(), animation);
-
-        final CrateManager crateManager = plugin.getManager(CrateManager.class);
-
-        // Recreate any crates that weren't registered as animations.
-        new HashSet<>(crateManager.getUnregisteredCrates().entrySet()).forEach(x -> {
-            crateManager.getUnregisteredCrates().remove(x.getKey());
-
-            Crate crate = crateManager.createCreate(x.getValue());
-            if (crate != null) {
-                crateManager.getCachedCrates().put(crate.getId(), crate);
-            }
-        });
-    }
-
-    /**
      * Create an ItemStack from a config  Please avert your eyes from this monstrosity.
      *
      * @param config The config the item is from.
@@ -224,7 +224,7 @@ public class AnimationManager extends Manager {
         final ConfigurationSection nbt = config.getConfigurationSection(path + ".nbt");
         if (nbt != null) {
             for (String s : nbt.getKeys(false))
-                item = NBTEditor.set(item, nbt.get(s), s);
+                item = NMSAdapter.getHandler().setString(item, s, nbt.getString(s));
         }
 
         return item;

@@ -17,13 +17,13 @@ public class AnimationStartEvent extends Event {
         this.animation = animation;
     }
 
-    @NotNull
-    @Override
-    public HandlerList getHandlers() {
+    public static HandlerList getHandlersList() {
         return list;
     }
 
-    public static HandlerList getHandlersList() {
+    @NotNull
+    @Override
+    public HandlerList getHandlers() {
         return list;
     }
 
