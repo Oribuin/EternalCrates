@@ -107,7 +107,7 @@ public class CrateListeners implements Listener {
 
         // Check if the crate is in animation.
         if (crate.get().getAnimation().isActive()) {
-            this.msg.sendRaw(player, "in-animation");
+            this.msg.send(player, "in-animation");
             return;
         }
 
