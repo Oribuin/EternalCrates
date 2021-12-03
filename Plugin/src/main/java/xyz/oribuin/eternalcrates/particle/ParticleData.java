@@ -26,6 +26,10 @@ public class ParticleData {
     }
 
     public void spawn(Player player, Location loc, int count) {
+        this.spawn(player, loc, count, 0.0, 0.0, 0.0);
+    }
+
+    public void spawn(Player player, Location loc, int count, double offsetX, double offsetY, double offsetZ) {
         final World world = loc.getWorld();
         if (world == null)
             return;
@@ -35,29 +39,28 @@ public class ParticleData {
             // Dust Particle.
             case "REDSTONE" -> {
                 Particle.DustOptions options = new Particle.DustOptions(this.dustColor, 1f);
-                player.spawnParticle(Particle.REDSTONE, loc, count, 0.0, 0.0, 0., 0, options);
+                player.spawnParticle(Particle.REDSTONE, loc, count, offsetX, offsetY, offsetZ, 0, options);
             }
 
             // Spawn Dust Transition particles.
             case "DUST_COLOR_TRANSITION" -> {
                 Particle.DustTransition transition = new Particle.DustTransition(this.dustColor, this.transitionColor, 1f);
-                player.spawnParticle(Particle.DUST_COLOR_TRANSITION, loc, count, 0.0, 0.0, 0., 0, transition);
+                player.spawnParticle(Particle.DUST_COLOR_TRANSITION, loc, count, offsetX, offsetY, offsetZ, 0, transition);
             }
 
             // Spawn in Spell Mob Particles
             case "SPELL_MOB", "SPELL_MOB_AMBIENT" -> player.spawnParticle(this.particle, loc, 0, this.dustColor.getRed() / 255.0, this.dustColor.getGreen() / 255.0, this.dustColor.getBlue() / 255.0, 1.0);
 
-
             // Block Particles
-            case "BLOCK_CRACK", "BLOCK_DUST", "FALLING_DUST" -> {
+            case "BLOCK_CRACK", "BLOCK_DUST", "FALLING_DUST", "BLOCK_MARKER" -> {
                 Material block = this.blockMaterial.isBlock() ? this.blockMaterial : Material.BLACK_WOOL;
-                player.spawnParticle(this.particle, loc, count, 0, 0.0, 0.0, 0.0, block.createBlockData());
+                player.spawnParticle(this.particle, loc, count, offsetX, offsetY, offsetZ, 0, block.createBlockData());
             }
 
             // Item Particles
             case "ITEM_CRACK" -> {
                 Material item = this.itemMaterial.isItem() ? this.itemMaterial : Material.BLACK_WOOL;
-                player.spawnParticle(this.particle, loc, count, 0, 0.0, 0.0, 0.0, new ItemStack(item));
+                player.spawnParticle(this.particle, loc, count, offsetX, offsetY, offsetZ, 0, new ItemStack(item));
             }
 
             // Note Particles

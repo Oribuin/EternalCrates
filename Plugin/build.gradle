@@ -9,17 +9,8 @@ dependencies {
     // Other modules
     implementation project(':NMS:Wrapper')
 
-    compileOnly 'org.spigotmc:spigot:1.17'
-
-    // Plugin APIS
+    compileOnly 'org.spigotmc:spigot-api:1.18-R0.1-SNAPSHOT'
     compileOnly 'me.clip:placeholderapi:2.10.9'
-
-    // Hologram Plugins
-//    compileOnly 'com.gmail.filoghost:holographicdisplays:2.4.3'
-//    compileOnly 'com.sainttx:holograms:2.13'
-//    compileOnly 'me.gholo:gholo:3.1.0.0'
-//    compileOnly 'com.zrips:cmi:9.0.1.3'
-//    compileOnly 'com.zrips:cmilib:1.0.2.14'
 
     // Frameworks & MySQL APIs
     implementation 'com.zaxxer:HikariCP:5.0.0'

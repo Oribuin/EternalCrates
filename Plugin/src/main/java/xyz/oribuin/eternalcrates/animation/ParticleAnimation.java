@@ -53,13 +53,19 @@ public abstract class ParticleAnimation extends Animation {
             for (int i = 0; i < crate.getMaxRewards(); i++)
                 this.finishFunction(crate.selectReward(), player);
 
-            this.finishFunction();
+            this.finishFunction(player, loc);
         }, this.getLength());
 
     }
 
-    public void finishFunction() {
-
+    /**
+     * The function when the particles are finished spawning
+     *
+     * @param player The player opening the crate.
+     * @param crateLocation The crate location.
+     */
+    public void finishFunction(Player player, Location crateLocation) {
+        // Empty Function
     }
 
     public int getSpeed() {

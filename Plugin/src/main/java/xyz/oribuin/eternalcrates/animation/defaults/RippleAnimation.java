@@ -1,6 +1,7 @@
 package xyz.oribuin.eternalcrates.animation.defaults;
 
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 import xyz.oribuin.eternalcrates.animation.ParticleAnimation;
 import xyz.oribuin.eternalcrates.util.MathL;
 
@@ -51,7 +52,7 @@ public class RippleAnimation extends ParticleAnimation {
     }
 
     @Override
-    public void finishFunction() {
+    public void finishFunction(Player player, Location crateLocation) {
         this.ringNumber = 0.0;
     }
 }
