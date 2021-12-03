@@ -2,8 +2,10 @@ package xyz.oribuin.eternalcrates.listener;
 
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
@@ -15,11 +17,10 @@ import java.util.Arrays;
 
 public class AnimationListeners implements Listener {
 
-    private final NamespacedKey key;
+    private final NamespacedKey key = EternalCrates.getEntityKey();
 
     public AnimationListeners(final EternalCrates plugin) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        this.key = new NamespacedKey(plugin, "entity");
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -46,5 +47,17 @@ public class AnimationListeners implements Listener {
         Arrays.stream(event.getChunk().getEntities())
                 .filter(entity -> entity.getPersistentDataContainer().has(key, PersistentDataType.INTEGER))
                 .forEach(Entity::remove);
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onChange(EntityChangeBlockEvent event) {
+        final PersistentDataContainer cont = event.getEntity().getPersistentDataContainer();
+
+        if (!cont.has(key, PersistentDataType.INTEGER))
+            return;
+
+        if (event.getEntity().getType() == EntityType.FALLING_BLOCK) {
+            event.setCancelled(true);
+        }
     }
 }

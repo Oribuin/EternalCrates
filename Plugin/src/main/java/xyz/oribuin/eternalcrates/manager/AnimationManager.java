@@ -65,12 +65,14 @@ public class AnimationManager extends Manager {
         this.cachedAnimations.put("wheel", new WheelAnimation());
         // Particle Animations
         this.cachedAnimations.put("rings", new RingsAnimation());
+        this.cachedAnimations.put("ripple", new RippleAnimation());
         // Firework Particles
         this.cachedAnimations.put("sparkle", new SparkleAnimation()); // we may need a better name for this.
         this.cachedAnimations.put("celebration", new CelebrationAnimation());
         // Custom
         this.cachedAnimations.put("chicken", new ChickenAnimation());
         this.cachedAnimations.put("fountain", new FountainAnimation());
+
         // Hologram
 
         // Other

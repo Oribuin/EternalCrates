@@ -51,9 +51,14 @@ public abstract class ParticleAnimation extends Animation {
         Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), x -> {
             task.cancel();
             for (int i = 0; i < crate.getMaxRewards(); i++)
-                finishFunction(crate.selectReward(), player);
+                this.finishFunction(crate.selectReward(), player);
 
+            this.finishFunction();
         }, this.getLength());
+
+    }
+
+    public void finishFunction() {
 
     }
 
