@@ -23,6 +23,7 @@ import xyz.oribuin.orilibrary.util.HexUtils;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("unchecked")
 public class CrateManager extends Manager {
@@ -110,7 +111,6 @@ public class CrateManager extends Manager {
         // this line isn't dumb
         final Optional<? extends Animation> animation = animationManager.getAnimationFromConfig(config);
         if (animation.isEmpty()) {
-//            this.plugin.getLogger().warning("Unable to register crate " + name.get());
             this.unregisteredCrates.put(name.get().toLowerCase(), config);
             return null;
         }
@@ -132,38 +132,17 @@ public class CrateManager extends Manager {
             // section inception
             // holup that rhymes
             final List<String> actionSection = section.getStringList(s + ".actions");
-            actionSection.forEach(i -> {
-
-                final List<Action> actions = Arrays.asList(
-                        new BroadcastAction(),
-                        new CloseAction(),
-                        new ConsoleAction(),
-                        new MessageAction(),
-                        new PlayerAction(),
-                        new SoundAction()
-                );
-
-                Optional<Action> optional = actions.stream().filter(x -> i.toLowerCase().startsWith("[" + x.actionType().toLowerCase() + "]")).findFirst();
-
-                if (optional.isEmpty())
-                    return;
-
-                Action action = optional.get();
-                final String formattedAction = "[" + action.actionType().toLowerCase() + "]";
-                String actionMessage = i.substring(formattedAction.length());
-
-                // yes this is scuffed
-                while (actionMessage.startsWith(" "))
-                    actionMessage = actionMessage.substring(1);
-
-                action.setMessage(actionMessage);
-                reward.getActions().add(action);
-
-            });
-
+            actionSection.stream().map(this::addAction).filter(Optional::isPresent).forEach(action -> reward.getActions().add(action.get()));
             rewards.put(reward.getId(), reward);
         });
 
+        // Get all the crate actions when it's opened by a player.
+        List<Action> openActions = config.getStringList("open-actions")
+                .stream()
+                .map(this::addAction)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
 
         final Crate crate = new Crate(name.get());
         crate.setAnimation(animation.get());
@@ -172,6 +151,7 @@ public class CrateManager extends Manager {
         crate.setMaxRewards(Math.max(PluginUtils.get(config, "max-rewards", 1), 1));
         crate.setMinGuiSlots(Math.max(PluginUtils.get(config, "min-inv-slots", crate.getMaxRewards()), crate.getMaxRewards()));
         crate.setConfig(config);
+        crate.setOpenActions(openActions);
         ItemStack item = new Item.Builder(animationManager.itemFromConfig(config, "key"))
                 .setNBT(plugin, "crateKey", crate.getId().toLowerCase())
                 .create();
@@ -186,6 +166,7 @@ public class CrateManager extends Manager {
                     )
                     .create();
         }
+
         final ItemMeta meta = item.getItemMeta();
         assert meta != null;
         final PersistentDataContainer cont = meta.getPersistentDataContainer();
@@ -226,6 +207,33 @@ public class CrateManager extends Manager {
         return section.get(path) != null ? (T) section.get(path) : def;
     }
 
+    private Optional<Action> addAction(String text) {
+        final List<Action> actions = Arrays.asList(
+                new BroadcastAction(),
+                new CloseAction(),
+                new ConsoleAction(),
+                new MessageAction(),
+                new PlayerAction(),
+                new SoundAction()
+        );
+
+        Optional<Action> optional = actions.stream().filter(x -> text.toLowerCase().startsWith("[" + x.actionType().toLowerCase() + "]")).findFirst();
+
+        if (optional.isEmpty())
+            return Optional.empty();
+
+        Action action = optional.get();
+        final String formattedAction = "[" + action.actionType().toLowerCase() + "]";
+        String actionMessage = text.substring(formattedAction.length());
+
+        // yes this is scuffed
+        while (actionMessage.startsWith(" "))
+            actionMessage = actionMessage.substring(1);
+
+        action.setMessage(actionMessage);
+        return Optional.of(action);
+    }
+
     public Map<String, Crate> getCachedCrates() {
         return cachedCrates;
     }
@@ -233,5 +241,6 @@ public class CrateManager extends Manager {
     public Map<String, FileConfiguration> getUnregisteredCrates() {
         return unregisteredCrates;
     }
+
 
 }

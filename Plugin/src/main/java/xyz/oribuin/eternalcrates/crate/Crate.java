@@ -6,6 +6,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import xyz.oribuin.eternalcrates.EternalCrates;
+import xyz.oribuin.eternalcrates.action.Action;
 import xyz.oribuin.eternalcrates.animation.Animation;
 import xyz.oribuin.eternalcrates.animation.CustomAnimation;
 import xyz.oribuin.eternalcrates.animation.FireworkAnimation;
@@ -32,6 +33,7 @@ public class Crate {
     private int maxRewards;
     private int minGuiSlots;
     private FileConfiguration config;
+    private List<Action> openActions;
 
     public Crate(final String id) {
         this.id = id;
@@ -42,6 +44,7 @@ public class Crate {
         this.maxRewards = 1;
         this.minGuiSlots = this.maxRewards;
         this.config = null;
+        this.openActions = new ArrayList<>();
     }
 
     /**
@@ -55,6 +58,8 @@ public class Crate {
         Bukkit.getPluginManager().callEvent(event);
         if (event.isCancelled())
             return;
+
+        this.openActions.forEach(action -> action.executeAction(plugin, player));
 
         plugin.getActiveUsers().add(player.getUniqueId());
 
@@ -172,4 +177,13 @@ public class Crate {
     public void setRewardMap(Map<Integer, Reward> rewardMap) {
         this.rewardMap = rewardMap;
     }
+
+    public List<Action> getOpenActions() {
+        return openActions;
+    }
+
+    public void setOpenActions(List<Action> openActions) {
+        this.openActions = openActions;
+    }
+
 }
