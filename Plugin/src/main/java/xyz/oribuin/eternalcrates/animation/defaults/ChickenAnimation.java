@@ -5,6 +5,7 @@ import org.bukkit.entity.Chicken;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
 import xyz.oribuin.eternalcrates.EternalCrates;
+import xyz.oribuin.eternalcrates.animation.AnimationType;
 import xyz.oribuin.eternalcrates.animation.CustomAnimation;
 import xyz.oribuin.eternalcrates.crate.Crate;
 
@@ -13,7 +14,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class ChickenAnimation extends CustomAnimation {
 
     public ChickenAnimation() {
-        super("chicken", "Oribuin");
+        super("chicken", "Oribuin", AnimationType.CUSTOM);
     }
 
     @Override

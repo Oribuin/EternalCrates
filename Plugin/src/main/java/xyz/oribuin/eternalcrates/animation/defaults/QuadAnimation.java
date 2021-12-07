@@ -23,10 +23,11 @@ public class QuadAnimation extends ParticleAnimation {
     public List<Location> particleLocations(Location crate) {
         final List<Location> locs = new ArrayList<>();
         int orbs = 4;
+        final Location newLoc = crate.clone().subtract(0.0, 0.5, 0.0);
         for (int i = 0; i < orbs; i++) {
             double dx = -(MathL.cos((this.step / (double) this.numSteps) * (Math.PI * 2) + (((Math.PI * 2) / orbs) * i))) * this.radius;
             double dz = -(MathL.sin((this.step / (double) this.numSteps) * (Math.PI * 2) + (((Math.PI * 2) / orbs) * i))) * this.radius;
-            locs.add(crate.clone().add(dx, height, dz));
+            locs.add(newLoc.clone().add(dx, height, dz));
         }
 
         return locs;

@@ -7,6 +7,7 @@ public enum AnimationType {
     FIREWORKS,
     //    HOLOGRAM, Unused until I added a hologram API
     CUSTOM,
+    SEASONAL,
     NONE,
 
 }

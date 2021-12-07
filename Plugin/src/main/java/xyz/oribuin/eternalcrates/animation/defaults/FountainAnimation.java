@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
 import xyz.oribuin.eternalcrates.EternalCrates;
+import xyz.oribuin.eternalcrates.animation.AnimationType;
 import xyz.oribuin.eternalcrates.animation.CustomAnimation;
 import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.crate.Reward;
@@ -19,7 +20,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class FountainAnimation extends CustomAnimation {
 
     public FountainAnimation() {
-        super("fountain", "Oribuin");
+        super("fountain", "Oribuin", AnimationType.CUSTOM);
     }
 
     @Override
