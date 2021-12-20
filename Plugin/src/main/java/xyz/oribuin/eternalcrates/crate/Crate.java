@@ -11,6 +11,7 @@ import xyz.oribuin.eternalcrates.animation.Animation;
 import xyz.oribuin.eternalcrates.animation.CustomAnimation;
 import xyz.oribuin.eternalcrates.animation.FireworkAnimation;
 import xyz.oribuin.eternalcrates.animation.ParticleAnimation;
+import xyz.oribuin.eternalcrates.event.AnimationEndEvent;
 import xyz.oribuin.eternalcrates.event.AnimationStartEvent;
 import xyz.oribuin.eternalcrates.event.CrateOpenEvent;
 import xyz.oribuin.eternalcrates.gui.AnimatedGUI;
@@ -72,9 +73,33 @@ public class Crate {
             case GUI -> new AnimatedGUI(plugin, this, player);
             case PARTICLES -> ((ParticleAnimation) animation).play(this, spawnLocation, 1, player);
             case FIREWORKS -> ((FireworkAnimation) animation).play(this, spawnLocation, player);
-            case NONE -> animation.finishFunction(this.selectReward(), player);
+            case NONE -> this.finish(player);
             case CUSTOM, SEASONAL -> ((CustomAnimation) animation).spawn(this, spawnLocation, player);
         }
+    }
+
+    /**
+     * Finish the crate animation and give the player the rewards.
+     *
+     * @param player  The player who is getting the rewards
+     * @param rewards The rewards the player is getting.
+     */
+    public void finish(Player player, List<Reward> rewards) {
+        Bukkit.getPluginManager().callEvent(new AnimationEndEvent(this.getAnimation()));
+        this.getAnimation().setActive(false);
+        EternalCrates.getInstance().getActiveUsers().remove(player.getUniqueId());
+        for (Reward reward : rewards) {
+            reward.getActions().forEach(action -> action.executeAction(EternalCrates.getInstance(), player));
+        }
+    }
+
+    /**
+     * Finish the crate animation and give the player the rewards.
+     *
+     * @param player The player who is getting the rewards
+     */
+    public void finish(Player player) {
+        this.finish(player, this.createRewards());
     }
 
     /**

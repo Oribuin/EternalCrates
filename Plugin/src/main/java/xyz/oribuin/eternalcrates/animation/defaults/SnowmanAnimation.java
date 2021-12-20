@@ -45,13 +45,11 @@ public class SnowmanAnimation extends CustomAnimation {
         Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), () -> entity.setDerp(true), 20);
         BukkitTask dustParticle = Bukkit.getScheduler().runTaskTimerAsynchronously(EternalCrates.getInstance(), () -> entity.getWorld().spawnParticle(Particle.FALLING_DUST, entity.getLocation().clone().add(0.0, 2.0, 0.0), 3, 0.5, 0.5, 0.5, Material.WHITE_CARPET.createBlockData()), 0, 3);
 
-
         Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), x -> {
             entity.remove();
             dustParticle.cancel();
 
-            final List<Reward> rewards = crate.createRewards();
-            rewards.forEach(reward -> this.finishFunction(reward, player));
+            crate.finish(player);
 
             for (int i = 0; i < 15; i++)
                 world.spawn(entity.getLocation().clone().add(0.0, 0.5, 0.0), Snowball.class, snowball ->

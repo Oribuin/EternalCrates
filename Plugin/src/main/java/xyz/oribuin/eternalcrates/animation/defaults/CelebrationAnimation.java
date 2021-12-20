@@ -14,11 +14,11 @@ public class CelebrationAnimation extends FireworkAnimation {
     @Override
     public void registerFireworks(Location location) {
         final Location loc = location.clone().add(0, 2, 0);
-        addFirework(loc.clone().subtract(1, 0, 1), ballFirework(Color.WHITE));
-        addFirework(loc.clone().add(1, 0, -1), ballFirework(Color.fromRGB(169, 191, 254)));
+        this.addFirework(loc.clone().subtract(1, 0, 1), ballFirework(Color.WHITE));
+        this.addFirework(loc.clone().add(1, 0, -1), ballFirework(Color.fromRGB(169, 191, 254)));
 
-        addFirework(loc.clone().add(1, 0, 1), ballFirework(Color.WHITE));
-        addFirework(loc.clone().subtract(1, 0, -1), ballFirework(Color.fromRGB(169, 191, 254)));
+        this.addFirework(loc.clone().add(1, 0, 1), ballFirework(Color.WHITE));
+        this.addFirework(loc.clone().subtract(1, 0, -1), ballFirework(Color.fromRGB(169, 191, 254)));
     }
 
     /**

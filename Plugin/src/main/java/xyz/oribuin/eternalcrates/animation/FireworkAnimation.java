@@ -79,8 +79,7 @@ public abstract class FireworkAnimation extends Animation {
                 });
 
                 if (integer == this.fireworkMap.size()) {
-                    this.setActive(false);
-                    crate.createRewards().forEach(reward -> this.finishFunction(reward, player));
+                    crate.finish(player);
                 }
 
                 firework.detonate();

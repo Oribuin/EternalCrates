@@ -36,7 +36,7 @@ public class FountainAnimation extends CustomAnimation {
         final ThreadLocalRandom random = ThreadLocalRandom.current();
 
         rewards.forEach(reward -> {
-            this.finishFunction(reward, player);
+            crate.finish(player, rewards);
             this.setActive(true);
 
             for (int i = 0; i < rewards.size() * 10; i++) {

@@ -38,7 +38,6 @@ public class PumpkinAnimation extends CustomAnimation {
         if (world == null)
             return;
 
-        final List<Reward> rewards = crate.createRewards();
         this.setActive(true);
         final List<Entity> entitiesToRemove = new ArrayList<>();
 
@@ -81,7 +80,7 @@ public class PumpkinAnimation extends CustomAnimation {
         entitiesToRemove.add(pomkin);
         final ThreadLocalRandom random = ThreadLocalRandom.current();
         Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), () -> {
-            rewards.forEach(reward -> this.finishFunction(reward, player));
+            crate.finish(player);
 
             task.cancel();
             pomkin.remove();

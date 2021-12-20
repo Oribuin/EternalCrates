@@ -31,6 +31,7 @@ public class EternalCrates extends OriPlugin {
         // Make sure the server is using 1.16+
         if (NMSUtil.getVersionNumber() < 16) {
             this.getLogger().severe("You cannot use EternalCrates on 1." + NMSUtil.getVersionNumber() + ", We are limited to 1.16+");
+            this.getServer().getPluginManager().disablePlugin(this);
             return;
         }
 

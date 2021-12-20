@@ -50,8 +50,7 @@ public abstract class ParticleAnimation extends Animation {
 
         Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), x -> {
             task.cancel();
-            for (int i = 0; i < crate.getMaxRewards(); i++)
-                this.finishFunction(crate.selectReward(), player);
+            crate.finish(player);
 
             this.finishFunction(player, loc);
         }, this.getLength());
@@ -61,7 +60,7 @@ public abstract class ParticleAnimation extends Animation {
     /**
      * The function when the particles are finished spawning
      *
-     * @param player The player opening the crate.
+     * @param player        The player opening the crate.
      * @param crateLocation The crate location.
      */
     public void finishFunction(Player player, Location crateLocation) {
