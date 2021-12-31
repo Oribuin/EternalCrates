@@ -87,9 +87,16 @@ public class DataManager extends DataHandler {
         if (crate.getLocation() == null)
             return;
 
-        final Location blockLoc = crate.getLocation();
-        crateManager.getCachedCrates().put(crate.getId().toLowerCase(), crate);
+        final Location blockLoc = PluginUtils.getBlockLoc(crate.getLocation());
+        // delete any crates that are already there
+        this.crateManager.getCachedCrates().values()
+                .stream()
+                .filter(x -> !x.getId().equalsIgnoreCase(crate.getId()))
+                .filter(x -> x.getLocation() != null && x.getLocation().equals(blockLoc))
+                .findAny()
+                .ifPresent(this::deleteCrate);
 
+        crateManager.getCachedCrates().put(crate.getId().toLowerCase(), crate);
         this.async(t -> this.getConnector().connect(connection -> {
             final String query = "REPLACE INTO " + this.getTableName() + "_crates (crate, world, x, y, z) VALUES (?, ?, ?, ?, ?)";
             try (PreparedStatement statement = connection.prepareStatement(query)) {
