@@ -1,12 +1,5 @@
 package xyz.oribuin.eternalcrates.animation;
 
-import org.bukkit.Bukkit;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.Player;
-import xyz.oribuin.eternalcrates.EternalCrates;
-import xyz.oribuin.eternalcrates.crate.Reward;
-import xyz.oribuin.eternalcrates.event.AnimationEndEvent;
-
 public abstract class Animation {
 
     private final String name;
@@ -35,7 +28,7 @@ public abstract class Animation {
         return author;
     }
 
-    public boolean isCanBeVirtual() {
+    public boolean canBeVirtual() {
         return canBeVirtual;
     }
 

@@ -164,12 +164,37 @@ public class DataManager extends DataHandler {
     }
 
     /**
+     * Save and cache a large group of users
+     *
+     * @param users The map of users and their items.
+     */
+    public void massSaveItems(Map<UUID, List<ItemStack>> users) {
+        this.cachedUsers.putAll(users);
+
+        final String query = "REPLACE INTO " + this.getTableName() + "_items (player, items) VALUES (?, ?)";
+        this.async(task -> this.getConnector().connect(connection -> {
+            try (PreparedStatement statement = connection.prepareStatement(query)) {
+                users.forEach((uuid, itemStacks) -> {
+                    try {
+                        statement.setString(1, uuid.toString());
+                        statement.setBytes(2, compressItems(itemStacks));
+                        statement.addBatch();
+                    } catch (SQLException ignored) {
+                    }
+                });
+
+                statement.executeBatch();
+            }
+        }));
+    }
+
+    /**
      * Get a user's current unclaimed items.
      *
      * @param uuid The User's UUID
      * @return The list of items.
      */
-    public List<ItemStack> saveUserItems(UUID uuid) {
+    public List<ItemStack> getUserItems(UUID uuid) {
         if (this.cachedUsers.get(uuid) != null)
             return this.cachedUsers.get(uuid);
 
@@ -196,12 +221,37 @@ public class DataManager extends DataHandler {
     public void saveVirtual(UUID uuid, Map<String, Integer> keys) {
         this.cachedVirtual.put(uuid, keys);
 
-        final String query = "REPLACE INTO " + this.getTableName() + " _virtualkeys (player, keys) VALUES (?, ?)";
+        final String query = "REPLACE INTO " + this.getTableName() + "_virtual (player, keys) VALUES (?, ?)";
         this.async(task -> this.getConnector().connect(connection -> {
             try (PreparedStatement statement = connection.prepareStatement(query)) {
                 statement.setString(1, uuid.toString());
-                statement.setString(2, gson.toJson(new VirtualKeys(uuid, keys)));
+                statement.setString(2, gson.toJson(new VirtualKeys(keys)));
                 statement.executeUpdate();
+            }
+        }));
+    }
+
+    /**
+     * Mass save virtual crate keys.
+     *
+     * @param keys The keys being saved.
+     */
+    public void massSaveVirtual(Map<UUID, VirtualKeys> keys) { // didnt wanna nest maps
+        keys.forEach((uuid, obj) -> this.cachedVirtual.put(uuid, obj.getKeys()));
+
+        final String query = "REPLACE INTO " + this.getTableName() + "_virtual (player, keys) VALUES (?, ?)";
+        this.async(task -> this.getConnector().connect(connection -> {
+            try (PreparedStatement statement = connection.prepareStatement(query)) {
+                keys.forEach((uuid, obj) -> {
+                    try {
+                        statement.setString(1, uuid.toString());
+                        statement.setString(2, gson.toJson(obj));
+                        statement.addBatch();
+                    } catch (SQLException ignored) {
+                    }
+                });
+
+                statement.executeBatch();
             }
         }));
     }
@@ -212,11 +262,11 @@ public class DataManager extends DataHandler {
      * @param uuid The UUID of the player.
      * @return The list of crate ids and the amount of keys they own
      */
-    public Map<String, Integer> getKeys(UUID uuid) {
+    public Map<String, Integer> getVirtual(UUID uuid) {
         if (this.cachedVirtual.get(uuid) != null)
             return this.cachedVirtual.get(uuid);
 
-        final String query = "SELECT keys FROM " + this.getTableName() + "_virtualkeys WHERE player = ?";
+        final String query = "SELECT keys FROM " + this.getTableName() + "_virtual WHERE player = ?";
         this.async(task -> this.getConnector().connect(connection -> {
             try (PreparedStatement statement = connection.prepareStatement(query)) {
                 statement.setString(1, uuid.toString());
@@ -230,7 +280,6 @@ public class DataManager extends DataHandler {
 
         return this.cachedVirtual.getOrDefault(uuid, new HashMap<>());
     }
-
 
 
     /**
@@ -292,4 +341,7 @@ public class DataManager extends DataHandler {
         return cachedUsers;
     }
 
+    public Map<UUID, Map<String, Integer>> getCachedVirtual() {
+        return cachedVirtual;
+    }
 }

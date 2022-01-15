@@ -34,6 +34,7 @@ public class Crate {
     private int minGuiSlots;
     private FileConfiguration config;
     private List<Action> openActions;
+    private CrateType type;
 
     public Crate(final String id) {
         this.id = id;
@@ -45,6 +46,7 @@ public class Crate {
         this.minGuiSlots = this.maxRewards;
         this.config = null;
         this.openActions = new ArrayList<>();
+        this.type = CrateType.PHYSICAL;
     }
 
     /**
@@ -226,4 +228,11 @@ public class Crate {
         this.openActions = openActions;
     }
 
+    public CrateType getType() {
+        return type;
+    }
+
+    public void setType(CrateType type) {
+        this.type = type;
+    }
 }

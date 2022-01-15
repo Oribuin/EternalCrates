@@ -5,14 +5,15 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.inventory.ItemStack;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.crate.Crate;
+import xyz.oribuin.eternalcrates.crate.CrateType;
+import xyz.oribuin.eternalcrates.crate.VirtualKeys;
 import xyz.oribuin.eternalcrates.manager.CrateManager;
 import xyz.oribuin.eternalcrates.manager.DataManager;
 import xyz.oribuin.eternalcrates.manager.MessageManager;
 import xyz.oribuin.orilibrary.command.SubCommand;
 import xyz.oribuin.orilibrary.util.StringPlaceholders;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @SubCommand.Info(
         names = {"giveall"},
@@ -66,25 +67,37 @@ public class GiveallCommand extends SubCommand {
                 .addPlaceholder("sender", sender.getName())
                 .build();
 
-        item.setAmount(finalAmount);
+        this.msg.send(sender, "gaveall-key", placeholders);
+        final DataManager data = this.plugin.getManager(DataManager.class);
 
+        if (crate.getType() == CrateType.PHYSICAL) {
+            item.setAmount(finalAmount);
+
+            final Map<UUID, List<ItemStack>> itemMap = new HashMap<>();
+            Bukkit.getOnlinePlayers().forEach(target -> {
+                this.msg.send(target, "given-key", placeholders);
+
+                if (target.getInventory().firstEmpty() == -1) {
+
+                    List<ItemStack> items = data.getUserItems(target.getUniqueId());
+                    items.add(item);
+                    itemMap.put(target.getUniqueId(), items);
+                    this.msg.send(target, "saved-key", placeholders);
+                } else {
+                    target.getInventory().addItem(item);
+                }
+            });
+
+            data.massSaveItems(itemMap);
+            return;
+        }
+
+        Map<UUID, VirtualKeys> keys = new HashMap<>();
         Bukkit.getOnlinePlayers().forEach(target -> {
-
             this.msg.send(target, "given-key", placeholders);
-
-            if (target.getInventory().firstEmpty() == -1) {
-                final DataManager data = this.plugin.getManager(DataManager.class);
-                List<ItemStack> items = data.saveUserItems(target.getUniqueId());
-
-                items.add(item);
-                data.saveUserItems(target.getUniqueId(), items);
-                this.msg.send(target, "saved-key", placeholders);
-            } else {
-                target.getInventory().addItem(item);
-            }
-
+            keys.put(target.getUniqueId(), new VirtualKeys(data.getVirtual(target.getUniqueId())));
         });
 
-        this.msg.send(sender, "gaveall-key", placeholders);
+        data.massSaveVirtual(keys);
     }
 }

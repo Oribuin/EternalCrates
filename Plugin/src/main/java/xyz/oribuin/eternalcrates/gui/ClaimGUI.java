@@ -39,7 +39,7 @@ public class ClaimGUI {
 
         final PaginatedGui gui = new PaginatedGui(45, HexUtils.colorify(PluginUtils.get(this.plugin.getConfig(), "claim-gui.title", "Unclaimed Crate Keys.")), pageSlots);
 
-        final List<ItemStack> savedItems = new ArrayList<>(data.saveUserItems(player.getUniqueId()));
+        final List<ItemStack> savedItems = new ArrayList<>(data.getUserItems(player.getUniqueId()));
 
         gui.setDefaultClickFunction(event -> {
             gui.getPersonalClickAction().accept(event);
@@ -104,7 +104,7 @@ public class ClaimGUI {
      */
     private void setUnclaimedItems(PaginatedGui gui, Player player) {
         gui.getPageItems().clear();
-        data.saveUserItems(player.getUniqueId()).forEach(itemStack -> gui.addPageItem(itemStack, e -> setUnclaimedItems(gui, player)));
+        data.getUserItems(player.getUniqueId()).forEach(itemStack -> gui.addPageItem(itemStack, e -> setUnclaimedItems(gui, player)));
         gui.update();
     }
 
