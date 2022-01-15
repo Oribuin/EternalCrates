@@ -23,7 +23,7 @@ public class GuiAnimation extends Animation {
     private ItemStack fillerItem;
 
     public GuiAnimation(String name, String author, int[] rotateSlots) {
-        super(name, AnimationType.GUI, author);
+        super(name, AnimationType.GUI, author, true);
         this.rotateSlots = rotateSlots;
         this.winningSlot = rotateSlots[0];
         this.guiSize = 54;

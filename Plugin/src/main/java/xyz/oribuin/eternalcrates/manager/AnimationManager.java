@@ -59,7 +59,7 @@ public class AnimationManager extends Manager {
     public void enable() {
         this.plugin.getLogger().info("Loading all the animations for the plugin.");
 
-        // Add the default animation
+        // Add the default animations
         // GUI Animations
         this.cachedAnimations.put("csgo", new CsgoAnimation());
         this.cachedAnimations.put("wheel", new WheelAnimation());
@@ -77,7 +77,7 @@ public class AnimationManager extends Manager {
         this.cachedAnimations.put("snowman", new SnowmanAnimation());
         this.cachedAnimations.put("pumpkin", new PumpkinAnimation());
         // Hologram
-
+        // TODO
         // Other
         this.cachedAnimations.put("none", new EmptyAnimation());
     }

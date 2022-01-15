@@ -15,6 +15,7 @@ public class ChickenAnimation extends CustomAnimation {
 
     public ChickenAnimation() {
         super("chicken", "Oribuin", AnimationType.CUSTOM);
+        this.setCanBeVirtual(false);
     }
 
     @Override

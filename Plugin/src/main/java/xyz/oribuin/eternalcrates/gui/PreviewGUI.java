@@ -34,7 +34,7 @@ public class PreviewGUI {
         for (int i = 9; i < 35; i++)
             pageSlots.add(i);
 
-        final PaginatedGui gui = new PaginatedGui(45, crate.getDisplayName(), pageSlots);
+        final PaginatedGui gui = new PaginatedGui(45, HexUtils.colorify(crate.getDisplayName()), pageSlots);
 
         // Stop clicking preview gui
         gui.setDefaultClickFunction(event -> {

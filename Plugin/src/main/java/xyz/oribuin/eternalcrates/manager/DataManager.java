@@ -1,5 +1,6 @@
 package xyz.oribuin.eternalcrates.manager;
 
+import com.google.gson.Gson;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -9,6 +10,7 @@ import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.crate.Crate;
+import xyz.oribuin.eternalcrates.crate.VirtualKeys;
 import xyz.oribuin.eternalcrates.util.PluginUtils;
 import xyz.oribuin.orilibrary.manager.DataHandler;
 
@@ -26,7 +28,9 @@ public class DataManager extends DataHandler {
 
     private final EternalCrates plugin = (EternalCrates) this.getPlugin();
     private final CrateManager crateManager;
+    private final Gson gson = new Gson();
     private Map<UUID, List<ItemStack>> cachedUsers;
+    private Map<UUID, Map<String, Integer>> cachedVirtual;
 
     public DataManager(EternalCrates plugin) {
         super(plugin);
@@ -37,6 +41,7 @@ public class DataManager extends DataHandler {
     public void enable() {
         super.enable();
         this.cachedUsers = new HashMap<>();
+        this.cachedVirtual = new HashMap<>();
 
         // Connect to database async.
         this.async((task) -> this.getConnector().connect(connection -> {
@@ -47,6 +52,10 @@ public class DataManager extends DataHandler {
 
             final String itemsQuery = "CREATE TABLE IF NOT EXISTS " + this.getTableName() + "_items (player VARCHAR(50), items VARBINARY(2456), PRIMARY KEY(player))";
             connection.prepareStatement(itemsQuery).executeUpdate();
+
+            // The table for virtual crate keys
+            final String virtualQuery = "CREATE TABLE IF NOT EXISTS " + this.getTableName() + "_virtual (player VARCHAR(50), keys TEXT, PRIMARY KEY(player))";
+            connection.prepareStatement(virtualQuery).executeUpdate();
 
             // Cache all the physical crate locations.
             this.cacheCrates(connection);
@@ -141,7 +150,7 @@ public class DataManager extends DataHandler {
      * @param uuid  The user's uuid
      * @param items The unclaimed crate keys.
      */
-    public void saveUser(UUID uuid, List<ItemStack> items) {
+    public void saveUserItems(UUID uuid, List<ItemStack> items) {
         this.cachedUsers.put(uuid, items);
 
         final String query = "REPLACE INTO " + this.getTableName() + "_items (player, items) VALUES (?, ?)";
@@ -160,7 +169,7 @@ public class DataManager extends DataHandler {
      * @param uuid The User's UUID
      * @return The list of items.
      */
-    public List<ItemStack> getItems(UUID uuid) {
+    public List<ItemStack> saveUserItems(UUID uuid) {
         if (this.cachedUsers.get(uuid) != null)
             return this.cachedUsers.get(uuid);
 
@@ -177,6 +186,52 @@ public class DataManager extends DataHandler {
 
         return this.cachedUsers.getOrDefault(uuid, new ArrayList<>());
     }
+
+    /**
+     * Save a player's virtual crate keys.
+     *
+     * @param uuid The UUID of the player
+     * @param keys A map of crate ids and key count.
+     */
+    public void saveVirtual(UUID uuid, Map<String, Integer> keys) {
+        this.cachedVirtual.put(uuid, keys);
+
+        final String query = "REPLACE INTO " + this.getTableName() + " _virtualkeys (player, keys) VALUES (?, ?)";
+        this.async(task -> this.getConnector().connect(connection -> {
+            try (PreparedStatement statement = connection.prepareStatement(query)) {
+                statement.setString(1, uuid.toString());
+                statement.setString(2, gson.toJson(new VirtualKeys(uuid, keys)));
+                statement.executeUpdate();
+            }
+        }));
+    }
+
+    /**
+     * Get all the virtual keys that ap layer owns
+     *
+     * @param uuid The UUID of the player.
+     * @return The list of crate ids and the amount of keys they own
+     */
+    public Map<String, Integer> getKeys(UUID uuid) {
+        if (this.cachedVirtual.get(uuid) != null)
+            return this.cachedVirtual.get(uuid);
+
+        final String query = "SELECT keys FROM " + this.getTableName() + "_virtualkeys WHERE player = ?";
+        this.async(task -> this.getConnector().connect(connection -> {
+            try (PreparedStatement statement = connection.prepareStatement(query)) {
+                statement.setString(1, uuid.toString());
+                final ResultSet result = statement.executeQuery();
+                if (result.next()) {
+                    Map<String, Integer> keys = gson.fromJson(result.getString(1), VirtualKeys.class).getKeys();
+                    this.cachedVirtual.put(uuid, keys);
+                }
+            }
+        }));
+
+        return this.cachedVirtual.getOrDefault(uuid, new HashMap<>());
+    }
+
+
 
     /**
      * Compress a list of ItemStacks into a byte array.

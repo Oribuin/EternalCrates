@@ -82,10 +82,10 @@ public class GiveCommand extends SubCommand {
 
         if (target.getInventory().firstEmpty() == -1) {
             final DataManager data = this.plugin.getManager(DataManager.class);
-            List<ItemStack> items = data.getItems(target.getUniqueId());
+            List<ItemStack> items = data.saveUserItems(target.getUniqueId());
 
             items.add(item);
-            data.saveUser(target.getUniqueId(), items);
+            data.saveUserItems(target.getUniqueId(), items);
             this.msg.send(target, "saved-key", placeholders);
         } else {
             target.getInventory().addItem(item);
