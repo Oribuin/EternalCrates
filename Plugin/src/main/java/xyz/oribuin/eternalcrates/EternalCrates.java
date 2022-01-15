@@ -25,7 +25,6 @@ public class EternalCrates extends OriPlugin {
     private List<UUID> activeUsers;
 
 
-
     @Override
     public void enablePlugin() {
         // Make sure the server is using 1.16+

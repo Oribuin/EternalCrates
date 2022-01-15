@@ -11,9 +11,7 @@ import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.animation.AnimationType;
 import xyz.oribuin.eternalcrates.animation.CustomAnimation;
 import xyz.oribuin.eternalcrates.crate.Crate;
-import xyz.oribuin.eternalcrates.crate.Reward;
 
-import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class SnowmanAnimation extends CustomAnimation {

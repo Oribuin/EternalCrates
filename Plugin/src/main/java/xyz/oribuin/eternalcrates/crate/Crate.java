@@ -19,7 +19,10 @@ import xyz.oribuin.eternalcrates.gui.AnimatedGUI;
 import xyz.oribuin.eternalcrates.util.PluginUtils;
 import xyz.oribuin.orilibrary.util.StringPlaceholders;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Crate {

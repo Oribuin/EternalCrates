@@ -13,7 +13,9 @@ import xyz.oribuin.eternalcrates.manager.MessageManager;
 import xyz.oribuin.orilibrary.command.SubCommand;
 import xyz.oribuin.orilibrary.util.StringPlaceholders;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @SubCommand.Info(
         names = {"give"},
