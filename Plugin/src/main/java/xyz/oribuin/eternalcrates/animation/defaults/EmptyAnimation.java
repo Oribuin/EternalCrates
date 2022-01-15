@@ -6,7 +6,7 @@ import xyz.oribuin.eternalcrates.animation.AnimationType;
 public class EmptyAnimation extends Animation {
 
     public EmptyAnimation() {
-        super("none", AnimationType.NONE, "Oribuin");
+        super("none", AnimationType.NONE, "Oribuin", true);
     }
 
 }

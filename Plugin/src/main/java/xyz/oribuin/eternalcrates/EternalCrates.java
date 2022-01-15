@@ -4,6 +4,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Entity;
 import org.bukkit.persistence.PersistentDataType;
 import xyz.oribuin.eternalcrates.command.CrateCommand;
+import xyz.oribuin.eternalcrates.hook.PAPI;
 import xyz.oribuin.eternalcrates.listener.AnimationListeners;
 import xyz.oribuin.eternalcrates.listener.CrateListeners;
 import xyz.oribuin.eternalcrates.listener.PlayerListeners;
@@ -23,7 +24,6 @@ public class EternalCrates extends OriPlugin {
     private static EternalCrates instance;
     private static NamespacedKey entityKey;
     private List<UUID> activeUsers;
-
 
 
     @Override
@@ -54,6 +54,9 @@ public class EternalCrates extends OriPlugin {
 
         // Register Plugin Command
         new CrateCommand(this);
+
+        // Register PlaceholderAPI
+        new PAPI(this);
     }
 
     @Override

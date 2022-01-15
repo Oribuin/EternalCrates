@@ -145,6 +145,7 @@ public class MessageManager extends Manager {
         INVALID_AMOUNT("&fPlease provide a valid number."),
         UNKNOWN_CMD("&fPlease include a valid command."),
         INVALID_CRATE("Please provide a valid crate name."),
+        INVALID_CRATE_TYPE("Please provide a valid crate type. (Physical/Virtual)"),
         INVALID_BLOCK("Please look at a valid block"),
         PLAYER_ONLY("&fOnly a player can execute this command."),
         CONSOLE_ONLY("&fOnly console can execute this command.");

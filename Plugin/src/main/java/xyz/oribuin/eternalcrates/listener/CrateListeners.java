@@ -18,6 +18,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.crate.Crate;
+import xyz.oribuin.eternalcrates.crate.CrateType;
 import xyz.oribuin.eternalcrates.event.CrateDestroyEvent;
 import xyz.oribuin.eternalcrates.gui.PreviewGUI;
 import xyz.oribuin.eternalcrates.manager.CrateManager;
@@ -26,6 +27,7 @@ import xyz.oribuin.eternalcrates.manager.MessageManager;
 import xyz.oribuin.eternalcrates.util.PluginUtils;
 import xyz.oribuin.orilibrary.util.StringPlaceholders;
 
+import java.util.Map;
 import java.util.Optional;
 
 public class CrateListeners implements Listener {
@@ -66,31 +68,45 @@ public class CrateListeners implements Listener {
 
         // No interacting with the block :)
         event.setCancelled(true);
-        final ItemStack item = event.getItem();
-        if (item == null) {
-            this.sendPlayerVrooming(player, crate.get());
-            return;
+
+        if (crate.get().getType() == CrateType.PHYSICAL) {
+            final ItemStack item = event.getItem();
+            if (item == null) {
+                this.sendPlayerVrooming(player, crate.get());
+                return;
+            }
+
+            // Make sure the item has meta.
+            final ItemMeta meta = item.getItemMeta();
+            if (meta == null) {
+                this.sendPlayerVrooming(player, crate.get());
+                return;
+            }
+
+            // Check if the crate key is a valid key
+            final PersistentDataContainer cont = meta.getPersistentDataContainer();
+            if (!cont.has(key, PersistentDataType.STRING)) {
+                this.sendPlayerVrooming(player, crate.get());
+                return;
+            }
+
+            final String keyID = cont.get(key, PersistentDataType.STRING);
+            assert keyID != null;
+            if (!keyID.equalsIgnoreCase(crate.get().getId())) {
+                this.sendPlayerVrooming(player, crate.get());
+                return;
+            }
         }
 
-        // Make sure the item has meta.
-        final ItemMeta meta = item.getItemMeta();
-        if (meta == null) {
-            this.sendPlayerVrooming(player, crate.get());
-            return;
-        }
+        if (crate.get().getType() == CrateType.VIRTUAL) {
+            Map<String, Integer> usersKeys = this.data.getVirtual(player.getUniqueId());
 
-        // Check if the crate key is a valid key
-        final PersistentDataContainer cont = meta.getPersistentDataContainer();
-        if (!cont.has(key, PersistentDataType.STRING)) {
-            this.sendPlayerVrooming(player, crate.get());
-            return;
-        }
-
-        final String keyID = cont.get(key, PersistentDataType.STRING);
-        assert keyID != null;
-        if (!keyID.equalsIgnoreCase(crate.get().getId())) {
-            this.sendPlayerVrooming(player, crate.get());
-            return;
+            // check if the user has any crate keys
+            int totalKeys = usersKeys.getOrDefault(crate.get().getId().toLowerCase(), 0);
+            if (totalKeys <= 0) {
+                this.sendPlayerVrooming(player, crate.get());
+                return;
+            }
         }
 
         // Check if they have enough slots to open it.
@@ -111,11 +127,26 @@ public class CrateListeners implements Listener {
             return;
         }
 
-        // because bukkit is inconsistent as shit
-        if (item.getAmount() == 1)
-            event.getPlayer().getInventory().setItemInMainHand(null); // setting item type doesn't work apparently, thank you spigot for your amazing api
-        else
-            item.setAmount(item.getAmount() - 1);
+        if (crate.get().getType() == CrateType.PHYSICAL) {
+            ItemStack item = event.getItem();
+            assert item != null;
+
+            // because bukkit is inconsistent as shit
+            if (item.getAmount() == 1)
+                event.getPlayer().getInventory().setItemInMainHand(null); // setting item type doesn't work apparently, thank you spigot for your amazing api
+            else
+                item.setAmount(item.getAmount() - 1);
+        } else {
+            this.data.saveVirtual(player.getUniqueId(), this.data.getVirtual(player.getUniqueId()));
+        }
+
+        if (crate.get().getType() == CrateType.VIRTUAL) {
+            Map<String, Integer> keys = this.data.getVirtual(player.getUniqueId());
+            int crateKeys = keys.getOrDefault(crate.get().getId().toLowerCase(), 0);
+            keys.put(crate.get().getId().toLowerCase(), crateKeys - 1);
+
+            data.saveVirtual(player.getUniqueId(), keys);
+        }
 
         crate.get().open(plugin, player);
 

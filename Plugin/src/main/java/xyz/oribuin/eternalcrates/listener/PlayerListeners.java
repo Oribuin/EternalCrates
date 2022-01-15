@@ -13,15 +13,18 @@ import xyz.oribuin.eternalcrates.util.PluginUtils;
 public class PlayerListeners implements Listener {
 
     private final EternalCrates plugin;
+    private final DataManager data;
 
     public PlayerListeners(final EternalCrates plugin) {
         this.plugin = plugin;
+        this.data = this.plugin.getManager(DataManager.class);
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onJoin(PlayerJoinEvent event) {
         // Get a user's cached items when they join.
-        this.plugin.getManager(DataManager.class).getItems(event.getPlayer().getUniqueId());
+        this.data.getUserItems(event.getPlayer().getUniqueId());
+        this.data.getVirtual(event.getPlayer().getUniqueId());
     }
 
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)

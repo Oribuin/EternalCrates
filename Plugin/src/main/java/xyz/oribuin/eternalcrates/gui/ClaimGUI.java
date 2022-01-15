@@ -37,9 +37,9 @@ public class ClaimGUI {
         for (int i = 9; i < 36; i++)
             pageSlots.add(i);
 
-        final PaginatedGui gui = new PaginatedGui(45, PluginUtils.get(this.plugin.getConfig(), "claim-gui.title", "Unclaimed Crate Keys."), pageSlots);
+        final PaginatedGui gui = new PaginatedGui(45, HexUtils.colorify(PluginUtils.get(this.plugin.getConfig(), "claim-gui.title", "Unclaimed Crate Keys.")), pageSlots);
 
-        final List<ItemStack> savedItems = new ArrayList<>(data.getItems(player.getUniqueId()));
+        final List<ItemStack> savedItems = new ArrayList<>(data.getUserItems(player.getUniqueId()));
 
         gui.setDefaultClickFunction(event -> {
             gui.getPersonalClickAction().accept(event);
@@ -64,7 +64,7 @@ public class ClaimGUI {
 
         // Stop clicking preview gui
         // TODO, There will be an issue where if the user has too many crate keys stored, They wont get them.
-        gui.setCloseAction(e -> data.saveUser(player.getUniqueId(), savedItems));
+        gui.setCloseAction(e -> data.saveUserItems(player.getUniqueId(), savedItems));
 
         // Stop clicking personal inventory
         gui.setPersonalClickAction(event -> {
@@ -104,7 +104,7 @@ public class ClaimGUI {
      */
     private void setUnclaimedItems(PaginatedGui gui, Player player) {
         gui.getPageItems().clear();
-        data.getItems(player.getUniqueId()).forEach(itemStack -> gui.addPageItem(itemStack, e -> setUnclaimedItems(gui, player)));
+        data.getUserItems(player.getUniqueId()).forEach(itemStack -> gui.addPageItem(itemStack, e -> setUnclaimedItems(gui, player)));
         gui.update();
     }
 

@@ -1,5 +1,6 @@
 package xyz.oribuin.eternalcrates.manager;
 
+import com.google.gson.Gson;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -9,6 +10,7 @@ import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.crate.Crate;
+import xyz.oribuin.eternalcrates.crate.VirtualKeys;
 import xyz.oribuin.eternalcrates.util.PluginUtils;
 import xyz.oribuin.orilibrary.manager.DataHandler;
 
@@ -26,7 +28,9 @@ public class DataManager extends DataHandler {
 
     private final EternalCrates plugin = (EternalCrates) this.getPlugin();
     private final CrateManager crateManager;
+    private final Gson gson = new Gson();
     private Map<UUID, List<ItemStack>> cachedUsers;
+    private Map<UUID, Map<String, Integer>> cachedVirtual;
 
     public DataManager(EternalCrates plugin) {
         super(plugin);
@@ -37,6 +41,7 @@ public class DataManager extends DataHandler {
     public void enable() {
         super.enable();
         this.cachedUsers = new HashMap<>();
+        this.cachedVirtual = new HashMap<>();
 
         // Connect to database async.
         this.async((task) -> this.getConnector().connect(connection -> {
@@ -47,6 +52,10 @@ public class DataManager extends DataHandler {
 
             final String itemsQuery = "CREATE TABLE IF NOT EXISTS " + this.getTableName() + "_items (player VARCHAR(50), items VARBINARY(2456), PRIMARY KEY(player))";
             connection.prepareStatement(itemsQuery).executeUpdate();
+
+            // The table for virtual crate keys
+            final String virtualQuery = "CREATE TABLE IF NOT EXISTS " + this.getTableName() + "_virtual (player VARCHAR(50), keys TEXT, PRIMARY KEY(player))";
+            connection.prepareStatement(virtualQuery).executeUpdate();
 
             // Cache all the physical crate locations.
             this.cacheCrates(connection);
@@ -141,7 +150,7 @@ public class DataManager extends DataHandler {
      * @param uuid  The user's uuid
      * @param items The unclaimed crate keys.
      */
-    public void saveUser(UUID uuid, List<ItemStack> items) {
+    public void saveUserItems(UUID uuid, List<ItemStack> items) {
         this.cachedUsers.put(uuid, items);
 
         final String query = "REPLACE INTO " + this.getTableName() + "_items (player, items) VALUES (?, ?)";
@@ -155,12 +164,37 @@ public class DataManager extends DataHandler {
     }
 
     /**
+     * Save and cache a large group of users
+     *
+     * @param users The map of users and their items.
+     */
+    public void massSaveItems(Map<UUID, List<ItemStack>> users) {
+        this.cachedUsers.putAll(users);
+
+        final String query = "REPLACE INTO " + this.getTableName() + "_items (player, items) VALUES (?, ?)";
+        this.async(task -> this.getConnector().connect(connection -> {
+            try (PreparedStatement statement = connection.prepareStatement(query)) {
+                users.forEach((uuid, itemStacks) -> {
+                    try {
+                        statement.setString(1, uuid.toString());
+                        statement.setBytes(2, compressItems(itemStacks));
+                        statement.addBatch();
+                    } catch (SQLException ignored) {
+                    }
+                });
+
+                statement.executeBatch();
+            }
+        }));
+    }
+
+    /**
      * Get a user's current unclaimed items.
      *
      * @param uuid The User's UUID
      * @return The list of items.
      */
-    public List<ItemStack> getItems(UUID uuid) {
+    public List<ItemStack> getUserItems(UUID uuid) {
         if (this.cachedUsers.get(uuid) != null)
             return this.cachedUsers.get(uuid);
 
@@ -177,6 +211,76 @@ public class DataManager extends DataHandler {
 
         return this.cachedUsers.getOrDefault(uuid, new ArrayList<>());
     }
+
+    /**
+     * Save a player's virtual crate keys.
+     *
+     * @param uuid The UUID of the player
+     * @param keys A map of crate ids and key count.
+     */
+    public void saveVirtual(UUID uuid, Map<String, Integer> keys) {
+        this.cachedVirtual.put(uuid, keys);
+
+        final String query = "REPLACE INTO " + this.getTableName() + "_virtual (player, keys) VALUES (?, ?)";
+        this.async(task -> this.getConnector().connect(connection -> {
+            try (PreparedStatement statement = connection.prepareStatement(query)) {
+                statement.setString(1, uuid.toString());
+                statement.setString(2, gson.toJson(new VirtualKeys(keys)));
+                statement.executeUpdate();
+            }
+        }));
+    }
+
+    /**
+     * Mass save virtual crate keys.
+     *
+     * @param keys The keys being saved.
+     */
+    public void massSaveVirtual(Map<UUID, VirtualKeys> keys) { // didnt wanna nest maps
+        keys.forEach((uuid, obj) -> this.cachedVirtual.put(uuid, obj.getKeys()));
+
+        final String query = "REPLACE INTO " + this.getTableName() + "_virtual (player, keys) VALUES (?, ?)";
+        this.async(task -> this.getConnector().connect(connection -> {
+            try (PreparedStatement statement = connection.prepareStatement(query)) {
+                keys.forEach((uuid, obj) -> {
+                    try {
+                        statement.setString(1, uuid.toString());
+                        statement.setString(2, gson.toJson(obj));
+                        statement.addBatch();
+                    } catch (SQLException ignored) {
+                    }
+                });
+
+                statement.executeBatch();
+            }
+        }));
+    }
+
+    /**
+     * Get all the virtual keys that ap layer owns
+     *
+     * @param uuid The UUID of the player.
+     * @return The list of crate ids and the amount of keys they own
+     */
+    public Map<String, Integer> getVirtual(UUID uuid) {
+        if (this.cachedVirtual.get(uuid) != null)
+            return this.cachedVirtual.get(uuid);
+
+        final String query = "SELECT keys FROM " + this.getTableName() + "_virtual WHERE player = ?";
+        this.async(task -> this.getConnector().connect(connection -> {
+            try (PreparedStatement statement = connection.prepareStatement(query)) {
+                statement.setString(1, uuid.toString());
+                final ResultSet result = statement.executeQuery();
+                if (result.next()) {
+                    VirtualKeys keys = gson.fromJson(result.getString(1), VirtualKeys.class);
+                    this.cachedVirtual.put(uuid, keys.getKeys());
+                }
+            }
+        }));
+
+        return this.cachedVirtual.getOrDefault(uuid, new HashMap<>());
+    }
+
 
     /**
      * Compress a list of ItemStacks into a byte array.
@@ -237,4 +341,7 @@ public class DataManager extends DataHandler {
         return cachedUsers;
     }
 
+    public Map<UUID, Map<String, Integer>> getCachedVirtual() {
+        return cachedVirtual;
+    }
 }

@@ -64,7 +64,6 @@ public class AnimatedGUI {
             rewards.add(rewards.get(i));
         }
 
-        // TODO, Fix reward not being in the original list of rewards being rotated
         Collections.shuffle(rewards);
 
         // This method fixes infinite loops, yes its ugly as shit

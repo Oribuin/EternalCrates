@@ -19,7 +19,10 @@ import xyz.oribuin.eternalcrates.gui.AnimatedGUI;
 import xyz.oribuin.eternalcrates.util.PluginUtils;
 import xyz.oribuin.orilibrary.util.StringPlaceholders;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Crate {
@@ -34,6 +37,7 @@ public class Crate {
     private int minGuiSlots;
     private FileConfiguration config;
     private List<Action> openActions;
+    private CrateType type;
 
     public Crate(final String id) {
         this.id = id;
@@ -45,6 +49,7 @@ public class Crate {
         this.minGuiSlots = this.maxRewards;
         this.config = null;
         this.openActions = new ArrayList<>();
+        this.type = CrateType.PHYSICAL;
     }
 
     /**
@@ -226,4 +231,11 @@ public class Crate {
         this.openActions = openActions;
     }
 
+    public CrateType getType() {
+        return type;
+    }
+
+    public void setType(CrateType type) {
+        this.type = type;
+    }
 }

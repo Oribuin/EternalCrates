@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.crate.Crate;
+import xyz.oribuin.eternalcrates.crate.CrateType;
 import xyz.oribuin.eternalcrates.manager.CrateManager;
 import xyz.oribuin.eternalcrates.manager.DataManager;
 import xyz.oribuin.eternalcrates.manager.MessageManager;
@@ -13,6 +14,7 @@ import xyz.oribuin.orilibrary.command.SubCommand;
 import xyz.oribuin.orilibrary.util.StringPlaceholders;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @SubCommand.Info(
@@ -66,7 +68,6 @@ public class GiveCommand extends SubCommand {
 
         // Check custom amount.
         final Crate crate = crateOptional.get();
-        final ItemStack item = crate.getKey().clone();
         int finalAmount = Math.max(Math.min(amount, 64), 1);
 
         final StringPlaceholders placeholders = StringPlaceholders.builder("crate", crateOptional.get().getDisplayName())
@@ -75,21 +76,32 @@ public class GiveCommand extends SubCommand {
                 .addPlaceholder("sender", sender.getName())
                 .build();
 
-        item.setAmount(finalAmount);
-
         this.msg.send(target, "given-key", placeholders);
         this.msg.send(sender, "gave-key", placeholders);
 
-        if (target.getInventory().firstEmpty() == -1) {
-            final DataManager data = this.plugin.getManager(DataManager.class);
-            List<ItemStack> items = data.getItems(target.getUniqueId());
+        final DataManager data = this.plugin.getManager(DataManager.class);
 
-            items.add(item);
-            data.saveUser(target.getUniqueId(), items);
-            this.msg.send(target, "saved-key", placeholders);
-        } else {
-            target.getInventory().addItem(item);
+        if (crate.getType() == CrateType.PHYSICAL) {
+
+            final ItemStack item = crate.getKey().clone();
+            item.setAmount(finalAmount);
+
+            if (target.getInventory().firstEmpty() == -1) {
+                List<ItemStack> items = data.getUserItems(target.getUniqueId());
+
+                items.add(item);
+                data.saveUserItems(target.getUniqueId(), items);
+                this.msg.send(target, "saved-key", placeholders);
+            } else {
+                target.getInventory().addItem(item);
+            }
+
+            return;
         }
+
+        final Map<String, Integer> keys = data.getVirtual(target.getUniqueId());
+        keys.put(crate.getId().toLowerCase(), (keys.get(crate.getId())) != null ? keys.get(crate.getId()) : amount);
+        data.saveVirtual(target.getUniqueId(), keys);
 
     }
 }

@@ -14,6 +14,7 @@ import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.action.*;
 import xyz.oribuin.eternalcrates.animation.Animation;
 import xyz.oribuin.eternalcrates.crate.Crate;
+import xyz.oribuin.eternalcrates.crate.CrateType;
 import xyz.oribuin.eternalcrates.crate.Reward;
 import xyz.oribuin.eternalcrates.util.PluginUtils;
 import xyz.oribuin.gui.Item;
@@ -115,6 +116,16 @@ public class CrateManager extends Manager {
             return null;
         }
 
+        final CrateType crateType = Arrays.stream(CrateType.values())
+                .filter(x -> x.name().equalsIgnoreCase(this.get(config, "crate-type", "PHYSICAL")))
+                .findFirst()
+                .orElse(CrateType.PHYSICAL);
+
+        if (crateType == CrateType.VIRTUAL && !animation.get().canBeVirtual()) {
+            this.plugin.getLogger().warning("Cannot load crate " + name.get() + ", Animation does not support virtual crates.");
+            return null;
+        }
+
         final Map<Integer, Reward> rewards = new HashMap<>();
         final ConfigurationSection section = config.getConfigurationSection("rewards");
         if (section == null)
@@ -132,7 +143,10 @@ public class CrateManager extends Manager {
             // section inception
             // holup that rhymes
             final List<String> actionSection = section.getStringList(s + ".actions");
-            actionSection.stream().map(this::addAction).filter(Optional::isPresent).forEach(action -> reward.getActions().add(action.get()));
+            actionSection.stream().map(this::addAction)
+                    .filter(Optional::isPresent)
+                    .forEach(action -> reward.getActions().add(action.get()));
+
             rewards.put(reward.getId(), reward);
         });
 
@@ -152,6 +166,8 @@ public class CrateManager extends Manager {
         crate.setMinGuiSlots(Math.max(PluginUtils.get(config, "min-inv-slots", crate.getMaxRewards()), crate.getMaxRewards()));
         crate.setConfig(config);
         crate.setOpenActions(openActions);
+        crate.setType(crateType);
+
         ItemStack item = new Item.Builder(animationManager.itemFromConfig(config, "key"))
                 .setNBT(plugin, "crateKey", crate.getId().toLowerCase())
                 .create();
