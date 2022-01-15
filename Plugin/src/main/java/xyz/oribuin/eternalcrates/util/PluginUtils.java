@@ -1,5 +1,6 @@
 package xyz.oribuin.eternalcrates.util;
 
+import org.apache.commons.lang.WordUtils;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -151,6 +152,16 @@ public final class PluginUtils {
      */
     public static String locationAsKey(Location location) {
         return String.format("%s-%.2f-%.2f-%.2f", location.getWorld().getName(), location.getX(), location.getY(), location.getZ());
+    }
+
+    /**
+     * Format a material name through this long method
+     *
+     * @param material The material
+     * @return The material name.
+     */
+    public static String format(Material material) {
+        return WordUtils.capitalizeFully(material.name().toLowerCase().replace("_", " "));
     }
 
 }

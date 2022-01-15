@@ -5,6 +5,7 @@ import org.bukkit.Location;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.action.Action;
 import xyz.oribuin.eternalcrates.animation.Animation;
@@ -16,11 +17,9 @@ import xyz.oribuin.eternalcrates.event.AnimationStartEvent;
 import xyz.oribuin.eternalcrates.event.CrateOpenEvent;
 import xyz.oribuin.eternalcrates.gui.AnimatedGUI;
 import xyz.oribuin.eternalcrates.util.PluginUtils;
+import xyz.oribuin.orilibrary.util.StringPlaceholders;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Crate {
@@ -60,7 +59,12 @@ public class Crate {
         if (event.isCancelled())
             return;
 
-        this.openActions.forEach(action -> action.executeAction(plugin, player));
+        final StringPlaceholders plc = StringPlaceholders.builder()
+                .add("player", player.getName())
+                .add("name", this.getDisplayName())
+                .build();
+
+        this.openActions.forEach(action -> action.executeAction(plugin, player, plc));
 
         plugin.getActiveUsers().add(player.getUniqueId());
 
@@ -88,8 +92,19 @@ public class Crate {
         Bukkit.getPluginManager().callEvent(new AnimationEndEvent(this.getAnimation()));
         this.getAnimation().setActive(false);
         EternalCrates.getInstance().getActiveUsers().remove(player.getUniqueId());
+
+        final StringPlaceholders.Builder plc = StringPlaceholders.builder()
+                .add("player", player.getName())
+                .add("name", this.getDisplayName());
+
         for (Reward reward : rewards) {
-            reward.getActions().forEach(action -> action.executeAction(EternalCrates.getInstance(), player));
+            ItemStack item = reward.getDisplayItem();
+            if (item.getItemMeta() != null) {
+                ItemMeta meta = item.getItemMeta();
+                plc.add("reward", meta.hasDisplayName() ? meta.getDisplayName() : PluginUtils.format(item.getType()));
+            }
+
+            reward.getActions().forEach(action -> action.executeAction(EternalCrates.getInstance(), player, plc.build()));
         }
     }
 
