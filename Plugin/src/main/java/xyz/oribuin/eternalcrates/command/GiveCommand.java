@@ -20,7 +20,7 @@ import java.util.Optional;
 @SubCommand.Info(
         names = {"give"},
         permission = "eternalcrates.give",
-        usage = "/crate give <player> <crate> <type> [amount]"
+        usage = "/crate give <player> <crate> [amount]"
 )
 public class GiveCommand extends SubCommand {
 

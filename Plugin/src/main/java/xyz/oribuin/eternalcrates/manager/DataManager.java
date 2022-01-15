@@ -272,8 +272,8 @@ public class DataManager extends DataHandler {
                 statement.setString(1, uuid.toString());
                 final ResultSet result = statement.executeQuery();
                 if (result.next()) {
-                    Map<String, Integer> keys = gson.fromJson(result.getString(1), VirtualKeys.class).getKeys();
-                    this.cachedVirtual.put(uuid, keys);
+                    VirtualKeys keys = gson.fromJson(result.getString(1), VirtualKeys.class);
+                    this.cachedVirtual.put(uuid, keys.getKeys());
                 }
             }
         }));

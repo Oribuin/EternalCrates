@@ -6,7 +6,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 import xyz.oribuin.eternalcrates.EternalCrates;
-import xyz.oribuin.eternalcrates.manager.CrateManager;
 import xyz.oribuin.eternalcrates.manager.DataManager;
 
 import java.util.Map;
@@ -16,13 +15,10 @@ public class PAPI extends PlaceholderExpansion {
 
     private final EternalCrates plugin;
     private final DataManager data;
-    private final CrateManager crateManager;
 
     public PAPI(final EternalCrates plugin) {
         this.plugin = plugin;
-        this.data = this.plugin.getManager(DataManager.class);
-        this.crateManager = this.plugin.getManager(CrateManager.class);
-
+        this.data = plugin.getManager(DataManager.class);
         this.register();
     }
 
@@ -57,17 +53,17 @@ public class PAPI extends PlaceholderExpansion {
 
     @Override
     public @NotNull String getIdentifier() {
-        return null;
+        return this.plugin.getDescription().getName();
     }
 
     @Override
     public @NotNull String getAuthor() {
-        return null;
+        return this.plugin.getDescription().getAuthors().get(0);
     }
 
     @Override
     public @NotNull String getVersion() {
-        return null;
+        return this.plugin.getDescription().getVersion();
     }
 
     @Override

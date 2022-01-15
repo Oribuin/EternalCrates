@@ -80,7 +80,7 @@ public class CrateCommand extends Command {
                     .map(info -> info.names()[0])
                     .collect(Collectors.toList()));
             case 2 -> {
-                if (args[0].equalsIgnoreCase("set"))
+                if (args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("giveall"))
                     return crateManager.getCachedCrates()
                             .values()
                             .stream()
@@ -97,6 +97,9 @@ public class CrateCommand extends Command {
                             .stream()
                             .map(Crate::getId)
                             .collect(Collectors.toList());
+
+                if (args[0].equalsIgnoreCase("giveall"))
+                    tabComplete.add("<amount>");
             }
 
             case 4 -> {

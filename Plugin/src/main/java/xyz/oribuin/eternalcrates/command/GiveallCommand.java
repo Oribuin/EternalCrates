@@ -50,7 +50,7 @@ public class GiveallCommand extends SubCommand {
 
         // Get the amount if they provided it.
         int amount = 1;
-        if (args.length == 4) {
+        if (args.length == 3) {
             try {
                 amount = Integer.parseInt(args[2]);
             } catch (NumberFormatException ignored) {

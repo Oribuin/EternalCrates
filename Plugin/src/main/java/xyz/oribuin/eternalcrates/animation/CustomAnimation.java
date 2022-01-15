@@ -7,7 +7,7 @@ import xyz.oribuin.eternalcrates.crate.Crate;
 public abstract class CustomAnimation extends Animation {
 
     public CustomAnimation(String name, String author, AnimationType type) {
-        super(name, type, author, false);
+        super(name, type, author, true);
     }
 
     /**
