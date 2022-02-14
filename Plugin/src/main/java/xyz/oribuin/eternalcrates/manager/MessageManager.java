@@ -136,6 +136,7 @@ public class MessageManager extends Manager {
         USING_CRATE("You are already opening a crate."),
         HELP_FORMAT("%prefix% &f%usage%"),
         LIST_FORMAT("%prefix% &f%crate% &7- #99ff99%rewards% &7rewards #99ff99(%location%)"),
+        KEYS_FORMAT("%prefix% &f%crate% &7- #99ff99%count% &7virtual keys"),
 
         RELOAD("You have reloaded EternalCrates!"),
         DISABLED_WORLD("You cannot do this in this world."),

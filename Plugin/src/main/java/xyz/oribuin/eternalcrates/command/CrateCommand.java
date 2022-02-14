@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
                 ClaimCommand.class,
                 GiveallCommand.class,
                 GiveCommand.class,
+                KeysCommand.class,
                 ListCommand.class,
                 ReloadCommand.class,
                 SetCommand.class,
