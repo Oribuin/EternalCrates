@@ -1,20 +1,35 @@
 package xyz.oribuin.eternalcrates.util;
 
+import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
+import dev.rosewood.rosegarden.config.CommentedFileConfiguration;
+import dev.rosewood.rosegarden.utils.HexUtils;
+import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import org.apache.commons.lang.WordUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.NamespacedKey;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
-import xyz.oribuin.eternalcrates.EternalCrates;
-import xyz.oribuin.orilibrary.util.FileUtils;
+import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemStack;
+import xyz.oribuin.eternalcrates.hook.CustomItemPlugin;
+import xyz.oribuin.eternalcrates.hook.PAPI;
+import xyz.oribuin.eternalcrates.nms.NMSAdapter;
+import xyz.oribuin.eternalcrates.nms.NMSHandler;
+import xyz.oribuin.gui.Item;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 public final class PluginUtils {
+
+    private PluginUtils() {
+        throw new IllegalStateException("Utility class");
+    }
 
     /**
      * Format a string list into a single string.
@@ -68,20 +83,6 @@ public final class PluginUtils {
     }
 
     /**
-     * Create all the default files required for the different crate types
-     *
-     * @param plugin The plugin.
-     */
-    public static void createDefaultFiles(final EternalCrates plugin) {
-        final List<FileConfiguration> configs = new ArrayList<>();
-
-        final String[] fileNames = new String[]{
-                "celebration", "chicken", "csgo", "fountain", "rings", "sparkles", "wheel"
-        };
-        Arrays.stream(fileNames).forEach(s -> FileUtils.createFile(plugin, "crates", s + ".yml"));
-    }
-
-    /**
      * Get a bukkit color from a hex code
      *
      * @param hex The hex code
@@ -91,14 +92,14 @@ public final class PluginUtils {
         if (hex == null)
             return Color.BLACK;
 
-        final java.awt.Color color;
+        java.awt.Color awtColor;
         try {
-            color = java.awt.Color.decode(hex);
-        } catch (final NumberFormatException ex) {
+            awtColor = java.awt.Color.decode(hex);
+        } catch (NumberFormatException e) {
             return Color.BLACK;
         }
 
-        return Color.fromRGB(color.getRed(), color.getGreen(), color.getBlue());
+        return Color.fromRGB(awtColor.getRed(), awtColor.getGreen(), awtColor.getBlue());
     }
 
     /**
@@ -110,7 +111,7 @@ public final class PluginUtils {
      * @return The config value or default value.
      */
     @SuppressWarnings("unchecked")
-    public static <T> T get(FileConfiguration config, String path, T def) {
+    public static <T> T get(CommentedFileConfiguration config, String path, T def) {
         return config.get(path) != null ? (T) config.get(path) : def;
     }
 
@@ -123,7 +124,7 @@ public final class PluginUtils {
      * @return The config option or the default.
      */
     @SuppressWarnings("unchecked")
-    public static <T> T get(ConfigurationSection section, String path, T def) {
+    public static <T> T get(CommentedConfigurationSection section, String path, T def) {
         return section.get(path) != null ? (T) section.get(path) : def;
     }
 
@@ -162,6 +163,145 @@ public final class PluginUtils {
      */
     public static String format(Material material) {
         return WordUtils.capitalizeFully(material.name().toLowerCase().replace("_", " "));
+    }
+
+    /**
+     * Get ItemStack from CommentedFileSection path
+     *
+     * @param config       The CommentedFileSection
+     * @param path         The path to the item
+     * @param player       The player
+     * @param placeholders The placeholders
+     * @return The itemstack
+     */
+    public static ItemStack getItemStack(CommentedConfigurationSection config, String path, Player player, StringPlaceholders placeholders) {
+
+        ItemStack baseItem = new ItemStack(Material.STONE);
+
+        final String plugin = get(config, path + ".plugin", null);
+
+        if (plugin != null) {
+            baseItem = CustomItemPlugin.parse(plugin);
+        } else {
+            Material material = Material.getMaterial(get(config, path + ".material", "STONE"));
+            if (material != null) {
+                baseItem = new ItemStack(material);
+            }
+        }
+
+        if (baseItem == null) {
+            System.out.println("[CustomItems] Error: Could not get item from path " + path);
+            return new ItemStack(Material.BARRIER);
+        }
+
+        // Format the item lore
+        List<String> lore = get(config, path + ".lore", List.of());
+        lore = lore.stream().map(s -> format(player, s, placeholders)).collect(Collectors.toList());
+
+        // Get item flags
+        ItemFlag[] flags = get(config, path + ".flags", new ArrayList<String>())
+                .stream()
+                .map(String::toUpperCase)
+                .map(ItemFlag::valueOf)
+                .toArray(ItemFlag[]::new);
+
+        // Build the item stack
+        Item.Builder builder = new Item.Builder(baseItem)
+                .setName(get(config, path + ".name", null))
+                .setLore(lore)
+                .setAmount(Math.max(get(config, path + ".amount", 1), 1))
+                .setFlags(flags)
+                .glow(get(config, path + ".glow", false))
+                .setTexture(get(config, path + ".texture", null))
+                .setPotionColor(fromHex(get(config, path + ".potion-color", null)))
+                .setModel(get(config, path + ".model-data", -1));
+
+        // Get item owner
+        String owner = get(config, path + ".owner", null);
+        if (owner != null)
+            builder.setOwner(Bukkit.getOfflinePlayer(UUID.fromString(owner)));
+
+        // Get item enchantments
+        final CommentedConfigurationSection enchants = config.getConfigurationSection(path + "enchants");
+        if (enchants != null) {
+            enchants.getKeys(false).forEach(key -> {
+                Enchantment enchantment = Enchantment.getByKey(NamespacedKey.minecraft(key));
+                if (enchantment == null)
+                    return;
+
+                builder.addEnchant(enchantment, enchants.getInt(key));
+            });
+        }
+
+        ItemStack item = builder.create();
+
+        // Get item nbt
+        final CommentedConfigurationSection nbt = config.getConfigurationSection(path + "nbt");
+        if (nbt != null) {
+            NMSHandler handler = NMSAdapter.getHandler();
+
+            for (String s : nbt.getKeys(false)) {
+                Object obj = nbt.get(s);
+
+                // this is a goddamn sin, I hate this
+                if (obj instanceof String)
+                    item = handler.setString(item, s, nbt.getString(s));
+
+                // you've coded for 3 years and can't do it any better?
+                if (obj instanceof Long)
+                    item = handler.setLong(item, s, nbt.getLong(s));
+
+                // lord no
+                if (obj instanceof Integer)
+                    item = handler.setInt(item, s, nbt.getInt(s));
+
+                // please make it stop
+                if (obj instanceof Boolean)
+                    item = handler.setBoolean(item, s, nbt.getBoolean(s));
+
+                // goddamn
+                if (obj instanceof Double)
+                    item = handler.setDouble(item, s, nbt.getDouble(s));
+
+                // thank god its over
+            }
+        }
+
+        return item;
+    }
+
+    /**
+     * Get ItemStack from CommentedFileSection path
+     *
+     * @param config The CommentedFileSection
+     * @param path   The path to the item
+     * @return The itemstack
+     */
+    public static ItemStack getItemStack(CommentedConfigurationSection config, String path) {
+        return getItemStack(config, path, null, StringPlaceholders.empty());
+    }
+
+    /**
+     * Format a string with placeholders and color codes
+     *
+     * @param player The player to format the string for
+     * @param text   The string to format
+     * @return The formatted string
+     */
+    public static String format(Player player, String text) {
+        return format(player, text, StringPlaceholders.empty());
+    }
+
+    /**
+     * Format a string with placeholders and color codes
+     *
+     * @param player       The player to format the string for
+     * @param text         The text to format
+     * @param placeholders The placeholders to replace
+     * @return The formatted string
+     */
+    public static String format(Player player, String text, StringPlaceholders placeholders) {
+        return HexUtils.colorify(PAPI.apply(player, placeholders.apply(text)));
     }
 
 }

@@ -1,11 +1,11 @@
 package xyz.oribuin.eternalcrates.crate;
 
+import dev.rosewood.rosegarden.config.CommentedFileConfiguration;
+import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.action.Action;
 import xyz.oribuin.eternalcrates.animation.Animation;
@@ -15,9 +15,7 @@ import xyz.oribuin.eternalcrates.animation.ParticleAnimation;
 import xyz.oribuin.eternalcrates.event.AnimationEndEvent;
 import xyz.oribuin.eternalcrates.event.AnimationStartEvent;
 import xyz.oribuin.eternalcrates.event.CrateOpenEvent;
-import xyz.oribuin.eternalcrates.gui.AnimatedGUI;
 import xyz.oribuin.eternalcrates.util.PluginUtils;
-import xyz.oribuin.orilibrary.util.StringPlaceholders;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,24 +26,26 @@ import java.util.concurrent.ThreadLocalRandom;
 public class Crate {
 
     private final String id;
-    private String displayName;
+    private String name;
     private Map<Integer, Reward> rewardMap;
     private Animation animation;
     private Location location;
     private ItemStack key;
     private int maxRewards;
+    private int minRewards;
     private int minGuiSlots;
-    private FileConfiguration config;
+    private CommentedFileConfiguration config;
     private List<Action> openActions;
     private CrateType type;
 
     public Crate(final String id) {
         this.id = id;
-        this.setDisplayName(id);
+        this.setName(id);
         this.setRewardMap(new HashMap<>());
         this.setAnimation(null);
         this.location = null;
         this.maxRewards = 1;
+        this.minRewards = 1;
         this.minGuiSlots = this.maxRewards;
         this.config = null;
         this.openActions = new ArrayList<>();
@@ -59,17 +59,21 @@ public class Crate {
      * @param player The player who is opening the crate
      */
     public void open(EternalCrates plugin, Player player) {
+
+        if (this.getAnimation().isBlockRequired())
+            return;
+
         final CrateOpenEvent event = new CrateOpenEvent(this, player);
         Bukkit.getPluginManager().callEvent(event);
         if (event.isCancelled())
             return;
 
         final StringPlaceholders plc = StringPlaceholders.builder()
-                .add("player", player.getName())
-                .add("name", this.getDisplayName())
+                .addPlaceholder("player", player.getName())
+                .addPlaceholder("add", this.getName())
                 .build();
 
-        this.openActions.forEach(action -> action.executeAction(plugin, player, plc));
+        this.openActions.forEach(action -> action.execute(player, plc));
 
         plugin.getActiveUsers().add(player.getUniqueId());
 
@@ -79,11 +83,11 @@ public class Crate {
         Bukkit.getPluginManager().callEvent(new AnimationStartEvent(this, this.getAnimation()));
 
         switch (animation.getAnimationType()) {
-            case GUI -> new AnimatedGUI(plugin, this, player);
-            case PARTICLES -> ((ParticleAnimation) animation).play(this, spawnLocation, 1, player);
-            case FIREWORKS -> ((FireworkAnimation) animation).play(this, spawnLocation, player);
+//            case GUI -> new SpinningGUI(plugin, this, player);
+            case PARTICLES -> ((ParticleAnimation) animation).play(spawnLocation, 1, player);
+            case FIREWORKS -> ((FireworkAnimation) animation).play(spawnLocation, player);
+            case CUSTOM, SEASONAL -> ((CustomAnimation) animation).spawn(spawnLocation, player);
             case NONE -> this.finish(player);
-            case CUSTOM, SEASONAL -> ((CustomAnimation) animation).spawn(this, spawnLocation, player);
         }
     }
 
@@ -94,23 +98,11 @@ public class Crate {
      * @param rewards The rewards the player is getting.
      */
     public void finish(Player player, List<Reward> rewards) {
+        this.animation.finishFunction(player, this);
         Bukkit.getPluginManager().callEvent(new AnimationEndEvent(this.getAnimation()));
         this.getAnimation().setActive(false);
         EternalCrates.getInstance().getActiveUsers().remove(player.getUniqueId());
-
-        final StringPlaceholders.Builder plc = StringPlaceholders.builder()
-                .add("player", player.getName())
-                .add("name", this.getDisplayName());
-
-        for (Reward reward : rewards) {
-            ItemStack item = reward.getDisplayItem();
-            if (item.getItemMeta() != null) {
-                ItemMeta meta = item.getItemMeta();
-                plc.add("reward", meta.hasDisplayName() ? meta.getDisplayName() : PluginUtils.format(item.getType()));
-            }
-
-            reward.getActions().forEach(action -> action.executeAction(EternalCrates.getInstance(), player, plc.build()));
-        }
+        rewards.forEach(reward -> reward.execute(player, this));
     }
 
     /**
@@ -129,7 +121,7 @@ public class Crate {
      */
     public List<Reward> createRewards() {
         final List<Reward> rewards = new ArrayList<>();
-        for (int i = 0; i < this.maxRewards; i++)
+        for (int i = this.minRewards; i <= this.maxRewards; i++)
             rewards.add(this.selectReward());
 
         return rewards;
@@ -159,12 +151,12 @@ public class Crate {
         return id;
     }
 
-    public String getDisplayName() {
-        return displayName;
+    public String getName() {
+        return name;
     }
 
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public Animation getAnimation() {
@@ -199,11 +191,19 @@ public class Crate {
         this.maxRewards = maxRewards;
     }
 
-    public FileConfiguration getConfig() {
+    public int getMinRewards() {
+        return minRewards;
+    }
+
+    public void setMinRewards(int minRewards) {
+        this.minRewards = minRewards;
+    }
+
+    public CommentedFileConfiguration getConfig() {
         return config;
     }
 
-    public void setConfig(FileConfiguration config) {
+    public void setConfig(CommentedFileConfiguration config) {
         this.config = config;
     }
 

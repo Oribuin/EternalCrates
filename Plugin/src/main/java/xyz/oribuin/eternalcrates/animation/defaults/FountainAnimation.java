@@ -10,37 +10,39 @@ import org.bukkit.util.Vector;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.animation.AnimationType;
 import xyz.oribuin.eternalcrates.animation.CustomAnimation;
-import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.crate.Reward;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class FountainAnimation extends CustomAnimation {
+
+    private int itemCount;
 
     public FountainAnimation() {
         super("fountain", "Oribuin", AnimationType.CUSTOM);
     }
 
     @Override
-    public void spawn(Crate crate, Location location, Player player) {
+    public void spawn(Location location, Player player) {
         final World world = location.getWorld();
         if (world == null)
             return;
 
-        final List<Reward> rewards = crate.createRewards();
+        final List<Reward> rewards = this.getCrate().createRewards();
         this.setActive(true);
 
         final List<Item> items = new ArrayList<>();
         final ThreadLocalRandom random = ThreadLocalRandom.current();
 
         rewards.forEach(reward -> {
-            crate.finish(player, rewards);
+            this.getCrate().finish(player, rewards);
 
             for (int i = 0; i < rewards.size() * 10; i++) {
                 Item item = world.spawn(location.clone(), Item.class, x -> {
-                    x.setItemStack(reward.getDisplayItem());
+                    x.setItemStack(reward.getItemStack());
                     x.setPickupDelay(Integer.MAX_VALUE);
                     x.setInvulnerable(true);
                     x.getPersistentDataContainer().set(EternalCrates.getEntityKey(), PersistentDataType.INTEGER, 1);
@@ -61,4 +63,13 @@ public class FountainAnimation extends CustomAnimation {
         }, 60);
     }
 
+    @Override
+    public Map<String, Object> getRequiredValues() {
+        return Map.of("animation.item-count", 10);
+    }
+
+    @Override
+    public void load() {
+        this.itemCount = this.get("animation.item-count", 10);
+    }
 }

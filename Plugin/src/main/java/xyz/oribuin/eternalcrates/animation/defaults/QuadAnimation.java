@@ -3,10 +3,13 @@ package xyz.oribuin.eternalcrates.animation.defaults;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import xyz.oribuin.eternalcrates.animation.ParticleAnimation;
+import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.util.MathL;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class QuadAnimation extends ParticleAnimation {
 
@@ -41,12 +44,28 @@ public class QuadAnimation extends ParticleAnimation {
     }
 
     @Override
-    public void finishFunction(Player player, Location crateLocation) {
+    public Map<String, Object> getRequiredValues() {
+        final Map<String, Object> options = new HashMap<>();
+        options.put("animation.particle", "REDSTONE");
+        options.put("animation.color", "#FFFFFF");
+        options.put("animation.transition", "#ff0000");
+        options.put("animation.note", 1);
+        options.put("animation.item", "STONE");
+        options.put("animation.block", "STONE");
+        return options;
+    }
+
+    public void load() {
+        // Nothing to load
+    }
+
+    @Override
+    public void finishFunction(Player player, Crate crate) {
         this.radius = 1.0;
         this.height = 0.0;
 
         for (int i = 0; i < 15; i++)
-            this.getParticleData().spawn(player, crateLocation, 2, 1.0, 1.0, 1.0);
+            this.getParticleData().spawn(player, crate.getLocation().clone(), 2, 1.0, 1.0, 1.0);
     }
 
 }

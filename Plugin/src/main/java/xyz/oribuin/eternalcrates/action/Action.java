@@ -1,16 +1,37 @@
 package xyz.oribuin.eternalcrates.action;
 
+import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import org.bukkit.entity.Player;
-import xyz.oribuin.eternalcrates.EternalCrates;
-import xyz.oribuin.orilibrary.util.StringPlaceholders;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import xyz.oribuin.eternalcrates.crate.Reward;
 
 public abstract class Action {
 
-    private String message = "";
+    private String message;
 
-    public abstract String actionType();
+    public Action() {
+        this.message = "";
+    }
 
-    public abstract void executeAction(EternalCrates plugin, Player player, StringPlaceholders placeholders);
+    /**
+     * Execute the action function
+     *
+     * @param reward       Reward instance
+     * @param player       The player
+     * @param placeholders Message placeholders
+     */
+    public abstract void execute(@Nullable Reward reward, @NotNull Player player, @NotNull StringPlaceholders placeholders);
+
+    /**
+     * Execute action function with null reward
+     *
+     * @param player       The player
+     * @param placeholders Message placeholders
+     */
+    public final void execute(Player player, StringPlaceholders placeholders) {
+        this.execute(null, player, placeholders);
+    }
 
     public String getMessage() {
         return message;
@@ -20,4 +41,14 @@ public abstract class Action {
         this.message = message;
     }
 
+    @Override
+    public Action clone() {
+        try {
+            return (Action) super.clone();
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
 }

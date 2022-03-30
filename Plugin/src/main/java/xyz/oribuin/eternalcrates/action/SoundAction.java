@@ -1,19 +1,16 @@
 package xyz.oribuin.eternalcrates.action;
 
+import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import xyz.oribuin.eternalcrates.EternalCrates;
-import xyz.oribuin.orilibrary.util.StringPlaceholders;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import xyz.oribuin.eternalcrates.crate.Reward;
 
 public class SoundAction extends Action {
 
     @Override
-    public String actionType() {
-        return "SOUND";
-    }
-
-    @Override
-    public void executeAction(EternalCrates plugin, Player player, StringPlaceholders plc) {
+    public void execute(@Nullable Reward reward, @NotNull Player player, @NotNull StringPlaceholders placeholders) {
         if (this.getMessage().length() == 0)
             return;
 

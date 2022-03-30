@@ -1,129 +1,182 @@
 package xyz.oribuin.eternalcrates.gui;
 
 
-import org.bukkit.Material;
-import org.bukkit.configuration.file.FileConfiguration;
+import dev.rosewood.rosegarden.RosePlugin;
+import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
+import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import xyz.oribuin.eternalcrates.EternalCrates;
+import xyz.oribuin.eternalcrates.action.Action;
+import xyz.oribuin.eternalcrates.action.BroadcastAction;
+import xyz.oribuin.eternalcrates.action.CloseAction;
+import xyz.oribuin.eternalcrates.action.ConsoleAction;
+import xyz.oribuin.eternalcrates.action.GiveAction;
+import xyz.oribuin.eternalcrates.action.MessageAction;
+import xyz.oribuin.eternalcrates.action.PlayerAction;
+import xyz.oribuin.eternalcrates.action.PluginAction;
+import xyz.oribuin.eternalcrates.action.SoundAction;
+import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.manager.DataManager;
 import xyz.oribuin.eternalcrates.util.PluginUtils;
-import xyz.oribuin.gui.Item;
 import xyz.oribuin.gui.PaginatedGui;
-import xyz.oribuin.orilibrary.util.HexUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
-import static xyz.oribuin.eternalcrates.util.PluginUtils.get;
-import static xyz.oribuin.orilibrary.util.HexUtils.colorify;
+public class ClaimGUI extends OriGUI {
 
-public class ClaimGUI {
+    private final DataManager data = this.rosePlugin.getManager(DataManager.class);
+    private final List<Action> actions = Arrays.asList(
+            new BroadcastAction(),
+            new CloseAction(),
+            new ConsoleAction(),
+            new GiveAction(),
+            new MessageAction(),
+            new PlayerAction(),
+            new SoundAction()
+    );
 
-    private final EternalCrates plugin;
-    private final DataManager data;
-
-    public ClaimGUI(final EternalCrates plugin) {
-        this.plugin = plugin;
-        this.data = this.plugin.getManager(DataManager.class);
+    public ClaimGUI(RosePlugin rosePlugin) {
+        super(rosePlugin);
     }
 
-    public void create(Player player) {
-        final List<Integer> pageSlots = new ArrayList<>();
-        for (int i = 9; i < 36; i++)
-            pageSlots.add(i);
+    @Override
+    public void open(Player player, Crate crate) {
+        // Create the GUI
+        final PaginatedGui gui = this.createPagedGUI(player, this.getPageSlots());
+        gui.setCloseAction(event -> this.data.saveUnclaimedKeys(event.getPlayer().getUniqueId()));
 
-        final PaginatedGui gui = new PaginatedGui(45, HexUtils.colorify(PluginUtils.get(this.plugin.getConfig(), "claim-gui.title", "Unclaimed Crate Keys.")), pageSlots);
+        final List<Integer> borderSlots = this.parseList(this.get("gui-settings.border-slots", List.of("0-8", "36-44")));
 
-        final List<ItemStack> savedItems = new ArrayList<>(data.getUserItems(player.getUniqueId()));
+        ItemStack item = PluginUtils.getItemStack(this.config, "border-item", player, StringPlaceholders.empty());
+        for (int slot : borderSlots) {
+            this.put(gui, slot, item);
+        }
 
-        gui.setDefaultClickFunction(event -> {
-            gui.getPersonalClickAction().accept(event);
+        this.put(gui, "next-page", player, event -> gui.next(player));
+        this.put(gui, "previous-page", player, event -> gui.previous(player));
 
-            if (!pageSlots.contains(event.getSlot()))
-                return;
-
-            final ItemStack item = event.getCurrentItem();
-            if (item == null)
-                return;
-
-            final Inventory inv = event.getWhoClicked().getInventory();
-            if (inv.firstEmpty() == -1) {
-                return;
+        final CommentedConfigurationSection section = this.config.getConfigurationSection("extra-items");
+        if (section != null) {
+            for (String key : section.getKeys(false)) {
+                this.put(gui, "extra-items." + key, player, event -> this.get("extra-items." + key + ".actions", new ArrayList<String>())
+                        .stream()
+                        .map(PluginAction::parse)
+                        .filter(Optional::isPresent)
+                        .forEach(action -> action.get().execute(player, StringPlaceholders.empty())));
             }
+        }
 
-            savedItems.remove(item);
-            this.data.getCachedUsers().put(player.getUniqueId(), savedItems);
-            inv.addItem(item);
-            this.setUnclaimedItems(gui, player);
-        });
-
-        // Stop clicking preview gui
-        // TODO, There will be an issue where if the user has too many crate keys stored, They wont get them.
-        gui.setCloseAction(e -> data.saveUserItems(player.getUniqueId(), savedItems));
-
-        // Stop clicking personal inventory
-        gui.setPersonalClickAction(event -> {
-            event.setCancelled(true);
-            event.setResult(Event.Result.DENY);
-            ((Player) event.getWhoClicked()).updateInventory();
-        });
-
-        // Set the list of border slots
-        final List<Integer> borderSlots = new ArrayList<>();
-        for (int i = 0; i <= 8; i++)
-            borderSlots.add(i);
-        for (int i = 36; i <= 44; i++)
-            borderSlots.add(i);
-
-        // Add the border items
-        gui.setItems(borderSlots, this.getItem("claim-gui.border-item"), e -> {
-        });
-
-        // Next Page Item
-        gui.setItem(44, this.getItem("claim-gui.next-page"), e -> gui.next(player));
-
-        // Previous Page Item
-        gui.setItem(36, this.getItem("claim-gui.previous-page"), e -> gui.previous(player));
-
-        this.setUnclaimedItems(gui, player);
-
-        // Add all the rewards to the gui.
+        this.addUnclaimedKeys(gui, player);
         gui.open(player);
     }
 
     /**
-     * Set all the unclaimed keys into the gui.
+     * Add all unclaimed keys to the gui
      *
-     * @param gui    The Paginated GUI
-     * @param player The player who owns the items.
+     * @param gui    The gui to add the keys to
+     * @param player The player who owns the keys
      */
-    private void setUnclaimedItems(PaginatedGui gui, Player player) {
-        gui.getPageItems().clear();
-        data.getUserItems(player.getUniqueId()).forEach(itemStack -> gui.addPageItem(itemStack, e -> setUnclaimedItems(gui, player)));
-        gui.update();
+    private void addUnclaimedKeys(PaginatedGui gui, Player player) {
+        List<ItemStack> unclaimedKeys = new ArrayList<>(data.getUnclaimedKeys(player.getUniqueId()));
+        unclaimedKeys.forEach(item -> gui.addPageItem(item, event -> {
+            if (!player.getInventory().addItem(item).isEmpty()) {
+                unclaimedKeys.remove(item);
+                data.getUnclaimedKeys().put(player.getUniqueId(), unclaimedKeys);
+            }
+
+            gui.getPageItems().clear();
+            this.addUnclaimedKeys(gui, player);
+            gui.update();
+        }));
     }
 
-    private ItemStack getItem(String path) {
-        final FileConfiguration config = this.plugin.getConfig();
-
-        final String materialName = get(config, path + ".material", "STRUCTURE_VOID");
-        final Material material = Optional.ofNullable(Material.matchMaterial(materialName)).orElse(Material.STRUCTURE_VOID);
-
-        return new Item.Builder(material)
-                .setName(colorify(get(config, path + ".name", null)))
-                .setLore(get(config, path + ".lore", new ArrayList<String>())
-                        .stream()
-                        .map(HexUtils::colorify)
-                        .collect(Collectors.toList()))
-                .setAmount(Math.max(PluginUtils.get(config, path + ".amount", 1), 1))
-                .glow(PluginUtils.get(config, path + ".glow", false))
-                .setTexture(PluginUtils.get(config, path + ".texture", null))
-                .create();
+    @Override
+    public int rows() {
+        return this.get("gui-settings.rows", 5);
     }
 
+    @Override
+    public Map<String, Object> getDefaultValues() {
+        return new LinkedHashMap<>() {{
+            this.put("#0", "GUI Settings");
+            this.put("gui-settings.name", "Claim unclaimed keys");
+            this.put("gui-settings.rows", 5);
+            this.put("gui-settings.page-slots", List.of("9-35"));
+            this.put("gui-settings.border-slots", List.of("0-8", "36-44"));
+
+            this.put("#1", "Border Item");
+            this.put("border-item.material", "BLACK_STAINED_GLASS_PANE");
+            this.put("border-item.name", " ");
+
+            this.put("#2", "Next Page");
+            this.put("next-page.material", "ARROW");
+            this.put("next-page.name", "#00B4DB&lNext Page");
+            this.put("next-page.lore", List.of(" &f| &7Click to go to", " &f| &7the next page"));
+            this.put("next-page.slot", 3);
+
+            this.put("#3", "Previous Page");
+            this.put("previous-page.material", "ARROW");
+            this.put("previous-page.name", "#00B4DB&lPrevious Page");
+            this.put("previous-page.lore", List.of(" &f| &7Click to go to", " &f| &7the previous page"));
+            this.put("previous-page.slot", 5);
+
+            this.put("#4", "Extra Item Settings");
+            this.put("extra-items.1.material", "SPRUCE_SIGN");
+            this.put("extra-items.1.name", "#00B4DB&lUnclaimed Keys");
+            this.put("extra-items.1.lore", List.of(" &f| &7Click to claim", " &f| &7any unclaimed keys"));
+            this.put("extra-items.1.slot", 4);
+            this.put("extra-items.1.glow", true);
+        }};
+    }
+
+    @Override
+    public String getMenuName() {
+        return "claim-gui";
+    }
+
+    @Override
+    public List<Integer> getPageSlots() {
+        return this.parseList(this.get("gui-settings.page-slots", List.of("9-35")));
+    }
+
+    /**
+     * Parse a list of ranges into a list of integers
+     *
+     * @param list The list of ranges
+     * @return The list of integers
+     */
+    public List<Integer> parseList(List<String> list) {
+        List<Integer> newList = new ArrayList<>();
+        for (String s : list) {
+            String[] split = s.split("-");
+            if (split.length != 2) {
+                continue;
+            }
+
+            newList.addAll(this.getNumberRange(Integer.parseInt(split[0]), Integer.parseInt(split[1])));
+        }
+
+        return newList;
+    }
+
+    /**
+     * Get a range of numbers as a list
+     *
+     * @param start The start of the range
+     * @param end   The end of the range
+     * @return A list of numbers
+     */
+    private List<Integer> getNumberRange(int start, int end) {
+        final List<Integer> list = new ArrayList<>();
+        for (int i = start; i <= end; i++) {
+            list.add(i);
+        }
+
+        return list;
+    }
 }

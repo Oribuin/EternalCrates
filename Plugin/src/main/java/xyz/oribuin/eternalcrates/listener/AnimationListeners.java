@@ -13,8 +13,6 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import xyz.oribuin.eternalcrates.EternalCrates;
 
-import java.util.Arrays;
-
 public class AnimationListeners implements Listener {
 
     private final NamespacedKey key = EternalCrates.getEntityKey();
@@ -26,7 +24,8 @@ public class AnimationListeners implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onDamage(EntityDamageByEntityEvent event) {
         final PersistentDataContainer cont = event.getEntity().getPersistentDataContainer();
-        if (event.getDamager().hasMetadata("eternalcrates:firework") || cont.has(key, PersistentDataType.INTEGER)) {
+        final PersistentDataContainer damager = event.getDamager().getPersistentDataContainer();
+        if (cont.has(key, PersistentDataType.INTEGER) || damager.has(key, PersistentDataType.INTEGER)) {
             event.setCancelled(true);
         }
     }
@@ -44,9 +43,12 @@ public class AnimationListeners implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onChunkUnload(ChunkUnloadEvent event) {
-        Arrays.stream(event.getChunk().getEntities())
-                .filter(entity -> entity.getPersistentDataContainer().has(key, PersistentDataType.INTEGER))
-                .forEach(Entity::remove);
+        for (Entity entity : event.getChunk().getEntities()) {
+            final PersistentDataContainer cont = entity.getPersistentDataContainer();
+            if (cont.has(key, PersistentDataType.INTEGER)) {
+                entity.remove();
+            }
+        }
     }
 
     @EventHandler(ignoreCancelled = true)

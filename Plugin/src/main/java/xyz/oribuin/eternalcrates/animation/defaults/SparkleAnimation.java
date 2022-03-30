@@ -5,6 +5,8 @@ import org.bukkit.FireworkEffect;
 import org.bukkit.Location;
 import xyz.oribuin.eternalcrates.animation.FireworkAnimation;
 
+import java.util.Map;
+
 public class SparkleAnimation extends FireworkAnimation {
 
     public SparkleAnimation() {
@@ -24,6 +26,16 @@ public class SparkleAnimation extends FireworkAnimation {
                 .withColor(Color.fromRGB(106, 13, 173))
                 .with(FireworkEffect.Type.BURST)
                 .build());
+    }
+
+    @Override
+    public Map<String, Object> getRequiredValues() {
+        return Map.of();
+    }
+
+    @Override
+    public void load() {
+        // Nothing to load
     }
 
     /**

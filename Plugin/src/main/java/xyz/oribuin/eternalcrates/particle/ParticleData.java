@@ -1,18 +1,19 @@
 package xyz.oribuin.eternalcrates.particle;
 
-import org.bukkit.*;
+import org.bukkit.Color;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-
-import java.util.Arrays;
 
 public class ParticleData {
 
     private final Particle particle;
     private Color dustColor;
     private Color transitionColor;
-    private NoteParticle note;
-
+    private int note;
     private Material itemMaterial;
     private Material blockMaterial;
 
@@ -20,7 +21,7 @@ public class ParticleData {
         this.particle = particle;
         this.dustColor = Color.AQUA;
         this.transitionColor = Color.WHITE;
-        this.note = NoteParticle.CRIMSON;
+        this.note = 0;
         this.itemMaterial = Material.DIRT;
         this.blockMaterial = Material.DIRT;
     }
@@ -34,7 +35,7 @@ public class ParticleData {
         if (world == null)
             return;
 
-        switch (this.getParticle().name()) {
+        switch (this.particle.name()) {
 
             // Dust Particle.
             case "REDSTONE" -> {
@@ -64,8 +65,11 @@ public class ParticleData {
             }
 
             // Note Particles
-            case "NOTE" -> player.spawnParticle(this.particle, loc, 0, this.note.getNoteNumber() / 24.0, 0, 0, 1);
+            case "NOTE" -> player.spawnParticle(this.particle, loc, 0, this.note / 24.0, 0, 0, 1);
 
+            case "VIBRATION" -> {
+                // fuck vibration particles
+            }
 
             // Any other particle.
             default -> player.spawnParticle(this.particle, loc, count, 0, 0.0, 0.0, 0.0);
@@ -92,21 +96,13 @@ public class ParticleData {
         this.transitionColor = transitionColor;
     }
 
-    public NoteParticle getNote() {
-        return note;
-    }
-
-    public void setNote(NoteParticle note) {
-        this.note = note;
+    public int getNote() {
+        return this.note;
     }
 
     public void setNote(int note) {
-        this.note = Arrays.stream(NoteParticle.values())
-                .filter(noteParticle -> noteParticle.getNoteNumber() == note)
-                .findAny()
-                .orElse(NoteParticle.CRIMSON);
+        this.note = note;
     }
-
 
     public Material getItemMaterial() {
         return itemMaterial;

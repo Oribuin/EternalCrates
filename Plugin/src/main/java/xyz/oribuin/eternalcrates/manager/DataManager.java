@@ -1,304 +1,169 @@
 package xyz.oribuin.eternalcrates.manager;
 
 import com.google.gson.Gson;
+import dev.rosewood.rosegarden.RosePlugin;
+import dev.rosewood.rosegarden.database.DataMigration;
+import dev.rosewood.rosegarden.manager.AbstractDataManager;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;
-import xyz.oribuin.eternalcrates.EternalCrates;
-import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.crate.VirtualKeys;
-import xyz.oribuin.eternalcrates.util.PluginUtils;
-import xyz.oribuin.orilibrary.manager.DataHandler;
+import xyz.oribuin.eternalcrates.database.migration._1_CreateInitialTables;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.*;
-import java.util.function.Consumer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
-public class DataManager extends DataHandler {
+public class DataManager extends AbstractDataManager {
 
-    private final EternalCrates plugin = (EternalCrates) this.getPlugin();
-    private final CrateManager crateManager;
+    private final Map<UUID, List<ItemStack>> unclaimedKeys = new HashMap<>();
+    private final Map<UUID, Map<String, Integer>> virtualKeys = new HashMap<>();
     private final Gson gson = new Gson();
-    private Map<UUID, List<ItemStack>> cachedUsers;
-    private Map<UUID, Map<String, Integer>> cachedVirtual;
 
-    public DataManager(EternalCrates plugin) {
+    public DataManager(RosePlugin plugin) {
         super(plugin);
-        this.crateManager = this.plugin.getManager(CrateManager.class);
     }
 
-    @Override
-    public void enable() {
-        super.enable();
-        this.cachedUsers = new HashMap<>();
-        this.cachedVirtual = new HashMap<>();
+    /**
+     * Save the user's keys to the database
+     *
+     * @param player The player to save the keys for
+     * @param items  The items to save
+     */
+    public void saveUnclaimedKeys(UUID player, List<ItemStack> items) {
+        this.unclaimedKeys.put(player, items);
 
-        // Connect to database async.
-        this.async((task) -> this.getConnector().connect(connection -> {
-
-            // Create the required tables for the plugin.
-            final String query = "CREATE TABLE IF NOT EXISTS " + this.getTableName() + "_crates (crate TEXT, world TEXT, x DOUBLE, y DOUBLE, z DOUBLE, PRIMARY KEY(x, y, z, world))";
-            connection.prepareStatement(query).executeUpdate();
-
-            final String itemsQuery = "CREATE TABLE IF NOT EXISTS " + this.getTableName() + "_items (player VARCHAR(50), items VARBINARY(2456), PRIMARY KEY(player))";
-            connection.prepareStatement(itemsQuery).executeUpdate();
-
-            // The table for virtual crate keys
-            final String virtualQuery = "CREATE TABLE IF NOT EXISTS " + this.getTableName() + "_virtual (player VARCHAR(50), keys TEXT, PRIMARY KEY(player))";
-            connection.prepareStatement(virtualQuery).executeUpdate();
-
-            // Cache all the physical crate locations.
-            this.cacheCrates(connection);
+        this.async(() -> this.databaseConnector.connect(connection -> {
+            try (PreparedStatement statement = connection.prepareStatement("UPDATE " + this.getTablePrefix() + "items SET `items` = ? WHERE `player` = ?")) {
+                statement.setBytes(1, this.serializeItems(items));
+                statement.setString(2, player.toString());
+                statement.executeUpdate();
+            }
         }));
     }
 
     /**
-     * Cache all the crates in the database into the plugin.
+     * Save the user's keys to the database
      *
-     * @param connection The current open SQL Connection, no reason to make an entirely new one
-     * @throws SQLException In case there's an error :)
+     * @param player The player to save the keys for
      */
-    private void cacheCrates(final Connection connection) throws SQLException {
-
-        final String query = "SELECT * FROM " + this.getTableName() + "_crates";
-        try (PreparedStatement statement = connection.prepareStatement(query)) {
-            final ResultSet result = statement.executeQuery();
-
-            while (result.next()) {
-                final String name = result.getString("crate");
-                final World world = Bukkit.getWorld(result.getString("world"));
-                final double x = result.getDouble("x");
-                final double y = result.getDouble("y");
-                final double z = result.getDouble("z");
-
-                final Location loc = PluginUtils.getBlockLoc(new Location(world, x, y, z));
-                this.crateManager.getCrate(name.toLowerCase()).ifPresent(crate -> crate.setLocation(loc));
-            }
+    public void saveUnclaimedKeys(UUID player) {
+        List<ItemStack> items = this.unclaimedKeys.get(player);
+        if (items == null) {
+            return;
         }
+
+        this.saveUnclaimedKeys(player, items);
     }
 
     /**
-     * Save a physical crate's location in the config file.
+     * Get the user's keys from the database
      *
-     * @param crate The crate location;.
+     * @param player The player to get the keys for
      */
-    public void saveCrate(Crate crate) {
-        if (crate.getLocation() == null)
-            return;
+    public List<ItemStack> getUnclaimedKeys(UUID player) {
+        if (this.unclaimedKeys.get(player) != null) {
+            return this.unclaimedKeys.get(player);
+        }
 
-        final Location blockLoc = PluginUtils.getBlockLoc(crate.getLocation());
-        // delete any crates that are already there
-        this.crateManager.getCachedCrates().values()
-                .stream()
-                .filter(x -> !x.getId().equalsIgnoreCase(crate.getId()))
-                .filter(x -> x.getLocation() != null && x.getLocation().equals(blockLoc))
-                .findAny()
-                .ifPresent(this::deleteCrate);
-
-        crateManager.getCachedCrates().put(crate.getId().toLowerCase(), crate);
-        this.async(t -> this.getConnector().connect(connection -> {
-            final String query = "REPLACE INTO " + this.getTableName() + "_crates (crate, world, x, y, z) VALUES (?, ?, ?, ?, ?)";
-            try (PreparedStatement statement = connection.prepareStatement(query)) {
-                statement.setString(1, crate.getId());
-                statement.setString(2, blockLoc.getWorld().getName());
-                statement.setDouble(3, blockLoc.getX());
-                statement.setDouble(4, blockLoc.getY());
-                statement.setDouble(5, blockLoc.getZ());
-                statement.executeUpdate();
-            }
-        }));
-    }
-
-    /**
-     * Delete a crate location from the cache & database.
-     *
-     * @param crate The crate being deleted.
-     */
-    public void deleteCrate(Crate crate) {
-        if (crate.getLocation() == null)
-            return;
-
-        final Location blockLoc = PluginUtils.getBlockLoc(crate.getLocation());
-        crate.setLocation(null);
-        this.crateManager.getCachedCrates().put(crate.getId(), crate);
-
-        this.async(t -> this.getConnector().connect(connection -> {
-            final String query = "DELETE FROM " + this.getTableName() + "_crates WHERE world = ? AND x = ? AND y = ? AND z = ?";
-            try (PreparedStatement statement = connection.prepareStatement(query)) {
-                statement.setString(1, blockLoc.getWorld().getName());
-                statement.setDouble(2, blockLoc.getX());
-                statement.setDouble(3, blockLoc.getY());
-                statement.setDouble(4, blockLoc.getZ());
-                statement.executeUpdate();
-            }
-        }));
-    }
-
-    /**
-     * Save and cache a user's unclaimed crate keys.
-     *
-     * @param uuid  The user's uuid
-     * @param items The unclaimed crate keys.
-     */
-    public void saveUserItems(UUID uuid, List<ItemStack> items) {
-        this.cachedUsers.put(uuid, items);
-
-        final String query = "REPLACE INTO " + this.getTableName() + "_items (player, items) VALUES (?, ?)";
-        this.async(task -> this.getConnector().connect(connection -> {
-            try (PreparedStatement statement = connection.prepareStatement(query)) {
-                statement.setString(1, uuid.toString());
-                statement.setBytes(2, compressItems(items));
-                statement.executeUpdate();
-            }
-        }));
-    }
-
-    /**
-     * Save and cache a large group of users
-     *
-     * @param users The map of users and their items.
-     */
-    public void massSaveItems(Map<UUID, List<ItemStack>> users) {
-        this.cachedUsers.putAll(users);
-
-        final String query = "REPLACE INTO " + this.getTableName() + "_items (player, items) VALUES (?, ?)";
-        this.async(task -> this.getConnector().connect(connection -> {
-            try (PreparedStatement statement = connection.prepareStatement(query)) {
-                users.forEach((uuid, itemStacks) -> {
-                    try {
-                        statement.setString(1, uuid.toString());
-                        statement.setBytes(2, compressItems(itemStacks));
-                        statement.addBatch();
-                    } catch (SQLException ignored) {
-                    }
-                });
-
-                statement.executeBatch();
-            }
-        }));
-    }
-
-    /**
-     * Get a user's current unclaimed items.
-     *
-     * @param uuid The User's UUID
-     * @return The list of items.
-     */
-    public List<ItemStack> getUserItems(UUID uuid) {
-        if (this.cachedUsers.get(uuid) != null)
-            return this.cachedUsers.get(uuid);
-
-        final String query = "SELECT items FROM " + this.getTableName() + "_items WHERE player = ?";
-        this.async(task -> this.getConnector().connect(connection -> {
-            try (PreparedStatement statement = connection.prepareStatement(query)) {
-                statement.setString(1, uuid.toString());
-                final ResultSet result = statement.executeQuery();
-                if (result.next()) {
-                    this.cachedUsers.put(uuid, decompressItems(result.getBytes(1)));
+        this.async(() -> this.databaseConnector.connect(connection -> {
+            try (PreparedStatement statement = connection.prepareStatement("SELECT `items` FROM " + this.getTablePrefix() + "items WHERE `player` = ?")) {
+                statement.setString(1, player.toString());
+                ResultSet resultSet = statement.executeQuery();
+                if (resultSet.next()) {
+                    this.unclaimedKeys.put(player, this.deserializeItems(resultSet.getBytes(1)));
                 }
             }
         }));
 
-        return this.cachedUsers.getOrDefault(uuid, new ArrayList<>());
+
+        return this.unclaimedKeys.getOrDefault(player, new ArrayList<>());
     }
 
     /**
-     * Save a player's virtual crate keys.
+     * Save a player's virtual keys to the database
      *
-     * @param uuid The UUID of the player
-     * @param keys A map of crate ids and key count.
+     * @param player The player to save the virtual keys for
+     * @param keys   The virtual keys to save
      */
-    public void saveVirtual(UUID uuid, Map<String, Integer> keys) {
-        this.cachedVirtual.put(uuid, keys);
+    public void saveVirtualKeys(UUID player, Map<String, Integer> keys) {
+        this.virtualKeys.put(player, keys);
 
-        final String query = "REPLACE INTO " + this.getTableName() + "_virtual (player, keys) VALUES (?, ?)";
-        this.async(task -> this.getConnector().connect(connection -> {
-            try (PreparedStatement statement = connection.prepareStatement(query)) {
-                statement.setString(1, uuid.toString());
-                statement.setString(2, gson.toJson(new VirtualKeys(keys)));
+        this.async(() -> this.databaseConnector.connect(connection -> {
+            final VirtualKeys virtualKeys = new VirtualKeys(keys);
+
+            try (PreparedStatement statement = connection.prepareStatement("UPDATE " + this.getTablePrefix() + "virtual SET `keys` = ? WHERE `player` = ?")) {
+                statement.setString(1, gson.toJson(virtualKeys));
+                statement.setString(2, player.toString());
                 statement.executeUpdate();
             }
         }));
     }
 
     /**
-     * Mass save virtual crate keys.
+     * Save the user's keys to the database
      *
-     * @param keys The keys being saved.
+     * @param player The player to save the keys for
      */
-    public void massSaveVirtual(Map<UUID, VirtualKeys> keys) { // didnt wanna nest maps
-        keys.forEach((uuid, obj) -> this.cachedVirtual.put(uuid, obj.getKeys()));
+    public void saveVirtualKeys(UUID player) {
+        Map<String, Integer> items = this.virtualKeys.get(player);
+        if (items == null) {
+            return;
+        }
 
-        final String query = "REPLACE INTO " + this.getTableName() + "_virtual (player, keys) VALUES (?, ?)";
-        this.async(task -> this.getConnector().connect(connection -> {
-            try (PreparedStatement statement = connection.prepareStatement(query)) {
-                keys.forEach((uuid, obj) -> {
-                    try {
-                        statement.setString(1, uuid.toString());
-                        statement.setString(2, gson.toJson(obj));
-                        statement.addBatch();
-                    } catch (SQLException ignored) {
-                    }
-                });
-
-                statement.executeBatch();
-            }
-        }));
+        this.saveVirtualKeys(player, items);
     }
 
-    /**
-     * Get all the virtual keys that ap layer owns
-     *
-     * @param uuid The UUID of the player.
-     * @return The list of crate ids and the amount of keys they own
-     */
-    public Map<String, Integer> getVirtual(UUID uuid) {
-        if (this.cachedVirtual.get(uuid) != null)
-            return this.cachedVirtual.get(uuid);
 
-        final String query = "SELECT keys FROM " + this.getTableName() + "_virtual WHERE player = ?";
-        this.async(task -> this.getConnector().connect(connection -> {
-            try (PreparedStatement statement = connection.prepareStatement(query)) {
-                statement.setString(1, uuid.toString());
-                final ResultSet result = statement.executeQuery();
-                if (result.next()) {
-                    VirtualKeys keys = gson.fromJson(result.getString(1), VirtualKeys.class);
-                    this.cachedVirtual.put(uuid, keys.getKeys());
+    /**
+     * Get a player's virtual keys from the database
+     *
+     * @param player The player to get the virtual keys for
+     * @return The virtual keys
+     */
+    public Map<String, Integer> getUsersVirtualKeys(UUID player) {
+        if (this.virtualKeys.get(player) != null) {
+            return this.virtualKeys.get(player);
+        }
+
+        this.async(() -> this.databaseConnector.connect(connection -> {
+            try (PreparedStatement statement = connection.prepareStatement("SELECT `keys` FROM " + this.getTablePrefix() + "virtual WHERE `player` = ?")) {
+                statement.setString(1, player.toString());
+                ResultSet resultSet = statement.executeQuery();
+                if (resultSet.next()) {
+                    final VirtualKeys virtualKeys = gson.fromJson(resultSet.getString(1), VirtualKeys.class);
+                    this.virtualKeys.put(player, virtualKeys.keys());
                 }
             }
         }));
 
-        return this.cachedVirtual.getOrDefault(uuid, new HashMap<>());
+        return this.virtualKeys.getOrDefault(player, new HashMap<>());
     }
 
-
     /**
-     * Compress a list of ItemStacks into a byte array.
+     * Serialize the items to a byte array
      *
-     * @param items The list of items.
-     * @return The new byte array.
+     * @param keys The items to serialize
+     * @return The serialized items
      */
-    public byte[] compressItems(List<ItemStack> items) {
+    public byte[] serializeItems(List<ItemStack> keys) {
         byte[] data = new byte[0];
-
         try (ByteArrayOutputStream os = new ByteArrayOutputStream();
              BukkitObjectOutputStream oos = new BukkitObjectOutputStream(os)) {
-            oos.writeInt(items.size());
-            for (ItemStack item : items)
-                oos.writeObject(item);
+            oos.writeInt(keys.size());
+            for (ItemStack key : keys) {
+                oos.writeObject(key);
+            }
 
             data = os.toByteArray();
-
         } catch (IOException ignored) {
         }
 
@@ -306,17 +171,18 @@ public class DataManager extends DataHandler {
     }
 
     /**
-     * Decompress a byte array into a list of ItemStacks
+     * Deserialize the items from a byte array
      *
-     * @param data The byte array
-     * @return The list of items.
+     * @param data The data to deserialize
+     * @return The deserialized items
      */
-    public List<ItemStack> decompressItems(byte[] data) {
+    public List<ItemStack> deserializeItems(byte[] data) {
         final List<ItemStack> items = new ArrayList<>();
         try (ByteArrayInputStream is = new ByteArrayInputStream(data); BukkitObjectInputStream ois = new BukkitObjectInputStream(is)) {
-            int amount = ois.readInt();
-            for (int i = 0; i < amount; i++)
+            final int size = ois.readInt();
+            for (int i = 0; i < size; i++) {
                 items.add((ItemStack) ois.readObject());
+            }
         } catch (IOException | ClassNotFoundException ignored) {
         }
 
@@ -324,24 +190,34 @@ public class DataManager extends DataHandler {
     }
 
     @Override
-    public void disable() {
-        super.disable();
+    public List<Class<? extends DataMigration>> getDataMigrations() {
+        return List.of(_1_CreateInitialTables.class);
     }
 
     /**
-     * Run a task asynchronously.
+     * Get the user's keys from the database
      *
-     * @param callback The task callback.
+     * @param runnable
      */
-    public void async(Consumer<BukkitTask> callback) {
-        this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, callback);
+    public void async(Runnable runnable) {
+        Bukkit.getScheduler().runTaskAsynchronously(this.rosePlugin, runnable);
     }
 
-    public Map<UUID, List<ItemStack>> getCachedUsers() {
-        return cachedUsers;
+    /**
+     * Get all the cached unclaimed keys
+     *
+     * @return The cached unclaimed keys
+     */
+    public Map<UUID, List<ItemStack>> getUnclaimedKeys() {
+        return unclaimedKeys;
     }
 
-    public Map<UUID, Map<String, Integer>> getCachedVirtual() {
-        return cachedVirtual;
+    /**
+     * Get the cached virtual keys
+     *
+     * @return The cached virtual keys
+     */
+    public Map<UUID, Map<String, Integer>> getVirtualKeys() {
+        return virtualKeys;
     }
 }

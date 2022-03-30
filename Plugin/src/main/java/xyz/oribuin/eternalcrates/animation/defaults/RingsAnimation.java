@@ -5,7 +5,9 @@ import xyz.oribuin.eternalcrates.animation.ParticleAnimation;
 import xyz.oribuin.eternalcrates.util.MathL;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Esophose
@@ -40,5 +42,21 @@ public class RingsAnimation extends ParticleAnimation {
     @Override
     public void updateTimer() {
         this.step = (this.step + 1) % this.maxStep;
+    }
+
+    @Override
+    public Map<String, Object> getRequiredValues() {
+        final Map<String, Object> options = new HashMap<>();
+        options.put("animation.particle", "REDSTONE");
+        options.put("animation.color", "#FFFFFF");
+        options.put("animation.transition", "#ff0000");
+        options.put("animation.note", 1);
+        options.put("animation.item", "STONE");
+        options.put("animation.block", "STONE");
+        return options;
+    }
+
+    public void load() {
+        // Nothing to load
     }
 }

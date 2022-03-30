@@ -7,9 +7,8 @@ import org.bukkit.World;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.FireworkMeta;
-import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.persistence.PersistentDataType;
 import xyz.oribuin.eternalcrates.EternalCrates;
-import xyz.oribuin.eternalcrates.crate.Crate;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -47,7 +46,7 @@ public abstract class FireworkAnimation extends Animation {
      * @param crate The crate the animation is being played for
      * @param loc   The location of the fireworks.
      */
-    public void play(Crate crate, Location loc, Player player) {
+    public void play(Location loc, Player player) {
         if (this.isActive())
             return;
 
@@ -68,26 +67,27 @@ public abstract class FireworkAnimation extends Animation {
 
             // Spawn the firework
             Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), () -> {
-
                 Firework firework = world.spawn(customFirework.location, Firework.class, fireWork -> {
                     final FireworkMeta meta = fireWork.getFireworkMeta();
 
                     // Set meta because we're not trying to kill anyone here.
-                    fireWork.setMetadata("eternalcrates:firework", new FixedMetadataValue(EternalCrates.getInstance(), true));
+                    fireWork.getPersistentDataContainer().set(EternalCrates.getEntityKey(), PersistentDataType.INTEGER, 1);
                     meta.addEffect(customFirework.effect);
                     fireWork.setFireworkMeta(meta);
                 });
 
                 if (integer == this.fireworkMap.size()) {
-                    crate.finish(player);
+                    this.getCrate().finish(player);
                 }
 
                 firework.detonate();
+
                 // Delay each effect by each firework that has been set off.
             }, integer == 0 ? 1 : startNumber.incrementAndGet() * delay);
         });
-
     }
+
+    public abstract Map<String, Object> getRequiredValues();
 
     /**
      * Create a record for the custom firework object.

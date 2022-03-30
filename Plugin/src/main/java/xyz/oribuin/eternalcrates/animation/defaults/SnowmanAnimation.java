@@ -1,6 +1,10 @@
 package xyz.oribuin.eternalcrates.animation.defaults;
 
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Snowball;
 import org.bukkit.entity.Snowman;
@@ -10,18 +14,20 @@ import org.bukkit.util.Vector;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.animation.AnimationType;
 import xyz.oribuin.eternalcrates.animation.CustomAnimation;
-import xyz.oribuin.eternalcrates.crate.Crate;
 
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class SnowmanAnimation extends CustomAnimation {
+
+    private int snowballCount;
 
     public SnowmanAnimation() {
         super("snowman", "Oribuin", AnimationType.SEASONAL);
     }
 
     @Override
-    public void spawn(Crate crate, Location location, Player player) {
+    public void spawn(Location location, Player player) {
         final World world = location.getWorld();
         if (world == null)
             return;
@@ -47,9 +53,9 @@ public class SnowmanAnimation extends CustomAnimation {
             entity.remove();
             dustParticle.cancel();
 
-            crate.finish(player);
+            this.getCrate().finish(player);
 
-            for (int i = 0; i < 15; i++)
+            for (int i = 0; i <= this.snowballCount; i++)
                 world.spawn(entity.getLocation().clone().add(0.0, 0.5, 0.0), Snowball.class, snowball ->
                         snowball.setVelocity(new Vector(
                                 random.nextDouble(-0.2, 0.2),
@@ -59,5 +65,16 @@ public class SnowmanAnimation extends CustomAnimation {
 
             this.setActive(false);
         }, 30);
+    }
+
+    @Override
+    public Map<String, Object> getRequiredValues() {
+        return Map.of("animation.snowball-count", 15);
+    }
+
+    @Override
+    public void load() {
+        this.snowballCount = this.get("animation.snowball-count", 10);
+
     }
 }

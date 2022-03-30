@@ -1,29 +1,36 @@
 package xyz.oribuin.eternalcrates.animation.defaults;
 
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.World;
 import org.bukkit.entity.Chicken;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.animation.AnimationType;
 import xyz.oribuin.eternalcrates.animation.CustomAnimation;
-import xyz.oribuin.eternalcrates.crate.Crate;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class ChickenAnimation extends CustomAnimation {
+
+    private int chickenCount;
 
     public ChickenAnimation() {
         super("chicken", "Oribuin", AnimationType.CUSTOM);
     }
 
     @Override
-    public void spawn(Crate crate, Location location, Player player) {
+    public void spawn(Location location, Player player) {
         final World world = location.getWorld();
         if (world == null)
             return;
 
-        for (int i = 0; i < 7; i++) {
+        for (int i = 0; i < chickenCount; i++) {
             double xOffset = ThreadLocalRandom.current().nextDouble(-3, 3);
             double zOffset = ThreadLocalRandom.current().nextDouble(-3, 3);
 
@@ -40,7 +47,19 @@ public class ChickenAnimation extends CustomAnimation {
         }
 
 
-        Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), x -> crate.finish(player), 60);
+        Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), x -> this.getCrate().finish(player), 60);
+    }
+
+    @Override
+    public Map<String, Object> getRequiredValues() {
+        return new LinkedHashMap<>() {{
+            this.put("animation.chicken-count", 10);
+        }};
+    }
+
+    @Override
+    public void load() {
+        this.chickenCount = this.get("animation.chicken-count", 10);
     }
 
 }

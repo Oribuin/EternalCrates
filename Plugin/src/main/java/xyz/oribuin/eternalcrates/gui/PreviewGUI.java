@@ -1,121 +1,129 @@
 package xyz.oribuin.eternalcrates.gui;
 
 
-import org.bukkit.Material;
-import org.bukkit.configuration.file.FileConfiguration;
+import dev.rosewood.rosegarden.RosePlugin;
+import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
+import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import xyz.oribuin.eternalcrates.EternalCrates;
+import xyz.oribuin.eternalcrates.action.PluginAction;
 import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.util.PluginUtils;
-import xyz.oribuin.gui.Item;
 import xyz.oribuin.gui.PaginatedGui;
-import xyz.oribuin.orilibrary.util.HexUtils;
-import xyz.oribuin.orilibrary.util.StringPlaceholders;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
-import static xyz.oribuin.eternalcrates.util.PluginUtils.get;
-import static xyz.oribuin.orilibrary.util.HexUtils.colorify;
+public class PreviewGUI extends OriGUI {
 
-public class PreviewGUI {
-
-    private final Crate crate;
-
-    public PreviewGUI(final EternalCrates plugin, Crate crate) {
-        this.crate = crate;
+    public PreviewGUI(RosePlugin rosePlugin) {
+        super(rosePlugin);
     }
 
-    public void create(Player player) {
-        final List<Integer> pageSlots = new ArrayList<>();
-        for (int i = 9; i < 35; i++)
-            pageSlots.add(i);
+    @Override
+    public void open(Player player, Crate crate) {
+        // Create the GUI
+        final PaginatedGui gui = this.createPagedGUI(player, this.getPageSlots());
+        final List<Integer> borderSlots = this.parseList(this.get("gui-settings.border-slots", List.of("0-8", "36-44")));
 
-        final PaginatedGui gui = new PaginatedGui(45, HexUtils.colorify(crate.getDisplayName()), pageSlots);
+        ItemStack item = PluginUtils.getItemStack(this.config, "border-item", player, StringPlaceholders.empty());
+        for (int slot : borderSlots) {
+            this.put(gui, slot, item);
+        }
 
-        // Stop clicking preview gui
-        gui.setDefaultClickFunction(event -> {
-            event.setCancelled(true);
-            event.setResult(Event.Result.DENY);
-            ((Player) event.getWhoClicked()).updateInventory();
-        });
+        this.put(gui, "next-page", player, event -> gui.next(player));
+        this.put(gui, "previous-page", player, event -> gui.previous(player));
 
-        // Stop clicking personal inventory
-        gui.setPersonalClickAction(e -> gui.getDefaultClickFunction().accept(e));
 
-        // Set the list of border slots
-        final List<Integer> borderSlots = new ArrayList<>();
-        for (int i = 0; i <= 8; i++)
-            borderSlots.add(i);
-        for (int i = 36; i <= 44; i++)
-            borderSlots.add(i);
+        final CommentedConfigurationSection section = this.config.getConfigurationSection("extra-items");
+        if (section != null) {
+            for (String key : section.getKeys(false)) {
+                this.put(gui, "extra-items." + key, player, event -> this.get("extra-items." + key + ".actions", new ArrayList<String>())
+                        .stream()
+                        .map(PluginAction::parse)
+                        .filter(Optional::isPresent)
+                        .forEach(action -> action.get().execute(player, StringPlaceholders.empty())));
+            }
+        }
 
-        // Add the border items
-        this.getItem("preview-gui.border-item").ifPresent(item -> gui.setItems(borderSlots, item, e -> {
+        crate.getRewardMap().forEach((key, value) -> gui.addPageItem(value.getPreviewItem(), event -> {
+            // Do nothing
         }));
-
-        // Next Page Item
-        if (gui.getPage() < gui.getTotalPages()) {
-            this.getItem("preview-gui.next-page").ifPresent(item -> gui.setItem(36, item, e -> {
-            }));
-        }
-
-        // Previous Page Item
-        if (gui.getPage() > 1) {
-            this.getItem("next-gui.previous-page").ifPresent(item -> gui.setItem(44, item, e -> {
-            }));
-        }
-
-        // Add all the rewards to the gui.
-        new HashMap<>(crate.getRewardMap()).entrySet()
-                .stream()
-                .sorted(Comparator.comparingDouble(Map.Entry::getKey)) // sort by lowest chance first
-                .forEach(entry -> {
-                    final ItemStack item = entry.getValue().getDisplayItem().clone();
-                    final ItemMeta meta = item.getItemMeta();
-                    if (meta == null)
-                        return;
-
-                    List<String> newLore = new ArrayList<>(this.crate.getConfig().getStringList("preview-gui.item-lore"))
-                            .stream()
-                            .map(s -> StringPlaceholders.single("chance", entry.getValue().getChance()).apply(s))
-                            .collect(Collectors.toList());
-
-                    if (meta.getLore() != null)
-                        newLore.addAll(meta.getLore());
-
-                    newLore = newLore.stream().map(HexUtils::colorify)
-                            .collect(Collectors.toList());
-                    meta.setLore(newLore);
-                    item.setItemMeta(meta);
-                    gui.addPageItem(item, event -> {
-                    });
-                });
 
         gui.open(player);
     }
 
-    private Optional<ItemStack> getItem(String path) {
-        final FileConfiguration config = this.crate.getConfig();
-        if (config == null)
-            return Optional.empty();
-
-        final String materialName = get(config, path + ".material", "STRUCTURE_VOID");
-        final Material material = Optional.ofNullable(Material.matchMaterial(materialName)).orElse(Material.STRUCTURE_VOID);
-
-        return Optional.of(new Item.Builder(material)
-                .setName(colorify(get(config, path + ".name", null)))
-                .setLore(get(config, path + ".lore", new ArrayList<String>())
-                        .stream()
-                        .map(HexUtils::colorify)
-                        .collect(Collectors.toList()))
-                .setAmount(Math.max(PluginUtils.get(config, path + ".amount", 1), 1))
-                .glow(PluginUtils.get(config, path + ".glow", false))
-                .setTexture(PluginUtils.get(config, path + ".texture", null))
-                .create());
+    @Override
+    public int rows() {
+        return this.get("gui-settings.rows", 5);
     }
 
+    @Override
+    public Map<String, Object> getDefaultValues() {
+        return new LinkedHashMap<>() {{
+            this.put("#0", "GUI Settings");
+            this.put("gui-settings.name", "Crate Preview");
+            this.put("gui-settings.rows", 5);
+            this.put("gui-settings.page-slots", List.of("9-35"));
+            this.put("gui-settings.border-slots", List.of("0-8", "36-44"));
+
+            this.put("#1", "Border Item");
+            this.put("border-item.material", "BLACK_STAINED_GLASS_PANE");
+            this.put("border-item.name", " ");
+
+            this.put("#2", "Next Page");
+            this.put("next-page.material", "ARROW");
+            this.put("next-page.name", "#00B4DB&lNext Page");
+            this.put("next-page.lore", List.of(" &f| &7Click to go to", " &f| &7the next page"));
+
+            this.put("#3", "Previous Page");
+            this.put("previous-page.material", "ARROW");
+            this.put("previous-page.name", "#00B4DB&lPrevious Page");
+            this.put("previous-page.lore", List.of(" &f| &7Click to go to", " &f| &7the previous page"));
+        }};
+    }
+
+    @Override
+    public String getMenuName() {
+        return "preview-gui";
+    }
+
+    @Override
+    public List<Integer> getPageSlots() {
+        return this.parseList(this.get("gui-settings.page-slots", List.of("9-35")));
+    }
+
+    // Parse a List of X-X into a List of Integers
+    public List<Integer> parseList(List<String> list) {
+        List<Integer> newList = new ArrayList<>();
+        for (String s : list) {
+            String[] split = s.split("-");
+            if (split.length != 2) {
+                continue;
+            }
+
+            newList.addAll(this.getNumberRange(Integer.parseInt(split[0]), Integer.parseInt(split[1])));
+        }
+
+        return newList;
+    }
+
+    /**
+     * Get a range of numbers as a list
+     *
+     * @param start The start of the range
+     * @param end   The end of the range
+     * @return A list of numbers
+     */
+    private List<Integer> getNumberRange(int start, int end) {
+        final List<Integer> list = new ArrayList<>();
+        for (int i = start; i <= end; i++) {
+            list.add(i);
+        }
+
+        return list;
+    }
 }

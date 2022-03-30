@@ -1,68 +1,103 @@
 package xyz.oribuin.eternalcrates.manager;
 
+import dev.rosewood.rosegarden.RosePlugin;
+import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
+import dev.rosewood.rosegarden.config.CommentedFileConfiguration;
+import dev.rosewood.rosegarden.manager.Manager;
+import dev.rosewood.rosegarden.utils.HexUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
-import xyz.oribuin.eternalcrates.EternalCrates;
-import xyz.oribuin.eternalcrates.action.*;
+import xyz.oribuin.eternalcrates.action.Action;
+import xyz.oribuin.eternalcrates.action.PluginAction;
 import xyz.oribuin.eternalcrates.animation.Animation;
 import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.crate.CrateType;
 import xyz.oribuin.eternalcrates.crate.Reward;
 import xyz.oribuin.eternalcrates.util.PluginUtils;
 import xyz.oribuin.gui.Item;
-import xyz.oribuin.orilibrary.manager.Manager;
-import xyz.oribuin.orilibrary.util.HexUtils;
 
 import java.io.File;
-import java.util.*;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("unchecked")
 public class CrateManager extends Manager {
 
-    private final EternalCrates plugin = (EternalCrates) this.getPlugin();
-    private final AnimationManager animationManager = this.plugin.getManager(AnimationManager.class);
-
     private final Map<String, Crate> cachedCrates = new HashMap<>();
-    private final Map<String, FileConfiguration> unregisteredCrates = new HashMap<>();
+    private final Map<String, CommentedFileConfiguration> unregisteredCrates = new HashMap<>();
 
-    public CrateManager(EternalCrates plugin) {
+    public CrateManager(RosePlugin plugin) {
         super(plugin);
     }
 
     @Override
-    public void enable() {
-        this.plugin.getLogger().info("Loading all the crates from the plugin.");
-
-        this.cachedCrates.clear();
-        final File folder = new File(this.plugin.getDataFolder(), "crates");
-        if (!folder.exists()) {
-            folder.mkdir();
-            PluginUtils.createDefaultFiles(plugin);
+    public void reload() {
+        final File folder = new File(this.rosePlugin.getDataFolder(), "crates");
+        if (folder.exists()) {
+            return;
         }
 
-        File[] files = folder.listFiles();
+        folder.mkdir();
 
-        if (files == null)
+        final File file = new File(folder, "example.yml");
+        try {
+            if (!file.exists()) {
+                file.createNewFile();
+
+                // Add default crate config values.
+                CommentedFileConfiguration config = CommentedFileConfiguration.loadConfiguration(file);
+                this.getDefaultCrateValues().forEach((path, object) -> {
+                    if (path.startsWith("#")) {
+                        config.addPathedComments(path, (String) object);
+                    } else {
+                        config.set(path, object);
+                    }
+                });
+
+                config.save();
+
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void disable() {
+        this.cachedCrates.clear();
+    }
+
+
+    /**
+     * Load all the plugin crates from the /EternalCrates/crates folder
+     * and cache them
+     */
+    public void loadCrates() {
+        this.cachedCrates.clear();
+        this.rosePlugin.getLogger().info("Loading all crates from the /EternalCrates/crates folder");
+        final File folder = new File(this.rosePlugin.getDataFolder(), "crates");
+        File[] files = folder.listFiles();
+        if (files == null) {
             return;
+        }
 
         Arrays.stream(files).filter(file -> file.getName().toLowerCase().endsWith(".yml"))
                 .forEach(file -> {
-                    final FileConfiguration config = YamlConfiguration.loadConfiguration(file);
+                    final CommentedFileConfiguration config = CommentedFileConfiguration.loadConfiguration(file);
                     final Crate crate = this.createCreate(config);
                     if (crate == null)
                         return;
 
-                    this.cachedCrates.put(crate.getId().toLowerCase(), crate);
+                    this.cachedCrates.put(crate.getId(), crate);
                 });
     }
 
@@ -73,10 +108,7 @@ public class CrateManager extends Manager {
      * @return An Optional Crate
      */
     public Optional<Crate> getCrate(String id) {
-        return this.cachedCrates.values()
-                .stream()
-                .filter(crate -> crate.getId().equalsIgnoreCase(id))
-                .findFirst();
+        return Optional.ofNullable(this.cachedCrates.get(id));
     }
 
     /**
@@ -99,51 +131,59 @@ public class CrateManager extends Manager {
      * @param config The config the crate is being created from
      * @return The crate.
      */
-    public Crate createCreate(final FileConfiguration config) {
+    public Crate createCreate(final CommentedFileConfiguration config) {
+        final AnimationManager animationManager = this.rosePlugin.getManager(AnimationManager.class);
 
         final Optional<String> name = Optional.ofNullable(config.getString("name"));
         if (name.isEmpty())
             return null;
 
-        final Optional<String> displayName = Optional.ofNullable(config.getString("display-name"));
+        Optional<String> displayName = Optional.ofNullable(config.getString("display-name"));
         if (displayName.isEmpty())
-            return null;
+            displayName = name;
 
         // this line isn't dumb
         final Optional<? extends Animation> animation = animationManager.getAnimationFromConfig(config);
         if (animation.isEmpty()) {
+            this.rosePlugin.getLogger().warning("Couldn't load animation for crate: " + name.get());
             this.unregisteredCrates.put(name.get().toLowerCase(), config);
             return null;
         }
 
         final CrateType crateType = Arrays.stream(CrateType.values())
-                .filter(x -> x.name().equalsIgnoreCase(this.get(config, "crate-type", "PHYSICAL")))
+                .filter(x -> x.name().equalsIgnoreCase(PluginUtils.get(config, "crate-type", "PHYSICAL")))
                 .findFirst()
                 .orElse(CrateType.PHYSICAL);
 
         if (crateType == CrateType.VIRTUAL && !animation.get().canBeVirtual()) {
-            this.plugin.getLogger().warning("Cannot load crate " + name.get() + ", Animation does not support virtual crates.");
+            this.rosePlugin.getLogger().warning("Cannot load crate " + name.get() + ", Animation does not support virtual crates.");
             return null;
         }
 
         final Map<Integer, Reward> rewards = new HashMap<>();
-        final ConfigurationSection section = config.getConfigurationSection("rewards");
+        final CommentedConfigurationSection section = config.getConfigurationSection("rewards");
         if (section == null)
             return null;
 
         final AtomicInteger id = new AtomicInteger(0);
         section.getKeys(false).forEach(s -> {
-            final ItemStack item = this.animationManager.itemFromConfig(config, section.getCurrentPath() + "." + s);
+
+            final ItemStack item = PluginUtils.getItemStack(section, s);
             if (item == null)
                 return;
 
             final Reward reward = new Reward(id.getAndIncrement());
-            reward.setDisplayItem(item);
+            reward.setItemStack(item);
             reward.setChance(section.getInt(s + ".chance"));
+
+            ItemStack previewItem = PluginUtils.getItemStack(section, section.getCurrentPath() + "." + s + ".preview-item");
+            if (previewItem != null)
+                reward.setPreviewItem(previewItem);
+
             // section inception
             // holup that rhymes
             final List<String> actionSection = section.getStringList(s + ".actions");
-            actionSection.stream().map(this::addAction)
+            actionSection.stream().map(PluginAction::parse)
                     .filter(Optional::isPresent)
                     .forEach(action -> reward.getActions().add(action.get()));
 
@@ -153,109 +193,141 @@ public class CrateManager extends Manager {
         // Get all the crate actions when it's opened by a player.
         List<Action> openActions = config.getStringList("open-actions")
                 .stream()
-                .map(this::addAction)
+                .map(PluginAction::parse)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(Collectors.toList());
 
         final Crate crate = new Crate(name.get());
+
+        animation.get().setCrate(crate);
         crate.setAnimation(animation.get());
-        crate.setDisplayName(displayName.get());
+        crate.setName(displayName.get());
         crate.setRewardMap(rewards);
         crate.setMaxRewards(Math.max(PluginUtils.get(config, "max-rewards", 1), 1));
+        crate.setMinRewards(Math.min(PluginUtils.get(config, "min-rewards", 1), crate.getMaxRewards()));
         crate.setMinGuiSlots(Math.max(PluginUtils.get(config, "min-inv-slots", crate.getMaxRewards()), crate.getMaxRewards()));
+        crate.setLocation(PluginUtils.get(config, "location", null));
         crate.setConfig(config);
         crate.setOpenActions(openActions);
         crate.setType(crateType);
 
-        ItemStack item = new Item.Builder(animationManager.itemFromConfig(config, "key"))
-                .setNBT(plugin, "crateKey", crate.getId().toLowerCase())
+        // Add crate animation settings to plugin config.
+        animation.get().getRequiredValues().forEach((path, object) -> {
+            if (config.get(path) == null) {
+                config.set(path, object);
+            }
+        });
+
+        config.save();
+
+        ItemStack item = new Item.Builder(PluginUtils.getItemStack(config, "key"))
+                .setNBT(rosePlugin, "crateKey", crate.getId().toLowerCase())
                 .create();
+
 
         if (item == null) {
             item = new Item.Builder(Material.TRIPWIRE_HOOK)
-                    .setName(HexUtils.colorify("#99ff99&lCrate Key &7» &f" + crate.getId()))
+                    .setName(HexUtils.colorify("#00B4DB&lCrate Key &7» &f" + crate.getId()))
                     .glow(true)
                     .setLore(HexUtils.colorify("&7A key to open the " + crate.getId().toLowerCase() + " crate!"),
                             "",
-                            HexUtils.colorify("&7Right-Click on the #99ff99&l" + crate.getId() + " &7crate to open")
+                            HexUtils.colorify("&7Right-Click on the #00B4DB&l" + crate.getId() + " &7crate to open")
                     )
+                    .setNBT(this.rosePlugin, "crateKey", crate.getId().toLowerCase())
                     .create();
         }
 
-        final ItemMeta meta = item.getItemMeta();
-        assert meta != null;
-        final PersistentDataContainer cont = meta.getPersistentDataContainer();
-        cont.set(new NamespacedKey(plugin, "crateKey"), PersistentDataType.STRING, crate.getId().toLowerCase());
-        item.setItemMeta(meta);
         crate.setKey(item);
-        this.plugin.getLogger().info("Registered Crate: " + crate.getId() + " with " + crate.getRewardMap().size() + " rewards!");
+        this.rosePlugin.getLogger().info("Registered Crate: " + crate.getId() + " with " + crate.getRewardMap().size() + " rewards!");
         return crate;
     }
 
-
-    @Override
-    public void disable() {
-        this.cachedCrates.clear();
+    /**
+     * Get crate from a block
+     *
+     * @param block The block to get the crate from
+     */
+    public Optional<Crate> getCrateFromBlock(final Block block) {
+        return this.cachedCrates.values().stream()
+                .filter(c -> c.getLocation() != null && c.getLocation().equals(block.getLocation()))
+                .findFirst();
     }
 
     /**
-     * Get a value from a configuration file.
+     * Save crate values to a CommentedFileConfiguration from the crate object
      *
-     * @param config The file configuration
-     * @param path   The path to the option.
-     * @param def    The default value for the option.
-     * @return The config option or the default.
+     * @param crate The crate to save
      */
-    public <T> T get(FileConfiguration config, String path, T def) {
-        return config.get(path) != null ? (T) config.get(path) : def;
+    public void saveCrate(Crate crate) {
+        this.cachedCrates.put(crate.getId().toLowerCase(), crate);
+        final CommentedFileConfiguration config = crate.getConfig();
+        if (config == null)
+            return;
+
+        config.set("name", crate.getId());
+        config.set("display-name", crate.getName());
+        config.set("max-rewards", crate.getMaxRewards());
+        config.set("min-rewards", crate.getMinRewards());
+        config.set("min-inv-slots", crate.getMinGuiSlots());
+        config.set("location", crate.getLocation());
+        config.save();
+
     }
 
     /**
-     * Get a value from a configuration section.
+     * Gets the crate default configuration options.
      *
-     * @param section The configuration section
-     * @param path    The path to the option.
-     * @param def     The default value for the option.
-     * @return The config option or the default.
+     * @return The configuration options.
      */
-    public <T> T get(ConfigurationSection section, String path, T def) {
-        return section.get(path) != null ? (T) section.get(path) : def;
-    }
+    public Map<String, Object> getDefaultCrateValues() {
+        return new LinkedHashMap<>() {{
+            // General Crate Settings
+            this.put("#0", "Technical name of the crate");
+            this.put("name", "example");
+            this.put("#1", "The display name of the crate");
+            this.put("display-name", "Example Crate");
+            this.put("#3", "The crate type, options are: [PHYSICAL, VIRTUAL]");
+            this.put("crate-type", "PHYSICAL");
 
-    private Optional<Action> addAction(String text) {
-        final List<Action> actions = Arrays.asList(
-                new BroadcastAction(),
-                new CloseAction(),
-                new ConsoleAction(),
-                new MessageAction(),
-                new PlayerAction(),
-                new SoundAction()
-        );
+            // Configure crate reward settings
+            this.put("#2", "Maximum Rewards to be given");
+            this.put("max-rewards", 1);
+            this.put("#4", "Minimum rewards to be given");
+            this.put("min-rewards", 1);
+            this.put("#5", "Minimum inventory slots required to open the crate");
+            this.put("min-inv-slots", 1);
 
-        Optional<Action> optional = actions.stream().filter(x -> text.toLowerCase().startsWith("[" + x.actionType().toLowerCase() + "]")).findFirst();
+            // Configure crate animation settings
+            this.put("#6", "The animation to use for the crate");
+            this.put("#7", "Each crate animation has individual settings which will be automatically applied to the config file");
+            this.put("animation.name", "rings");
 
-        if (optional.isEmpty())
-            return Optional.empty();
+            // Configure crate key settings
+            this.put("#8", "The key to open the crate");
+            this.put("key.material", "TRIPWIRE_HOOK");
+            this.put("key.glow", true);
+            this.put("key.name", "&lCrate Key &7» &fExample");
+            this.put("key.lore", Arrays.asList(
+                    "&7A key to open the &lExample &7crate!",
+                    "",
+                    "&7Right-Click on the &lExample &7crate to open"
+            ));
 
-        Action action = optional.get();
-        final String formattedAction = "[" + action.actionType().toLowerCase() + "]";
-        String actionMessage = text.substring(formattedAction.length());
+            this.put("#9", "The crate rewards");
+            this.put("rewards.1.material", "STONE");
+            this.put("rewards.1.amount", 1);
 
-        // yes this is scuffed
-        while (actionMessage.startsWith(" "))
-            actionMessage = actionMessage.substring(1);
-
-        action.setMessage(actionMessage);
-        return Optional.of(action);
+            this.put("rewards.2.material", "");
+        }};
     }
 
     public Map<String, Crate> getCachedCrates() {
-        return cachedCrates;
+        return this.cachedCrates;
     }
 
-    public Map<String, FileConfiguration> getUnregisteredCrates() {
-        return unregisteredCrates;
+    public Map<String, CommentedFileConfiguration> getUnregisteredCrates() {
+        return this.unregisteredCrates;
     }
 
 

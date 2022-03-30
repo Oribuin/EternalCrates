@@ -1,19 +1,17 @@
 package xyz.oribuin.eternalcrates.action;
 
+import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import org.bukkit.entity.Player;
-import xyz.oribuin.eternalcrates.EternalCrates;
-import xyz.oribuin.orilibrary.util.StringPlaceholders;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import xyz.oribuin.eternalcrates.crate.Reward;
 
 public class CloseAction extends Action {
 
     @Override
-    public String actionType() {
-        return "CLOSE";
-    }
-
-    @Override
-    public void executeAction(EternalCrates plugin, Player player, StringPlaceholders plc) {
+    public void execute(@Nullable Reward reward, @NotNull Player player, @NotNull StringPlaceholders placeholders) {
         player.closeInventory();
     }
+
 
 }

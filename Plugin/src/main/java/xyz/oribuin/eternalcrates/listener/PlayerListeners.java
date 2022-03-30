@@ -6,9 +6,10 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import xyz.oribuin.eternalcrates.EternalCrates;
+import xyz.oribuin.eternalcrates.manager.ConfigurationManager;
 import xyz.oribuin.eternalcrates.manager.DataManager;
-import xyz.oribuin.eternalcrates.util.PluginUtils;
 
 public class PlayerListeners implements Listener {
 
@@ -23,8 +24,15 @@ public class PlayerListeners implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onJoin(PlayerJoinEvent event) {
         // Get a user's cached items when they join.
-        this.data.getUserItems(event.getPlayer().getUniqueId());
-        this.data.getVirtual(event.getPlayer().getUniqueId());
+        this.data.getUnclaimedKeys(event.getPlayer().getUniqueId());
+        this.data.getUsersVirtualKeys(event.getPlayer().getUniqueId());
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onLeave(PlayerQuitEvent event) {
+        // Save a users unclaimed keys and virtual keys when they leave
+        this.data.saveUnclaimedKeys(event.getPlayer().getUniqueId());
+        this.data.saveVirtualKeys(event.getPlayer().getUniqueId());
     }
 
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
@@ -35,7 +43,7 @@ public class PlayerListeners implements Listener {
         if (!this.plugin.getActiveUsers().contains(player.getUniqueId()))
             return;
 
-        if (PluginUtils.get(this.plugin.getConfig(), "crate-settings.item-pickup-in-animation", false))
+        if (!ConfigurationManager.Setting.PICKUP_IN_ANIMATION.getBoolean())
             return;
 
         event.setCancelled(true);

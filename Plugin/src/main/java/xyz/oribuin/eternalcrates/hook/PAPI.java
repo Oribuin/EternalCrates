@@ -15,25 +15,15 @@ public class PAPI extends PlaceholderExpansion {
 
     private final EternalCrates plugin;
     private final DataManager data;
+    private static boolean enabled = false;
 
     public PAPI(final EternalCrates plugin) {
         this.plugin = plugin;
         this.data = plugin.getManager(DataManager.class);
-        this.register();
-    }
 
-    /**
-     * Parse a message through PlaceholderAPI
-     *
-     * @param player  The player the messages are applied to
-     * @param message the message being parsed
-     * @return the parsed message
-     */
-    public static String apply(OfflinePlayer player, String message) {
-        if (!Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI"))
-            return message;
-
-        return PlaceholderAPI.setPlaceholders(player, message);
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            enabled = true;
+        }
     }
 
     // todo
@@ -45,10 +35,25 @@ public class PAPI extends PlaceholderExpansion {
             if (args.length < 2)
                 return "Unknown Crate";
 
-            final Map<String, Integer> keys = this.data.getCachedVirtual().get(player.getUniqueId());
+            final Map<String, Integer> keys = this.data.getUsersVirtualKeys(player.getUniqueId());
             return String.valueOf(keys.getOrDefault(args[1], 0));
         }
         return params;
+    }
+
+    /**
+     * Apply PAPI placeholders to a string
+     *
+     * @param player The player to apply the placeholders to
+     * @param text   The text to apply the placeholders to
+     * @return The text with the placeholders applied
+     */
+    public static String apply(OfflinePlayer player, String text) {
+        if (enabled) {
+            return PlaceholderAPI.setPlaceholders(player, text);
+        }
+
+        return text;
     }
 
     @Override
@@ -71,4 +76,12 @@ public class PAPI extends PlaceholderExpansion {
         return true;
     }
 
+    @Override
+    public boolean canRegister() {
+        return enabled;
+    }
+
+    public static boolean isEnabled() {
+        return enabled;
+    }
 }

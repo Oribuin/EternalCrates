@@ -1,23 +1,20 @@
 package xyz.oribuin.eternalcrates.action;
 
+import dev.rosewood.rosegarden.utils.HexUtils;
+import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import org.bukkit.entity.Player;
-import xyz.oribuin.eternalcrates.EternalCrates;
-import xyz.oribuin.eternalcrates.manager.MessageManager;
-import xyz.oribuin.orilibrary.util.HexUtils;
-import xyz.oribuin.orilibrary.util.StringPlaceholders;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import xyz.oribuin.eternalcrates.crate.Reward;
+import xyz.oribuin.eternalcrates.hook.PAPI;
 
 public class MessageAction extends Action {
 
     @Override
-    public String actionType() {
-        return "MESSAGE";
-    }
-
-    @Override
-    public void executeAction(EternalCrates plugin, Player player, StringPlaceholders plc) {
+    public void execute(@Nullable Reward reward, @NotNull Player player, @NotNull StringPlaceholders placeholders) {
         if (this.getMessage().length() == 0)
             return;
 
-        player.sendMessage(HexUtils.colorify(MessageManager.applyPapi(player, plc.apply(this.getMessage()))));
+        player.sendMessage(HexUtils.colorify(PAPI.apply(player, placeholders.apply(this.getMessage()))));
     }
 }

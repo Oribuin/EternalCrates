@@ -1,6 +1,10 @@
 package xyz.oribuin.eternalcrates.animation.defaults;
 
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.World;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
@@ -14,11 +18,12 @@ import org.bukkit.util.Vector;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.animation.AnimationType;
 import xyz.oribuin.eternalcrates.animation.CustomAnimation;
-import xyz.oribuin.eternalcrates.crate.Crate;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -27,12 +32,15 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class PumpkinAnimation extends CustomAnimation {
 
+    private int pumpkinCount;
+    private int smokeCount;
+
     public PumpkinAnimation() {
         super("pumpkin", "Oribuin", AnimationType.SEASONAL);
     }
 
     @Override
-    public void spawn(Crate crate, Location location, Player player) {
+    public void spawn(Location location, Player player) {
         final World world = location.getWorld();
         if (world == null)
             return;
@@ -79,15 +87,15 @@ public class PumpkinAnimation extends CustomAnimation {
         entitiesToRemove.add(pomkin);
         final ThreadLocalRandom random = ThreadLocalRandom.current();
         Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), () -> {
-            crate.finish(player);
+            this.getCrate().finish(player);
 
             task.cancel();
             pomkin.remove();
             // add spawn particles.
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i <= this.smokeCount; i++)
                 world.spawnParticle(Particle.SMOKE_LARGE, pomkin.getLocation(), 2, 0.3, 0.3, 0.3, 0);
 
-            for (int i = 0; i < 11; i++) {
+            for (int i = 0; i <= this.pumpkinCount; i++) {
 
                 Item item = world.spawn(pomkin.getLocation(), Item.class, x -> {
                     x.setItemStack(new ItemStack(Material.JACK_O_LANTERN));
@@ -110,5 +118,19 @@ public class PumpkinAnimation extends CustomAnimation {
             this.setActive(false);
             entitiesToRemove.forEach(Entity::remove);
         }, 70);
+    }
+
+    @Override
+    public Map<String, Object> getRequiredValues() {
+        final Map<String, Object> options = new HashMap<>();
+        options.put("animation.pumpkin-count", 10);
+        options.put("animation.smoke-count", 10);
+        return options;
+    }
+
+    @Override
+    public void load() {
+        this.pumpkinCount = this.get("animation.pumpkin-count", 10);
+        this.smokeCount = this.get("animation.smoke-count", 10);
     }
 }
