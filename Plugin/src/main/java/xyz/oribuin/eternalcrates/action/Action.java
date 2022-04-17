@@ -8,11 +8,7 @@ import xyz.oribuin.eternalcrates.crate.Reward;
 
 public abstract class Action {
 
-    private String message;
-
-    public Action() {
-        this.message = "";
-    }
+    private String message = "";
 
     /**
      * Execute the action function
@@ -39,16 +35,5 @@ public abstract class Action {
 
     public void setMessage(String message) {
         this.message = message;
-    }
-
-    @Override
-    public Action clone() {
-        try {
-            return (Action) super.clone();
-        } catch (CloneNotSupportedException e) {
-            e.printStackTrace();
-        }
-
-        return null;
     }
 }

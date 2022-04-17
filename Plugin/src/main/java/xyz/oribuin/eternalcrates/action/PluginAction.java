@@ -30,6 +30,7 @@ public final class PluginAction {
      * @param actionFunction Function to create the action, with the message as a parameter
      */
     public static void registerAction(String name, Function<String, Action> actionFunction) {
+        // toLowerCase to avoid case-sensitive issues
         ACTIONS.put(name.toLowerCase(Locale.ROOT), actionFunction);
     }
 
@@ -54,12 +55,12 @@ public final class PluginAction {
      * @return Action associated with the text
      */
     public static Optional<Action> parse(String text) {
-        // Find an action by "[action]" and get the text after it.
+        // Check if the text matches the pattern ("[<action>] <message>") and get the action and message
         final Matcher matcher = ACTION_PATTERN.matcher(text);
         if (!matcher.find()) {
             return Optional.empty();
         }
-        final String actionName = matcher.group(1).toLowerCase(Locale.ROOT);
+        final String actionName = matcher.group(1).toLowerCase(Locale.ROOT); // toLowerCase to avoid case-sensitive issues
         final String actionText = matcher.group(2);
 
         Optional<Function<String, Action>> optional = Optional.ofNullable(ACTIONS.get(actionName));
