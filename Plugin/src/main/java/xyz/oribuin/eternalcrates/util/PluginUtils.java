@@ -1,5 +1,7 @@
 package xyz.oribuin.eternalcrates.util;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
 import dev.rosewood.rosegarden.config.CommentedFileConfiguration;
 import dev.rosewood.rosegarden.utils.HexUtils;
@@ -10,6 +12,8 @@ import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.MemorySection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
@@ -20,12 +24,11 @@ import xyz.oribuin.eternalcrates.nms.NMSAdapter;
 import xyz.oribuin.eternalcrates.nms.NMSHandler;
 import xyz.oribuin.gui.Item;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public final class PluginUtils {
+    private static final Gson GSON = new Gson();
 
     private PluginUtils() {
         throw new IllegalStateException("Utility class");
@@ -166,6 +169,23 @@ public final class PluginUtils {
     }
 
     /**
+     * Get a normalized map from a section
+     *
+     * @param section The section
+     * @return The map
+     */
+    public static Map<String, Object> getNormalizedMap(ConfigurationSection section) {
+        Map<String, Object> map = new HashMap<>();
+        section.getValues(false).forEach((key, value) -> {
+            if (value instanceof ConfigurationSection subSection) {
+                value = getNormalizedMap(subSection);
+            }
+            map.put(key, value);
+        });
+        return map;
+    }
+
+    /**
      * Get ItemStack from CommentedFileSection path
      *
      * @param config       The CommentedFileSection
@@ -174,6 +194,7 @@ public final class PluginUtils {
      * @param placeholders The placeholders
      * @return The itemstack
      */
+    @SuppressWarnings("deprecation")
     public static ItemStack getItemStack(CommentedConfigurationSection config, String path, Player player, StringPlaceholders placeholders) {
 
         ItemStack baseItem = new ItemStack(Material.STONE);
@@ -194,9 +215,26 @@ public final class PluginUtils {
             return new ItemStack(Material.BARRIER);
         }
 
+        // Apply NBT
+        final CommentedConfigurationSection nbt = config.getConfigurationSection(path + ".nbt");
+        Map<String, Object> nbtValues;
+        if (nbt != null) {
+            nbtValues = getNormalizedMap(nbt);
+        } else {
+            nbtValues = Collections.emptyMap();
+        }
+        if (!nbtValues.isEmpty()) {
+            String nbtString = GSON.toJson(nbtValues);
+            try {
+                baseItem = Bukkit.getUnsafe().modifyItemStack(baseItem, nbtString); // It's not deprecated, just unsafe
+            } catch (Exception throwable) {
+                System.out.println("[CustomItems] Error: Could not apply NBT to item from path " + path);
+            }
+        }
+
         // Format the item lore
         List<String> lore = get(config, path + ".lore", List.of());
-        lore = lore.stream().map(s -> format(player, s, placeholders)).collect(Collectors.toList());
+        lore = lore.stream().map(s -> format(player, s, placeholders)).toList();
 
         // Get item flags
         ItemFlag[] flags = get(config, path + ".flags", new ArrayList<String>())
@@ -233,41 +271,7 @@ public final class PluginUtils {
             });
         }
 
-        ItemStack item = builder.create();
-
-        // Get item nbt
-        final CommentedConfigurationSection nbt = config.getConfigurationSection(path + "nbt");
-        if (nbt != null) {
-            NMSHandler handler = NMSAdapter.getHandler();
-
-            for (String s : nbt.getKeys(false)) {
-                Object obj = nbt.get(s);
-
-                // this is a goddamn sin, I hate this
-                if (obj instanceof String str)
-                    item = handler.setString(item, s, str);
-
-                // you've coded for 3 years and can't do it any better?
-                if (obj instanceof Long l)
-                    item = handler.setLong(item, s, l);
-
-                // lord no
-                if (obj instanceof Integer i)
-                    item = handler.setInt(item, s, i);
-
-                // please make it stop
-                if (obj instanceof Boolean b)
-                    item = handler.setBoolean(item, s, b);
-
-                // goddamn
-                if (obj instanceof Double d)
-                    item = handler.setDouble(item, s, d);
-
-                // thank god its over
-            }
-        }
-
-        return item;
+        return builder.create();
     }
 
     /**
