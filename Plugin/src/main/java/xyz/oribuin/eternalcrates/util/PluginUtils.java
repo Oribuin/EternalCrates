@@ -244,24 +244,24 @@ public final class PluginUtils {
                 Object obj = nbt.get(s);
 
                 // this is a goddamn sin, I hate this
-                if (obj instanceof String)
-                    item = handler.setString(item, s, nbt.getString(s));
+                if (obj instanceof String str)
+                    item = handler.setString(item, s, str);
 
                 // you've coded for 3 years and can't do it any better?
-                if (obj instanceof Long)
-                    item = handler.setLong(item, s, nbt.getLong(s));
+                if (obj instanceof Long l)
+                    item = handler.setLong(item, s, l);
 
                 // lord no
-                if (obj instanceof Integer)
-                    item = handler.setInt(item, s, nbt.getInt(s));
+                if (obj instanceof Integer i)
+                    item = handler.setInt(item, s, i);
 
                 // please make it stop
-                if (obj instanceof Boolean)
-                    item = handler.setBoolean(item, s, nbt.getBoolean(s));
+                if (obj instanceof Boolean b)
+                    item = handler.setBoolean(item, s, b);
 
                 // goddamn
-                if (obj instanceof Double)
-                    item = handler.setDouble(item, s, nbt.getDouble(s));
+                if (obj instanceof Double d)
+                    item = handler.setDouble(item, s, d);
 
                 // thank god its over
             }
