@@ -1,36 +1,39 @@
 package xyz.oribuin.eternalcrates.hook;
 
 import org.bukkit.inventory.ItemStack;
-import xyz.oribuin.eternalcrates.hook.items.EcoItemProvider;
-import xyz.oribuin.eternalcrates.hook.items.ItemBridgeItemProvider;
-import xyz.oribuin.eternalcrates.hook.items.ItemEditItemProvider;
-import xyz.oribuin.eternalcrates.hook.items.ItemProvider;
-import xyz.oribuin.eternalcrates.hook.items.ItemsAdderItemProvider;
-import xyz.oribuin.eternalcrates.hook.items.KnokkoCustomItemProvider;
-import xyz.oribuin.eternalcrates.hook.items.MMOItemProvider;
-import xyz.oribuin.eternalcrates.hook.items.OraxenItemProvider;
-import xyz.oribuin.eternalcrates.hook.items.SlimefunItemProvider;
-import xyz.oribuin.eternalcrates.hook.items.UberItemProvider;
+import xyz.oribuin.eternalcrates.hook.items.*;
+
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * @author Esophose
  */
-public enum CustomItemPlugin {
-    ECOITEMS(new EcoItemProvider()),
-    ITEMBRIDGE(new ItemBridgeItemProvider()),
-    ITEMEDIT(new ItemEditItemProvider()),
-    ITEMSADDER(new ItemsAdderItemProvider()),
-    KNOKKOCUSTOMITEMS(new KnokkoCustomItemProvider()),
-    MMOITEMS(new MMOItemProvider()),
-    ORAXEN(new OraxenItemProvider()),
-    SLIMEFUN(new SlimefunItemProvider()),
-    UBERITEMS(new UberItemProvider());
+public final class CustomItemPlugin {
+    private static final Map<String, ItemProvider> PROVIDERS = new HashMap<>();
 
+    static {
+        register("ecoitems", new EcoItemProvider());
+        register("itembridge", new ItemBridgeItemProvider());
+        register("itemedit", new ItemEditItemProvider());
+        register("itemsadder", new ItemsAdderItemProvider());
+        register("knokkocustomitems", new KnokkoCustomItemProvider());
+        register("mmoitems", new MMOItemProvider());
+        register("oraxen", new OraxenItemProvider());
+        register("slimefun", new SlimefunItemProvider());
+        register("uberitems", new UberItemProvider());
+    }
 
-    private final ItemProvider provider;
-
-    CustomItemPlugin(ItemProvider provider) {
-        this.provider = provider;
+    /**
+     * Register a provider
+     *
+     * @param name     The name of the provider
+     * @param provider The provider
+     */
+    public static void register(String name, ItemProvider provider) {
+        // toLowerCase to avoid case-sensitive issues
+        PROVIDERS.put(name.toLowerCase(Locale.ROOT), provider);
     }
 
     /**
@@ -47,16 +50,18 @@ public enum CustomItemPlugin {
         if (split.length != 2) {
             return null;
         }
+        String providerName = split[0].trim();
+        String itemName = split[1].trim();
 
-        // get plugin
-        CustomItemPlugin plugin = CustomItemPlugin.fromString(split[0]);
-        if (plugin == null) {
+        // get provider
+        ItemProvider provider = CustomItemPlugin.getProvider(providerName);
+        if (provider == null) {
             return null;
         }
 
-        System.out.println("[EternalCrates] Plugin " + split[0] + " with item " + split[1]);
+        System.out.println("[EternalCrates] Plugin " + providerName + " with item " + itemName);
         // get item
-        return plugin.provider.getItem(split[1]);
+        return provider.getItem(itemName);
     }
 
     /**
@@ -65,14 +70,8 @@ public enum CustomItemPlugin {
      * @param name The name of the provider
      * @return The provider
      */
-    public static CustomItemPlugin fromString(String name) {
-        for (CustomItemPlugin plugin : values()) {
-            if (plugin.name().equalsIgnoreCase(name)) {
-                return plugin;
-            }
-        }
-
-        return null;
+    public static ItemProvider getProvider(String name) {
+        return PROVIDERS.get(name.toLowerCase(Locale.ROOT)); // toLowerCase to avoid case-sensitive issues
     }
 
 }
