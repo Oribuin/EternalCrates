@@ -1,36 +1,50 @@
 package xyz.oribuin.eternalcrates.action;
 
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-public enum PluginAction {
-    BROADCAST(new BroadcastAction()),
-    CLOSE(new CloseAction()),
-    CONSOLE(new ConsoleAction()),
-    GIVE(new GiveAction()),
-    MESSAGE(new MessageAction()),
-    PLAYER(new PlayerAction()),
-    SOUND(new SoundAction());
-//    TILE(new TitleAction());
+public final class PluginAction {
+    private static final Pattern ACTION_PATTERN = Pattern.compile("\\[(\\w+)]\\W?(.*)");
+    private static final Map<String, Function<String, Action>> ACTIONS = new HashMap<>();
 
-    final Action action;
-
-    PluginAction(Action action) {
-        this.action = action;
+    static {
+        registerAction("broadcast", BroadcastAction::new);
+        registerAction("close", CloseAction::new);
+        registerAction("console", ConsoleAction::new);
+        registerAction("give", GiveAction::new);
+        registerAction("message", MessageAction::new);
+        registerAction("player", PlayerAction::new);
+        registerAction("sound", SoundAction::new);
     }
 
     /**
-     * Get the action associated with this enum
+     * Register an action
      *
-     * @param action Action to get
-     * @return Action associated with this enum
+     * @param name           Name of the action
+     * @param actionFunction Function to create the action, with the message as a parameter
      */
-    public static PluginAction getAction(String action) {
-        for (PluginAction a : PluginAction.values()) {
-            if (a.name().equalsIgnoreCase(action)) {
-                return a;
-            }
-        }
-        return null;
+    public static void registerAction(String name, Function<String, Action> actionFunction) {
+        ACTIONS.put(name.toLowerCase(Locale.ROOT), actionFunction);
+    }
+
+    /**
+     * Register an action
+     *
+     * @param name           Name of the action
+     * @param actionSupplier Supplier to create the action
+     */
+    public static void registerAction(String name, Supplier<Action> actionSupplier) {
+        registerAction(name, s -> {
+            Action action = actionSupplier.get();
+            action.setMessage(s);
+            return action;
+        });
     }
 
     /**
@@ -41,20 +55,19 @@ public enum PluginAction {
      */
     public static Optional<Action> parse(String text) {
         // Find an action by "[action]" and get the text after it.
-        final String[] message = text.split("\\[")[1].split("\\]");
-        if (message.length < 2)
+        final Matcher matcher = ACTION_PATTERN.matcher(text);
+        if (!matcher.find()) {
             return Optional.empty();
+        }
+        final String actionName = matcher.group(1).toLowerCase(Locale.ROOT);
+        final String actionText = matcher.group(2);
 
-        final String actionName = message[0];
-        final String actionText = message[1];
-
-        Optional<PluginAction> optional = Optional.ofNullable(getAction(actionName));
+        Optional<Function<String, Action>> optional = Optional.ofNullable(ACTIONS.get(actionName));
 
         if (optional.isEmpty())
             return Optional.empty();
 
-        Action action = optional.get().action.clone();
-        action.setMessage(actionText);
+        Action action = optional.get().apply(actionText);
         return Optional.of(action);
     }
 
