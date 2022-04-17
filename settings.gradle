@@ -9,9 +9,7 @@ rootProject.name = 'EternalCrates'
 
 include('Plugin')
 include('NMS:Wrapper')
-include('NMS:v1_16_R1')
-include('NMS:v1_16_R2')
 include('NMS:v1_16_R3')
 include('NMS:v1_17_R1')
-include ('NMS:v1_18_R1')
-include ('NMS:v1_18_R2')
+include('NMS:v1_18_R1')
+include('NMS:v1_18_R2')
