@@ -69,6 +69,12 @@ public class EternalCrates extends RosePlugin {
     }
 
     @Override
+    public void reload() {
+        super.reload();
+        getServer().getScheduler().scheduleSyncDelayedTask(this, () -> getManager(CrateManager.class).loadCrates());
+    }
+
+    @Override
     protected List<Class<? extends Manager>> getManagerLoadPriority() {
         return Arrays.asList(AnimationManager.class, MenuManager.class, CrateManager.class);
     }

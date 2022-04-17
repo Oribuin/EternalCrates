@@ -93,8 +93,6 @@ public class AnimationManager extends Manager {
         // TODO
         // Other
         this.animationClasses.put("none", EmptyAnimation.class);
-
-        this.rosePlugin.getManager(CrateManager.class).loadCrates();
     }
 
     /**
