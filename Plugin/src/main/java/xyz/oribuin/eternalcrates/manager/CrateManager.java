@@ -176,7 +176,7 @@ public class CrateManager extends Manager {
             reward.setItemStack(item);
             reward.setChance(section.getInt(s + ".chance"));
 
-            ItemStack previewItem = PluginUtils.getItemStack(section, section.getCurrentPath() + "." + s + ".preview-item");
+            ItemStack previewItem = PluginUtils.getItemStack(section, s + ".preview-item");
             if (previewItem != null)
                 reward.setPreviewItem(previewItem);
 
