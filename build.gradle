@@ -1,46 +1,73 @@
 plugins {
-    id 'com.github.johnrengelman.shadow' version '7.1.0' apply false
+    id 'java'
+    id 'java-library'
+    id 'com.github.johnrengelman.shadow' version '7.1.0'
 }
 
-allprojects {
-    apply plugin: 'java'
-    apply plugin: 'com.github.johnrengelman.shadow'
+group 'xyz.oribuin.eternalcrates'
+version '1.0.5'
 
-    group 'xyz.oribuin.eternalcrates'
-    version '1.0.5'
+compileJava.options.encoding = 'UTF-8'
+sourceCompatibility = JavaVersion.VERSION_16
+targetCompatibility = JavaVersion.VERSION_16
 
-    targetCompatibility = JavaVersion.VERSION_16
-    sourceCompatibility = JavaVersion.VERSION_16
+repositories {
+    mavenCentral()
+    mavenLocal()
 
-    repositories {
-        mavenCentral()
-        mavenLocal()
-
-        maven { url 'https://libraries.minecraft.net' }
-        maven { url "https://hub.spigotmc.org/nexus/content/repositories/snapshots/" }
-        maven { url "https://repo.rosewooddev.io/repository/public/" }
-        maven { url "https://repo.extendedclip.com/content/repositories/placeholderapi/" }
-        maven { url "https://repo.codemc.org/repository/maven-public/" }
-        maven { url 'https://jitpack.io' }
-        maven { url 'https://erethon.de/repo/' }
-        maven { url 'https://mvn.lumine.io/repository/maven-public/' }
+    maven { url 'https://libraries.minecraft.net' }
+    maven { url "https://hub.spigotmc.org/nexus/content/repositories/snapshots/" }
+    maven { url "https://repo.rosewooddev.io/repository/public/" }
+    maven { url "https://repo.extendedclip.com/content/repositories/placeholderapi/" }
+    maven { url "https://repo.codemc.org/repository/maven-public/" }
+    maven { url 'https://jitpack.io' }
+    maven { url 'https://erethon.de/repo/' }
+    maven { url 'https://mvn.lumine.io/repository/maven-public/' }
+    maven {
+        url = 'https://repo.rosewooddev.io/repository/maven-public'
+        credentials {
+            username project.mavenUser
+            password project.mavenPassword
+            authentication {
+                basic(BasicAuthentication)
+            }
+        }
     }
 }
 
 dependencies {
-    implementation project(':Plugin')
-    implementation project(':NMS:Wrapper')
-    implementation project(':NMS:v1_16_R3')
-    implementation project(path: ':NMS:v1_17_R1', configuration: 'remapped')
-    implementation project(path: ':NMS:v1_18_R1', configuration: 'remapped')
-    implementation project(path: ':NMS:v1_18_R2', configuration: 'remapped')
+    compileOnly 'org.spigotmc:spigot-api:1.19-R0.1-SNAPSHOT'
+    compileOnly 'me.clip:placeholderapi:2.10.9'
+    compileOnly 'org.jetbrains:annotations:23.0.0'
+
+    // Frameworks & MySQL APIs
+    implementation 'dev.rosewood:rosegarden:1.1.0.29-SNAPSHOT'
+    implementation 'io.github.bananapuncher714:nbteditor:7.18.2'
+    implementation('dev.triumphteam:triumph-gui:3.1.2') {
+        exclude group: 'com.google.code.gson', module: 'gson' // Already included in spigot-api
+    }
+
+    // Custom Item Plugins
+    compileOnly 'com.github.jojodmo:ItemBridge:master-SNAPSHOT'
+    compileOnly 'com.github.emanondev:ItemEdit:2.18'
+    compileOnly 'com.github.LoneDev6:api-itemsadder:2.5.5'
+//    compileOnly 'de.erethon:itemsxl:1.0.3' // TODO: Fix XLItems dependency
+    compileOnly 'nl.knokko:customitems:9.18'
+    compileOnly 'net.Indyuce:MMOItems:6.7'
+    compileOnly 'com.github.oraxen:oraxen:afc4903680'
+    compileOnly 'com.github.Slimefun:Slimefun4:RC-30'
+    compileOnly 'thirtyvirus.uber:uberitems:2.6'
+    compileOnly 'io.lumine:Mythic-Dist:5.0.1-SNAPSHOT'
 }
 
 shadowJar {
     archiveClassifier.set(null)
-    relocate "xyz.oribuin.gui", "${project.group}.libs.gui"
     relocate "org.jetbrains", "${project.group}.libs.jetbrains"
     relocate "dev.rosewood.rosegarden", "${project.group}.libs.rosegarden"
+    relocate "io.github.bananapuncher714.nbteditor", "${project.group}.libs.nbteditor"
+    relocate "dev.triumphteam.gui", "${project.group}.libs.triumph-gui"
+    relocate "net.kyori", "${project.group}.libs.kyori"
+
 }
 
 tasks.getByName("build").dependsOn("shadowJar")
