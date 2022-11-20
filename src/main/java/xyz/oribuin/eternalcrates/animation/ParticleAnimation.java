@@ -61,12 +61,12 @@ public abstract class ParticleAnimation extends Animation {
     @Override
     public Map<String, Object> getRequiredValues() {
         return new HashMap<>() {{
-            this.put("animation.particle", "REDSTONE");
-            this.put("animation.color", "#FFFFFF");
-            this.put("animation.transition", "#ff0000");
-            this.put("animation.note", 1);
-            this.put("animation.item", "STONE");
-            this.put("animation.block", "STONE");
+            this.put("particle", "REDSTONE");
+            this.put("transition", "#ff0000");
+            this.put("color", "#FFFFFF");
+            this.put("note", 1);
+            this.put("item", "STONE");
+            this.put("block", "STONE");
         }};
     }
 

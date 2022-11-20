@@ -112,6 +112,7 @@ public class CrateListeners implements Listener {
             return;
         }
 
+        // Check if the crate key is the correct item
         event.setCancelled(true);
 
         // CHeck if the user has enough slots for the items

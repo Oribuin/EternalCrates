@@ -10,7 +10,7 @@ import xyz.oribuin.eternalcrates.animation.defaults.EmptyAnimation;
 import xyz.oribuin.eternalcrates.animation.defaults.custom.ChickenAnimation;
 import xyz.oribuin.eternalcrates.animation.defaults.custom.FountainAnimation;
 import xyz.oribuin.eternalcrates.animation.defaults.custom.MiniMeAnimation;
-import xyz.oribuin.eternalcrates.animation.defaults.custom.SwordAnimation;
+import xyz.oribuin.eternalcrates.animation.defaults.custom.SwordsAnimation;
 import xyz.oribuin.eternalcrates.animation.defaults.firework.CelebrationAnimation;
 import xyz.oribuin.eternalcrates.animation.defaults.firework.SparkleAnimation;
 import xyz.oribuin.eternalcrates.animation.defaults.particle.QuadAnimation;
@@ -55,7 +55,7 @@ public class AnimationManager extends Manager {
         this.cachedAnimations.put("chicken", new ChickenAnimation());
         this.cachedAnimations.put("fountain", new FountainAnimation());
         this.cachedAnimations.put("mini-me", new MiniMeAnimation());
-        this.cachedAnimations.put("swords", new SwordAnimation());
+        this.cachedAnimations.put("swords", new SwordsAnimation());
 
         // Seasonal
         this.cachedAnimations.put("snowman", new SnowmanAnimation());
@@ -76,7 +76,12 @@ public class AnimationManager extends Manager {
      * @return An optional animation.
      */
     public @Nullable Animation getAnimation(String name) {
-        return this.cachedAnimations.get(name.toLowerCase());
+        for (Animation animation : this.cachedAnimations.values()) {
+            if (animation.getName().equalsIgnoreCase(name))
+                return animation;
+        }
+
+        return null;
     }
 
     /**

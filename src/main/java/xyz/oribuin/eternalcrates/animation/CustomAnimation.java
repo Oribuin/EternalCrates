@@ -18,4 +18,5 @@ public abstract class CustomAnimation extends Animation {
      * @param player   The player who is opening the crate.
      */
     public abstract void spawn(@NotNull Location location, @NotNull Player player, @NotNull Crate crate);
+
 }

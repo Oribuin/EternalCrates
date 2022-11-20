@@ -57,7 +57,7 @@ public class EnglishLocale implements Locale {
             this.put("#7", "Claim Command");
             this.put("command-claim-description", "Claim any unclaimed crate keys.");
             this.put("command-claim-no-keys", "You have no unclaimed crate keys.");
-            this.put("command-claim-success", "You have claimed #00B4DBx%to0tal% &fkey(s).");
+            this.put("command-claim-success", "You have claimed #00B4DBx%total% &fkey(s).");
 
             // Give Command
             this.put("#8", "Give Command");

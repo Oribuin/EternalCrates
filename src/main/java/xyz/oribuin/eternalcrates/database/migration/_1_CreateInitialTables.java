@@ -16,7 +16,7 @@ public class _1_CreateInitialTables extends DataMigration {
     public void migrate(DatabaseConnector connector, Connection connection, String tablePrefix) throws SQLException {
 
         // Create the required tables unclaimed keys.
-        final var itemsQuery = "CREATE TABLE IF NOT EXISTS " + tablePrefix + "items (player VARCHAR(50), items TEXT, PRIMARY KEY(player))";
+        final var itemsQuery = "CREATE TABLE IF NOT EXISTS " + tablePrefix + "keys (player VARCHAR(50), items TEXT, PRIMARY KEY(player))";
         try (var statement = connection.prepareStatement(itemsQuery)) {
             statement.executeUpdate();
         }

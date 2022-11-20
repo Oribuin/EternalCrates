@@ -58,15 +58,13 @@ public class PumpkinAnimation extends CustomAnimation {
             x.setInvulnerable(true);
 
             final var equipment = x.getEquipment();
-            if (equipment != null) {
-                equipment.setHelmet(new ItemStack(Material.JACK_O_LANTERN));
-                x.getPersistentDataContainer().set(EternalCrates.getEntityKey(), PersistentDataType.INTEGER, 1);
+            equipment.setHelmet(new ItemStack(Material.JACK_O_LANTERN));
+            x.getPersistentDataContainer().set(EternalCrates.getEntityKey(), PersistentDataType.INTEGER, 1);
 
-                Arrays.stream(EquipmentSlot.values()).forEach(equipmentSlot -> {
-                    x.addEquipmentLock(equipmentSlot, ArmorStand.LockType.ADDING_OR_CHANGING);
-                    x.addEquipmentLock(equipmentSlot, ArmorStand.LockType.REMOVING_OR_CHANGING);
-                });
-            }
+            Arrays.stream(EquipmentSlot.values()).forEach(equipmentSlot -> {
+                x.addEquipmentLock(equipmentSlot, ArmorStand.LockType.ADDING_OR_CHANGING);
+                x.addEquipmentLock(equipmentSlot, ArmorStand.LockType.REMOVING_OR_CHANGING);
+            });
         });
 
         // yeehaw

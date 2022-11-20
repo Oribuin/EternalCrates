@@ -25,6 +25,7 @@ import xyz.oribuin.eternalcrates.util.PluginUtils;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -186,11 +187,17 @@ public class CrateManager extends Manager {
             displayName = name;
 
         // Get the crate animation data.
-        final Animation animation = animationManager.getAnimation(config);
+        Animation animation = animationManager.getAnimation(config);
         if (animation == null) {
             this.rosePlugin.getLogger().warning("Couldn't load animation for crate: " + name);
             this.unregisteredCrates.put(name.toLowerCase(), config);
             return null;
+        }
+
+        // Try to create a new instance of the animation class.
+        try {
+            animation = animation.getClass().getConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException ignored) {
         }
 
         // Get the crate type
@@ -580,9 +587,9 @@ public class CrateManager extends Manager {
             this.put("crate-settings.key.glow", true);
             this.put("crate-settings.key.name", "#00B4DB&l&lCrate Key &7» &fExample");
             this.put("crate-settings.key.lore", Arrays.asList(
-                    "&7A key to open the &lExample &7crate!",
+                    "&7A key to open the #00B4DB&lExample &7crate!",
                     "",
-                    "&7Right-Click on the &lExample &7crate to open"
+                    "&7Right-Click on the #00B4DB&lExample &7crate to open"
             ));
 
             // Reward Settings

@@ -68,7 +68,7 @@ public class DataManager extends AbstractDataManager {
         }
 
         this.async(() -> this.databaseConnector.connect(connection -> {
-            try (var statement = connection.prepareStatement("SELECT `items` FROM " + this.getTablePrefix() + "items WHERE `player` = ?")) {
+            try (var statement = connection.prepareStatement("SELECT `items` FROM " + this.getTablePrefix() + "keys WHERE `player` = ?")) {
                 statement.setString(1, player.toString());
                 var resultSet = statement.executeQuery();
                 if (resultSet.next()) {

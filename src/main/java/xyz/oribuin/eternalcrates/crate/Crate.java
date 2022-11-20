@@ -128,8 +128,8 @@ public class Crate {
         final List<Reward> rewards = new ArrayList<>();
 
         // Select a random amount of rewards from the min and max reward count and times by the multiplier.
-        final var rewardCount = ThreadLocalRandom.current().nextInt(this.getMinRewards(), this.getMaxRewards() + 1) * this.getMultiplier();
-        for (var i = 0; i <= rewardCount; i++)
+        final int rewardCount = ThreadLocalRandom.current().nextInt(this.getMinRewards(), this.getMaxRewards() + 1) * this.getMultiplier();
+        for (int i = 0; i < rewardCount; i++)
             rewards.add(this.selectReward());
 
         return rewards;
