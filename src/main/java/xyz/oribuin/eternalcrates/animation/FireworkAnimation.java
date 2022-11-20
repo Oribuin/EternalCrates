@@ -1,14 +1,16 @@
 package xyz.oribuin.eternalcrates.animation;
 
+import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
 import org.bukkit.Bukkit;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.persistence.PersistentDataType;
+import org.jetbrains.annotations.NotNull;
 import xyz.oribuin.eternalcrates.EternalCrates;
+import xyz.oribuin.eternalcrates.crate.Crate;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,10 +45,10 @@ public abstract class FireworkAnimation extends Animation {
     /**
      * Play the animation at the crate location
      *
-     * @param loc   The location of the fireworks.
+     * @param loc    The location of the fireworks.
      * @param player The player who is opening the crate.
      */
-    public void play(Location loc, Player player) {
+    public void play(@NotNull Location loc, @NotNull Player player, @NotNull Crate crate) {
         if (this.isActive())
             return;
 
@@ -55,7 +57,7 @@ public abstract class FireworkAnimation extends Animation {
         this.fireworkMap.clear();
         this.registerFireworks(loc);
 
-        final AtomicInteger startNumber = new AtomicInteger();
+        final var startNumber = new AtomicInteger();
 
         this.fireworkMap.keySet().forEach(integer -> {
             final CustomFirework customFirework = this.fireworkMap.get(integer);
@@ -67,8 +69,8 @@ public abstract class FireworkAnimation extends Animation {
 
             // Spawn the firework
             Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), () -> {
-                Firework firework = world.spawn(customFirework.location, Firework.class, fireWork -> {
-                    final FireworkMeta meta = fireWork.getFireworkMeta();
+                var firework = world.spawn(customFirework.location, Firework.class, fireWork -> {
+                    final var meta = fireWork.getFireworkMeta();
 
                     // Set meta because we're not trying to kill anyone here.
                     fireWork.getPersistentDataContainer().set(EternalCrates.getEntityKey(), PersistentDataType.INTEGER, 1);
@@ -77,7 +79,7 @@ public abstract class FireworkAnimation extends Animation {
                 });
 
                 if (integer == this.fireworkMap.size()) {
-                    this.getCrate().finish(player, loc);
+                    crate.finish(player, loc);
                 }
 
                 firework.detonate();
@@ -87,7 +89,15 @@ public abstract class FireworkAnimation extends Animation {
         });
     }
 
-    public abstract Map<String, Object> getRequiredValues();
+    @Override
+    public Map<String, Object> getRequiredValues() {
+        return new HashMap<>();
+    }
+
+    @Override
+    public void load(CommentedConfigurationSection config) {
+        // Nothing to load
+    }
 
     /**
      * Create a record for the custom firework object.

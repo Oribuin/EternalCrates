@@ -1,5 +1,6 @@
 package xyz.oribuin.eternalcrates.animation.defaults;
 
+import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
 import xyz.oribuin.eternalcrates.animation.Animation;
 import xyz.oribuin.eternalcrates.animation.AnimationType;
 
@@ -9,7 +10,7 @@ import java.util.Map;
 public class EmptyAnimation extends Animation {
 
     public EmptyAnimation() {
-        super("none", AnimationType.NONE, "Oribuin", true);
+        super("None", AnimationType.NONE, "Oribuin", true);
     }
 
     @Override
@@ -18,7 +19,8 @@ public class EmptyAnimation extends Animation {
     }
 
     @Override
-    public void load() {
-        // do nothing
+    public void load(CommentedConfigurationSection config) {
+        // Do Nothing
     }
+
 }

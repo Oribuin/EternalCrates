@@ -1,138 +1,121 @@
 package xyz.oribuin.eternalcrates.listener;
 
-import org.bukkit.Location;
-import org.bukkit.NamespacedKey;
-import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
+import dev.rosewood.rosegarden.utils.StringPlaceholders;
+import org.bukkit.Color;
+import org.bukkit.Particle;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.util.Vector;
 import xyz.oribuin.eternalcrates.EternalCrates;
-import xyz.oribuin.eternalcrates.crate.Crate;
-import xyz.oribuin.eternalcrates.crate.CrateType;
+import xyz.oribuin.eternalcrates.event.CrateDestroyEvent;
+import xyz.oribuin.eternalcrates.gui.PreviewGUI;
 import xyz.oribuin.eternalcrates.manager.CrateManager;
-import xyz.oribuin.eternalcrates.manager.DataManager;
 import xyz.oribuin.eternalcrates.manager.LocaleManager;
 import xyz.oribuin.eternalcrates.manager.MenuManager;
+import xyz.oribuin.eternalcrates.particle.ParticleData;
 import xyz.oribuin.eternalcrates.util.PluginUtils;
-
-import java.util.Map;
-import java.util.Optional;
 
 public class CrateListeners implements Listener {
 
     private final EternalCrates plugin;
-    private final DataManager data;
     private final LocaleManager locale;
     private final CrateManager crateManager;
-
-    // Namespace key.
-    private final NamespacedKey key;
 
     public CrateListeners(EternalCrates plugin) {
         this.plugin = plugin;
 
-        this.data = this.plugin.getManager(DataManager.class);
         this.locale = this.plugin.getManager(LocaleManager.class);
         this.crateManager = this.plugin.getManager(CrateManager.class);
-
-        this.key = new NamespacedKey(this.plugin, "crateKey");
     }
 
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onCratePreview(PlayerInteractEvent event) {
-        Player player = event.getPlayer();
-        if (event.getHand() != EquipmentSlot.HAND)
-            return;
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onCrateDestroy(BlockBreakEvent event) {
+        var player = event.getPlayer();
+        var block = event.getBlock();
 
-        Block block = event.getClickedBlock();
-        Optional<Crate> crate = this.crateManager.getCrateFromBlock(block);
-        if (crate.isEmpty()) {
+        var crate = this.crateManager.getCrate(block);
+        if (crate == null) {
             return;
         }
 
         event.setCancelled(true);
-        event.setUseItemInHand(Event.Result.DENY);
-        event.setUseInteractedBlock(Event.Result.DENY);
 
-        if (event.getAction() != Action.LEFT_CLICK_BLOCK)
+        if (!event.getPlayer().isSneaking()) {
+            return;
+        }
+
+        if (!player.hasPermission("eternalcrates.admin")) {
+            return;
+        }
+
+        var destroyEvent = new CrateDestroyEvent(crate, player);
+        this.plugin.getServer().getPluginManager().callEvent(destroyEvent);
+        if (destroyEvent.isCancelled())
             return;
 
-        this.plugin.getManager(MenuManager.class).getGUI("preview-gui").ifPresent(gui -> gui.open(player, crate.get()));
+        crate.getLocations().remove(block.getLocation());
+        this.crateManager.saveCrate(crate);
+        this.locale.sendMessage(player, "crate-remove-success", StringPlaceholders.single("crate", crate.getId()));
+
+        final var data = new ParticleData(Particle.REDSTONE);
+        data.setDustColor(Color.RED);
+
+        final var cube = PluginUtils.getCube(block.getLocation().clone(), block.getLocation().clone().add(1, 1, 1), 0.5);
+
+        // Spawn particles in the cube and then remove them after 1.5s (35 ticks)
+        var task = this.plugin.getServer().getScheduler().runTaskTimerAsynchronously(this.plugin, () -> cube.forEach(loc -> data.spawn(player, loc, 1)), 0, 2);
+        this.plugin.getServer().getScheduler().runTaskLater(this.plugin, task::cancel, 35);
+
     }
 
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onCrateOpen(PlayerInteractEvent event) {
-        Player player = event.getPlayer();
-        if (event.getHand() != EquipmentSlot.HAND)
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onCratePreview(PlayerInteractEvent event) {
+        var player = event.getPlayer();
+        if (event.getHand() != EquipmentSlot.HAND || event.getAction() != Action.LEFT_CLICK_BLOCK)
             return;
 
-        Block block = event.getClickedBlock();
+        var block = event.getClickedBlock();
         if (block == null)
             return;
 
-        Location location = block.getLocation();
-        Optional<Crate> crate = this.crateManager.getCrateFromBlock(block);
-        if (crate.isEmpty()) {
+        var crate = this.crateManager.getCrate(block);
+        if (crate == null) {
             return;
         }
 
-        // Crate preview already handles cancels the event.
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
+        // Don't cancel the event if the player is sneaking (destroying the crate) and has the permission to do so.
+        if (player.hasPermission("eternalcrates.admin") && event.getPlayer().isSneaking()) {
+            return;
+        }
+
+        event.setCancelled(true);
+        this.plugin.getManager(MenuManager.class).getGUI(PreviewGUI.class).open(player, crate);
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onCrateOpen(PlayerInteractEvent event) {
+        var player = event.getPlayer();
+        if (event.getHand() != EquipmentSlot.HAND || event.getAction() != Action.RIGHT_CLICK_BLOCK)
             return;
 
-        if (crate.get().getType() == CrateType.PHYSICAL) {
-            final ItemStack item = event.getItem();
-            if (item == null) {
-                this.locale.sendMessage(player, "crate-open-invalid-key");
-                this.vroomPlayer(player);
-                return;
-            }
+        var block = event.getClickedBlock();
+        if (block == null)
+            return;
 
-            ItemMeta meta = item.getItemMeta();
-            if (meta == null) {
-                this.locale.sendMessage(player, "crate-open-invalid-key");
-                this.vroomPlayer(player);
-                return;
-            }
-
-            PersistentDataContainer container = meta.getPersistentDataContainer();
-            if (!container.has(this.key, PersistentDataType.STRING)) {
-                this.locale.sendMessage(player, "crate-open-invalid-key");
-                this.vroomPlayer(player);
-                return;
-            }
-
-            final String keyId = container.get(this.key, PersistentDataType.STRING);
-            if (keyId == null || !keyId.equalsIgnoreCase(crate.get().getId())) {
-                this.locale.sendMessage(player, "crate-open-invalid-key");
-                this.vroomPlayer(player);
-                return;
-            }
+        var location = block.getLocation();
+        var crate = this.crateManager.getCrate(block);
+        if (crate == null) {
+            return;
         }
 
-        if (crate.get().getType() == CrateType.VIRTUAL) {
-            Map<String, Integer> usersKeys = this.data.getUsersVirtualKeys(player.getUniqueId());
-
-            int totalKeys = usersKeys.getOrDefault(crate.get().getId().toLowerCase(), 0);
-            if (totalKeys <= 0) {
-                this.locale.sendMessage(player, "crate-open-no-keys");
-                this.vroomPlayer(player);
-                return;
-            }
-        }
+        event.setCancelled(true);
 
         // CHeck if the user has enough slots for the items
-        if (PluginUtils.getSpareSlots(player) < crate.get().getMinGuiSlots()) {
+        if (PluginUtils.getSpareSlots(player) < crate.getMinGuiSlots()) {
             this.locale.sendMessage(player, "crate-open-no-slots");
             return;
         }
@@ -144,50 +127,16 @@ public class CrateListeners implements Listener {
         }
 
         // Check if the crate is in animation
-        if (crate.get().getAnimation().isActive()) {
+        if (crate.getAnimation().isActive()) {
             this.locale.sendMessage(player, "crate-open-animation-active");
             return;
         }
 
-        switch (crate.get().getType()) {
-            case PHYSICAL -> {
-                ItemStack item = event.getItem();
-                if (item == null)
-                    return;
-
-                if (crate.get().open(player, location)) {
-                    // remove 1 of the Item from the player inventory
-                    if (item.getAmount() == 1)
-                        event.getPlayer().getInventory().setItemInMainHand(null);
-                    else
-                        item.setAmount(item.getAmount() - 1);
-                }
-            }
-
-            case VIRTUAL -> {
-                Map<String, Integer> usersKeys = this.data.getUsersVirtualKeys(player.getUniqueId());
-                // Remove a key from the user
-                int totalKeys = usersKeys.getOrDefault(crate.get().getId().toLowerCase(), 0);
-                if (totalKeys > 0 && crate.get().open(player, location)) {
-                    usersKeys.put(crate.get().getId().toLowerCase(), totalKeys - 1);
-                    this.data.saveVirtualKeys(player.getUniqueId(), usersKeys);
-                }
-            }
+        switch (crate.getType()) {
+            case PHYSICAL -> this.crateManager.usePhysicalKey(player, crate, event.getItem(), location);
+            case VIRTUAL -> this.crateManager.useVirtualKey(crate, player, location);
         }
 
     }
-
-    /**
-     * Send the player vrooming
-     *
-     * @param player Player to send the effect to
-     */
-    private void vroomPlayer(Player player) {
-        Vector vector = player.getLocation().getDirection().clone();
-        vector = vector.clone().multiply(-1);
-        vector.multiply(1);
-        player.setVelocity(vector);
-    }
-
 
 }

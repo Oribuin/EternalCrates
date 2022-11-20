@@ -11,10 +11,6 @@ public abstract class GuiAnimation extends Animation {
 
     // TODO Add general gui animations
 
-    public GuiAnimation.Type getType() {
-        return this.type;
-    }
-
     /**
      * Different types of gui animations
      */

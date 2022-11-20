@@ -9,10 +9,8 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
@@ -41,8 +39,9 @@ public class ItemBuilder {
      * @param text The text.
      * @return ItemBuilder.
      */
+    @SuppressWarnings("deprecation")
     public ItemBuilder setName(String text) {
-        final ItemMeta meta = this.item.getItemMeta();
+        final var meta = this.item.getItemMeta();
         if (meta == null || text == null)
             return this;
 
@@ -58,8 +57,9 @@ public class ItemBuilder {
      * @param lore The lore
      * @return ItemBuilder.
      */
+    @SuppressWarnings("deprecation")
     public ItemBuilder setLore(List<String> lore) {
-        final ItemMeta meta = this.item.getItemMeta();
+        final var meta = this.item.getItemMeta();
         if (meta == null || lore == null)
             return this;
 
@@ -75,8 +75,9 @@ public class ItemBuilder {
      * @param lore The lore
      * @return ItemBuilder.
      */
+    @SuppressWarnings("deprecation")
     public ItemBuilder setLore(String... lore) {
-        final ItemMeta meta = this.item.getItemMeta();
+        final var meta = this.item.getItemMeta();
         if (meta == null || lore == null)
             return this;
 
@@ -105,7 +106,7 @@ public class ItemBuilder {
      * @return ItemBuilder
      */
     public ItemBuilder addEnchant(Enchantment ench, int level) {
-        final ItemMeta meta = this.item.getItemMeta();
+        final var meta = this.item.getItemMeta();
         if (meta == null)
             return this;
 
@@ -133,7 +134,7 @@ public class ItemBuilder {
      * @return ItemBuilder
      */
     public ItemBuilder setFlags(ItemFlag[] flags) {
-        final ItemMeta meta = this.item.getItemMeta();
+        final var meta = this.item.getItemMeta();
         if (meta == null)
             return this;
 
@@ -152,7 +153,7 @@ public class ItemBuilder {
      * @return ItemBuilder
      */
     public ItemBuilder setUnbreakable(boolean unbreakable) {
-        final ItemMeta meta = this.item.getItemMeta();
+        final var meta = this.item.getItemMeta();
         if (meta == null)
             return this;
 
@@ -169,7 +170,7 @@ public class ItemBuilder {
         if (!b)
             return this;
 
-        final ItemMeta meta = this.item.getItemMeta();
+        final var meta = this.item.getItemMeta();
         if (meta == null)
             return this;
 
@@ -188,11 +189,11 @@ public class ItemBuilder {
      * @return ItemBuilder
      */
     public ItemBuilder setNBT(Plugin plugin, String key, String value) {
-        final ItemMeta meta = item.getItemMeta();
+        final var meta = item.getItemMeta();
         if (meta == null)
             return this;
 
-        final PersistentDataContainer container = meta.getPersistentDataContainer();
+        final var container = meta.getPersistentDataContainer();
         container.set(new NamespacedKey(plugin, key), PersistentDataType.STRING, value);
         item.setItemMeta(meta);
         return this;
@@ -206,11 +207,11 @@ public class ItemBuilder {
      * @return ItemBuilder
      */
     public ItemBuilder setNBT(Plugin plugin, String key, int value) {
-        final ItemMeta meta = item.getItemMeta();
+        final var meta = item.getItemMeta();
         if (meta == null)
             return this;
 
-        final PersistentDataContainer container = meta.getPersistentDataContainer();
+        final var container = meta.getPersistentDataContainer();
         container.set(new NamespacedKey(plugin, key), PersistentDataType.INTEGER, value);
         item.setItemMeta(meta);
         return this;
@@ -224,11 +225,11 @@ public class ItemBuilder {
      * @return ItemBuilder
      */
     public ItemBuilder setNBT(Plugin plugin, String key, double value) {
-        final ItemMeta meta = item.getItemMeta();
+        final var meta = item.getItemMeta();
         if (meta == null)
             return this;
 
-        final PersistentDataContainer container = meta.getPersistentDataContainer();
+        final var container = meta.getPersistentDataContainer();
         container.set(new NamespacedKey(plugin, key), PersistentDataType.DOUBLE, value);
         item.setItemMeta(meta);
         return this;
@@ -241,7 +242,7 @@ public class ItemBuilder {
         if (texture == null)
             return this;
 
-        final SkullMeta skullMeta = (SkullMeta) item.getItemMeta();
+        final var skullMeta = (SkullMeta) item.getItemMeta();
         if (skullMeta == null)
             return this;
 
@@ -249,7 +250,7 @@ public class ItemBuilder {
         try {
             field = skullMeta.getClass().getDeclaredField("profile");
             field.setAccessible(true);
-            final GameProfile profile = new GameProfile(UUID.randomUUID(), null);
+            final var profile = new GameProfile(UUID.randomUUID(), null);
             profile.getProperties().put("textures", new Property("textures", texture));
 
             field.set(skullMeta, profile);
@@ -268,7 +269,7 @@ public class ItemBuilder {
         if (owner == null)
             return this;
 
-        final SkullMeta skullMeta = (SkullMeta) item.getItemMeta();
+        final var skullMeta = (SkullMeta) item.getItemMeta();
         if (skullMeta == null)
             return this;
 
@@ -278,7 +279,7 @@ public class ItemBuilder {
     }
 
     public ItemBuilder setModel(int model) {
-        ItemMeta meta = this.item.getItemMeta();
+        final var meta = this.item.getItemMeta();
         if (meta == null)
             return this;
 

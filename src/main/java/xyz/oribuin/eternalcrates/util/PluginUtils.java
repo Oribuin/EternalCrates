@@ -4,23 +4,20 @@ import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
 import dev.rosewood.rosegarden.config.CommentedFileConfiguration;
 import dev.rosewood.rosegarden.utils.HexUtils;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
-import org.apache.commons.lang.WordUtils;
+import org.apache.commons.lang3.text.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import xyz.oribuin.eternalcrates.hook.CustomItemPlugin;
 import xyz.oribuin.eternalcrates.hook.PAPI;
-import xyz.oribuin.eternalcrates.nms.NMSAdapter;
-import xyz.oribuin.eternalcrates.nms.NMSHandler;
-import xyz.oribuin.eternalcrates.util.ItemBuilder;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -59,7 +56,7 @@ public final class PluginUtils {
      * @return The block location
      */
     public static Location getBlockLoc(Location loc) {
-        final Location location = loc.clone();
+        final var location = loc.clone();
         return new Location(location.getWorld(), location.getBlockX(), loc.getBlockY(), loc.getBlockZ());
     }
 
@@ -152,13 +149,13 @@ public final class PluginUtils {
     }
 
     /**
-     * Format a material name through this long method
+     * Format an enum name to be more readable.
      *
-     * @param material The material
-     * @return The material name.
+     * @param enumName The enum name
+     * @return The formatted name
      */
-    public static String format(Material material) {
-        return WordUtils.capitalizeFully(material.name().toLowerCase().replace("_", " "));
+    public static String formatEnum(String enumName) {
+        return WordUtils.capitalizeFully(enumName.toLowerCase().replace("_", " "));
     }
 
     /**
@@ -171,36 +168,32 @@ public final class PluginUtils {
      * @return The itemstack
      */
     public static ItemStack getItemStack(CommentedConfigurationSection config, String path, Player player, StringPlaceholders placeholders) {
+        var pluginItem = config.getString(path + ".plugin");
 
-        ItemStack baseItem = new ItemStack(Material.STONE);
-        final String plugin = get(config, path + ".plugin", null);
-
-        if (plugin != null) {
-            baseItem = CustomItemPlugin.parse(plugin);
-        } else {
-            Material material = Material.getMaterial(get(config, path + ".material", "STONE"));
-            if (material != null) {
-                baseItem = new ItemStack(material);
-            }
+        if (pluginItem != null) {
+            return CustomItemPlugin.parse(pluginItem);
         }
 
-        if (baseItem == null) {
-            return new ItemStack(Material.BARRIER);
+        var material = Material.getMaterial(get(config, path + ".material", "STONE"));
+        if (material == null) {
+            return new ItemStack(Material.STONE);
         }
 
         // Format the item lore
-        List<String> lore = get(config, path + ".lore", List.of());
-        lore = lore.stream().map(s -> format(player, s, placeholders)).collect(Collectors.toList());
+        var lore = new ArrayList<String>(get(config, path + ".lore", new ArrayList<>()))
+                .stream()
+                .map(s -> format(player, s, placeholders))
+                .collect(Collectors.toList());
 
         // Get item flags
-        ItemFlag[] flags = get(config, path + ".flags", new ArrayList<String>())
+        var flags = get(config, path + ".flags", new ArrayList<String>())
                 .stream()
                 .map(String::toUpperCase)
                 .map(ItemFlag::valueOf)
                 .toArray(ItemFlag[]::new);
 
         // Build the item stack
-        ItemBuilder builder = new ItemBuilder(baseItem)
+        var builder = new ItemBuilder(material)
                 .setName(format(player, get(config, path + ".name", null), placeholders))
                 .setLore(lore)
                 .setAmount(Math.max(get(config, path + ".amount", 1), 1))
@@ -211,58 +204,23 @@ public final class PluginUtils {
                 .setModel(get(config, path + ".model-data", -1));
 
         // Get item owner
-        String owner = get(config, path + ".owner", null);
+        var owner = get(config, path + ".owner", null);
         if (owner != null)
-            builder.setOwner(Bukkit.getOfflinePlayer(UUID.fromString(owner)));
+            builder.setOwner(Bukkit.getOfflinePlayer(UUID.fromString((String) owner)));
 
         // Get item enchantments
-        final CommentedConfigurationSection enchants = config.getConfigurationSection(path + ".enchants");
+        final var enchants = config.getConfigurationSection(path + ".enchants");
         if (enchants != null) {
             enchants.getKeys(false).forEach(key -> {
-                Enchantment enchant = Arrays.stream(Enchantment.values()).filter(e -> e.getKey().getKey().equalsIgnoreCase(key)).findFirst().orElse(null);
-
-                if (enchant == null)
+                var enchantment = Enchantment.getByKey(NamespacedKey.minecraft(key.toLowerCase()));
+                if (enchantment == null)
                     return;
 
-                builder.addEnchant(enchant, enchants.getInt(key));
+                builder.addEnchant(enchantment, enchants.getInt(key));
             });
         }
 
-        ItemStack item = builder.create();
-
-        // Get item nbt
-        final CommentedConfigurationSection nbt = config.getConfigurationSection(path + ".nbt");
-        if (nbt != null) {
-            NMSHandler handler = NMSAdapter.getHandler();
-
-            for (String s : nbt.getKeys(false)) {
-                Object obj = nbt.get(s);
-
-                // credit to HSGamer for reducing the eyesore of this
-                if (obj instanceof String str)
-                    item = handler.setString(item, s, str);
-
-                // you've coded for 3 years and can't do it any better?
-                if (obj instanceof Long l)
-                    item = handler.setLong(item, s, l);
-
-                // lord no
-                if (obj instanceof Integer i)
-                    item = handler.setInt(item, s, i);
-
-                // please make it stop
-                if (obj instanceof Boolean b)
-                    item = handler.setBoolean(item, s, b);
-
-                // goddamn
-                if (obj instanceof Double d)
-                    item = handler.setDouble(item, s, d);
-
-                // thank god its over
-            }
-        }
-
-        return item;
+        return builder.create();
     }
 
     /**
@@ -274,6 +232,10 @@ public final class PluginUtils {
      */
     public static ItemStack getItemStack(CommentedConfigurationSection config, String path) {
         return getItemStack(config, path, null, StringPlaceholders.empty());
+    }
+
+    public static ItemStack getItemStack(CommentedConfigurationSection config, String path, Player player) {
+        return getItemStack(config, path, player, StringPlaceholders.empty());
     }
 
     /**
@@ -296,7 +258,84 @@ public final class PluginUtils {
      * @return The formatted string
      */
     public static String format(Player player, String text, StringPlaceholders placeholders) {
+        if (text == null)
+            return null;
+
         return HexUtils.colorify(PAPI.apply(player, placeholders.apply(text)));
+    }
+
+    /**
+     * Create a 3d hollow cube from 2 org.bukkit.Location objects with distance between them
+     *
+     * @param corner1          The first corner of the cube
+     * @param corner2          The second corner of the cube
+     * @param particleDistance The distance between particles
+     * @return A list of blocks that make up the cube
+     */
+    public static List<Location> getCube(Location corner1, Location corner2, double particleDistance) {
+        List<Location> result = new ArrayList<>();
+        var world = corner1.getWorld();
+        var minX = Math.min(corner1.getX(), corner2.getX());
+        var minY = Math.min(corner1.getY(), corner2.getY());
+        var minZ = Math.min(corner1.getZ(), corner2.getZ());
+        var maxX = Math.max(corner1.getX(), corner2.getX());
+        var maxY = Math.max(corner1.getY(), corner2.getY());
+        var maxZ = Math.max(corner1.getZ(), corner2.getZ());
+        for (var x = minX; x <= maxX; x += particleDistance) {
+            for (var y = minY; y <= maxY; y += particleDistance) {
+                for (var z = minZ; z <= maxZ; z += particleDistance) {
+                    if (x == minX || x == maxX || y == minY || y == maxY || z == minZ || z == maxZ) {
+                        result.add(new Location(world, x, y, z));
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Parse a list of strings from 1-1 to a stringlist
+     *
+     * @param list The list to parse
+     * @return The parsed list
+     */
+    public static List<Integer> parseList(List<String> list) {
+        var newList = new ArrayList<Integer>();
+        for (var s : list) {
+            var split = s.split("-");
+            if (split.length != 2) {
+                continue;
+            }
+
+            newList.addAll(getNumberRange(Integer.parseInt(split[0]), Integer.parseInt(split[1])));
+        }
+
+        return newList;
+    }
+
+    /**
+     * Get a range of numbers as a list
+     *
+     * @param start The start of the range
+     * @param end   The end of the range
+     * @return A list of numbers
+     */
+    public static List<Integer> getNumberRange(int start, int end) {
+        if (start == end) {
+            return List.of(start);
+        }
+
+        final var list = new ArrayList<Integer>();
+        for (int i = start; i <= end; i++) {
+            list.add(i);
+        }
+
+        return list;
+    }
+
+    public static String getLocationsFormatted(List<Location> locations) {
+        return locations.stream().map(PluginUtils::formatLocation).collect(Collectors.joining(", "));
     }
 
 }

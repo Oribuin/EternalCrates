@@ -4,7 +4,6 @@ import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -31,7 +30,7 @@ public class ParticleData {
     }
 
     public void spawn(Player player, Location loc, int count, double offsetX, double offsetY, double offsetZ) {
-        final World world = loc.getWorld();
+        final var world = loc.getWorld();
         if (world == null)
             return;
 
@@ -84,51 +83,53 @@ public class ParticleData {
         return dustColor;
     }
 
-    public void setDustColor(Color dustColor) {
+    public ParticleData setDustColor(Color dustColor) {
         this.dustColor = dustColor;
+        return this;
     }
 
     public Color getTransitionColor() {
         return transitionColor;
     }
 
-    public void setTransitionColor(Color transitionColor) {
+    public ParticleData setTransitionColor(Color transitionColor) {
         this.transitionColor = transitionColor;
+        return this;
     }
 
     public int getNote() {
         return this.note;
     }
 
-    public void setNote(int note) {
+    public ParticleData setNote(int note) {
         this.note = note;
+        return this;
     }
 
     public Material getItemMaterial() {
         return itemMaterial;
     }
 
-    public void setItemMaterial(Material itemMaterial) {
+    public ParticleData setItemMaterial(Material itemMaterial) {
         this.itemMaterial = itemMaterial;
+        return this;
     }
 
     public Material getBlockMaterial() {
         return blockMaterial;
     }
 
-    public void setBlockMaterial(Material blockMaterial) {
+    public ParticleData setBlockMaterial(Material blockMaterial) {
         this.blockMaterial = blockMaterial;
+        return this;
     }
 
     public ParticleData clone() {
-        ParticleData data = null;
-
-        try {
-            data = (ParticleData) super.clone();
-        } catch (CloneNotSupportedException e) {
-            e.printStackTrace();
-        }
-
-        return data;
+        return new ParticleData(this.particle)
+                .setDustColor(this.dustColor)
+                .setTransitionColor(this.transitionColor)
+                .setNote(this.note)
+                .setItemMaterial(this.itemMaterial)
+                .setBlockMaterial(this.blockMaterial);
     }
 }

@@ -1,14 +1,20 @@
 package xyz.oribuin.eternalcrates.animation;
 
+import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitTask;
 import xyz.oribuin.eternalcrates.EternalCrates;
+import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.particle.ParticleData;
+import xyz.oribuin.eternalcrates.util.PluginUtils;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public abstract class ParticleAnimation extends Animation {
 
@@ -40,17 +46,42 @@ public abstract class ParticleAnimation extends Animation {
      * @param loc   The location of the particle
      * @param count the amount of particles being spawned
      */
-    public void play(Location loc, int count, Player player) {
-        final BukkitTask task = Bukkit.getScheduler().runTaskTimerAsynchronously(EternalCrates.getInstance(), () -> {
+    public void play(Location loc, int count, Player player, Crate crate) {
+        final var task = Bukkit.getScheduler().runTaskTimerAsynchronously(EternalCrates.getInstance(), () -> {
             this.updateTimer();
             this.particleLocations(loc.clone()).forEach(location -> particleData.spawn(player, location, count));
         }, 0, this.speed);
 
         Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), x -> {
             task.cancel();
-            this.getCrate().finish(player, loc);
+            crate.finish(player, loc);
         }, this.getLength());
+    }
 
+    @Override
+    public Map<String, Object> getRequiredValues() {
+        return new HashMap<>() {{
+            this.put("animation.particle", "REDSTONE");
+            this.put("animation.color", "#FFFFFF");
+            this.put("animation.transition", "#ff0000");
+            this.put("animation.note", 1);
+            this.put("animation.item", "STONE");
+            this.put("animation.block", "STONE");
+        }};
+    }
+
+    @Override
+    public void load(CommentedConfigurationSection config) {
+        var particle = Arrays.stream(Particle.values()).filter(x -> x.name().equalsIgnoreCase(config.getString("crate-settings.animation.particle")))
+                .findFirst()
+                .orElse(Particle.FLAME);
+
+        this.particleData = new ParticleData(particle)
+                .setDustColor(PluginUtils.fromHex(PluginUtils.get(config, "crate-settings.animation.color", "#FFFFFF")))
+                .setTransitionColor(PluginUtils.fromHex(PluginUtils.get(config, "crate-settings.animation.transition", "#ff0000")))
+                .setNote(PluginUtils.get(config, "crate-settings.animation.note", 1))
+                .setItemMaterial(Material.matchMaterial(PluginUtils.get(config, "crate-settings.animation.item", "STONE")))
+                .setBlockMaterial(Material.matchMaterial(PluginUtils.get(config, "crate-settings.animation.block", "STONE")));
     }
 
     public int getSpeed() {

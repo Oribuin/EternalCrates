@@ -1,46 +1,117 @@
 package xyz.oribuin.eternalcrates.manager;
 
 import dev.rosewood.rosegarden.RosePlugin;
-import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
 import dev.rosewood.rosegarden.config.CommentedFileConfiguration;
 import dev.rosewood.rosegarden.manager.Manager;
-import org.bukkit.Material;
-import org.bukkit.Particle;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.animation.Animation;
-import xyz.oribuin.eternalcrates.animation.CustomAnimation;
-import xyz.oribuin.eternalcrates.animation.FireworkAnimation;
-import xyz.oribuin.eternalcrates.animation.GuiAnimation;
-import xyz.oribuin.eternalcrates.animation.ParticleAnimation;
-import xyz.oribuin.eternalcrates.animation.defaults.CelebrationAnimation;
-import xyz.oribuin.eternalcrates.animation.defaults.ChickenAnimation;
+import xyz.oribuin.eternalcrates.animation.AnimationType;
 import xyz.oribuin.eternalcrates.animation.defaults.EmptyAnimation;
-import xyz.oribuin.eternalcrates.animation.defaults.FountainAnimation;
-import xyz.oribuin.eternalcrates.animation.defaults.MiniMeAnimation;
-import xyz.oribuin.eternalcrates.animation.defaults.PumpkinAnimation;
-import xyz.oribuin.eternalcrates.animation.defaults.QuadAnimation;
-import xyz.oribuin.eternalcrates.animation.defaults.RingsAnimation;
-import xyz.oribuin.eternalcrates.animation.defaults.RippleAnimation;
-import xyz.oribuin.eternalcrates.animation.defaults.SnowmanAnimation;
-import xyz.oribuin.eternalcrates.animation.defaults.SparkleAnimation;
-import xyz.oribuin.eternalcrates.animation.defaults.SwordAnimation;
+import xyz.oribuin.eternalcrates.animation.defaults.custom.ChickenAnimation;
+import xyz.oribuin.eternalcrates.animation.defaults.custom.FountainAnimation;
+import xyz.oribuin.eternalcrates.animation.defaults.custom.MiniMeAnimation;
+import xyz.oribuin.eternalcrates.animation.defaults.custom.SwordAnimation;
+import xyz.oribuin.eternalcrates.animation.defaults.firework.CelebrationAnimation;
+import xyz.oribuin.eternalcrates.animation.defaults.firework.SparkleAnimation;
+import xyz.oribuin.eternalcrates.animation.defaults.particle.QuadAnimation;
+import xyz.oribuin.eternalcrates.animation.defaults.particle.RingsAnimation;
+import xyz.oribuin.eternalcrates.animation.defaults.particle.RippleAnimation;
+import xyz.oribuin.eternalcrates.animation.defaults.seasonal.BunnyAnimation;
+import xyz.oribuin.eternalcrates.animation.defaults.seasonal.PumpkinAnimation;
+import xyz.oribuin.eternalcrates.animation.defaults.seasonal.SnowmanAnimation;
 import xyz.oribuin.eternalcrates.crate.Crate;
-import xyz.oribuin.eternalcrates.particle.ParticleData;
-import xyz.oribuin.eternalcrates.util.PluginUtils;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class AnimationManager extends Manager {
 
-    private final Map<String, Class<? extends Animation>> animationClasses = new HashMap<>();
+    private final Map<String, Animation> cachedAnimations = new HashMap<>();
 
     public AnimationManager(RosePlugin plugin) {
         super(plugin);
+    }
+
+
+    @Override
+    public void reload() {
+        this.rosePlugin.getLogger().info("Loading all the animations for the plugin.");
+
+        // Add the default animations
+        // Particle Animations
+        this.cachedAnimations.put("rings", new RingsAnimation());
+        this.cachedAnimations.put("ripple", new RippleAnimation());
+        this.cachedAnimations.put("quad", new QuadAnimation());
+
+        // Firework Particles
+        this.cachedAnimations.put("sparkle", new SparkleAnimation()); // we may need a better name for this.
+        this.cachedAnimations.put("celebration", new CelebrationAnimation());
+
+        // Custom
+        this.cachedAnimations.put("chicken", new ChickenAnimation());
+        this.cachedAnimations.put("fountain", new FountainAnimation());
+        this.cachedAnimations.put("mini-me", new MiniMeAnimation());
+        this.cachedAnimations.put("swords", new SwordAnimation());
+
+        // Seasonal
+        this.cachedAnimations.put("snowman", new SnowmanAnimation());
+        this.cachedAnimations.put("pumpkin", new PumpkinAnimation());
+        this.cachedAnimations.put("bunny", new BunnyAnimation());
+
+        // Other
+        this.cachedAnimations.put("none", new EmptyAnimation());
+
+        this.rosePlugin.getLogger().info("Loaded " + this.cachedAnimations.size() + " EternalCrates animations .");
+        this.rosePlugin.getManager(CrateManager.class).loadCrates();
+    }
+
+    /**
+     * Get an animation from the name.
+     *
+     * @param name The name of the animation
+     * @return An optional animation.
+     */
+    public @Nullable Animation getAnimation(String name) {
+        return this.cachedAnimations.get(name.toLowerCase());
+    }
+
+    /**
+     * Get an animation from the config;
+     *
+     * @param config The configuration file
+     * @return The Optional Animation Type.
+     */
+    public @Nullable Animation getAnimation(final CommentedFileConfiguration config) {
+
+        // get the base animation.
+        final String animationName = config.getString("crate-settings.animation.name");
+        if (animationName == null)
+            return null;
+
+        Animation animation = this.getAnimation(animationName.toLowerCase());
+
+        if (animation == null) {
+            this.rosePlugin.getLogger().warning("The animation " + animationName + " does not exist. Please check the config.");
+            return null;
+        }
+
+        // Load the animation's config values
+        animation.load(config);
+        return animation;
+    }
+
+    /**
+     * Get all animations from their type.
+     *
+     * @param type The type of animation.
+     * @return A list of animations.
+     */
+    public List<Animation> getAnimationsFromType(AnimationType type) {
+        return this.cachedAnimations.values().stream().filter(x -> x.getType() == type).collect(Collectors.toList());
     }
 
     /**
@@ -48,10 +119,10 @@ public class AnimationManager extends Manager {
      *
      * @param animation The animation being registered.
      */
-    public static void register(Class<? extends Animation> animation) {
+    public static void register(Animation animation) {
         final EternalCrates plugin = EternalCrates.getInstance();
         plugin.getLogger().info("Registered Crate Animation: " + animation.getName());
-        plugin.getManager(AnimationManager.class).animationClasses.put(animation.getName(), animation);
+        plugin.getManager(AnimationManager.class).cachedAnimations.put(animation.getName().toLowerCase(), animation);
 
         final CrateManager crateManager = plugin.getManager(CrateManager.class);
 
@@ -66,135 +137,13 @@ public class AnimationManager extends Manager {
         });
     }
 
-    @Override
-    public void reload() {
-        this.rosePlugin.getLogger().info("Loading all the animations for the plugin.");
-
-        // Add the default animations
-        // GUI Animations
-//        this.animationClasses.put("csgo", CsgoAnimation.class);
-//        this.animationClasses.put("wheel", WheelAnimation.class);
-        // Particle Animations
-        this.animationClasses.put("rings", RingsAnimation.class);
-        this.animationClasses.put("ripple", RippleAnimation.class);
-        this.animationClasses.put("quad", QuadAnimation.class);
-        // Firework Particles
-        this.animationClasses.put("sparkle", SparkleAnimation.class); // we may need a better name for this.
-        this.animationClasses.put("celebration", CelebrationAnimation.class);
-        // Custom
-        this.animationClasses.put("chicken", ChickenAnimation.class);
-        this.animationClasses.put("fountain", FountainAnimation.class);
-        this.animationClasses.put("mini-me", MiniMeAnimation.class);
-        this.animationClasses.put("swords", SwordAnimation.class);
-        // Seasonal
-        this.animationClasses.put("snowman", SnowmanAnimation.class);
-        this.animationClasses.put("pumpkin", PumpkinAnimation.class);
-        // Hologram
-        // TODO
-        // Other
-        this.animationClasses.put("none", EmptyAnimation.class);
-
-        this.rosePlugin.getManager(CrateManager.class).loadCrates();
-    }
-
-    /**
-     * Get an animation from the name.
-     *
-     * @param name The name of the animation
-     * @return An optional animation.
-     */
-    public Optional<Class<? extends Animation>> getAnimation(String name) {
-        return this.animationClasses.get(name) == null ? Optional.empty() : Optional.of(this.animationClasses.get(name));
-    }
-
-    /**
-     * Get an animation from the config;
-     *
-     * @param config The configuration file
-     * @return The Optional Animation Type.
-     */
-    public Optional<? extends Animation> getAnimationFromConfig(final CommentedFileConfiguration config) {
-
-        // get the base animation.
-        Optional<Class<? extends Animation>> animationClass = this.getAnimation(config.getString("animation.name"));
-        if (animationClass.isEmpty())
-            return Optional.empty();
-
-        Optional<? extends Animation> animation;
-
-        try {
-            animation = Optional.of(animationClass.get().getDeclaredConstructor().newInstance());
-        } catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException e) {
-            return Optional.empty();
-        }
-
-        // Load the animation's config values
-        animation.get().load();
-
-        switch (animation.get().getAnimationType()) {
-            case PARTICLES -> animation = this.getParticleAni(config, animation.get());
-            case GUI -> animation = this.getGuiAnimation(config, animation.get());
-            case FIREWORKS -> animation = Optional.of((FireworkAnimation) animation.get());
-            case CUSTOM -> animation = Optional.of((CustomAnimation) animation.get());
-            case NONE -> animation = Optional.of((EmptyAnimation) animation.get());
-        }
-
-        if (animation.isEmpty()) {
-            return Optional.empty();
-        }
-
-        return animation;
-    }
-
-    /**
-     * Get a particle animation from
-     *
-     * @param config    The configuration file
-     * @param animation The animation
-     * @return The particle animation.
-     */
-    private Optional<ParticleAnimation> getParticleAni(final CommentedFileConfiguration config, final Animation animation) {
-        if (!(animation instanceof ParticleAnimation particleAni))
-            return Optional.empty();
-
-        Particle particle = Arrays.stream(Particle.values()).filter(x -> x.name().equalsIgnoreCase(config.getString("animation.particle")))
-                .findFirst()
-                .orElse(Particle.FLAME);
-
-        final ParticleData particleData = new ParticleData(particle);
-        particleData.setDustColor(PluginUtils.fromHex(PluginUtils.get(config, "animation.color", "#FFFFFF")));
-        particleData.setTransitionColor(PluginUtils.fromHex(PluginUtils.get(config, "animation.transition", "#ff0000")));
-        particleData.setNote(PluginUtils.get(config, "animation.note", 1));
-        particleData.setItemMaterial(Material.matchMaterial(PluginUtils.get(config, "animation.item", "STONE")));
-        particleData.setBlockMaterial(Material.matchMaterial(PluginUtils.get(config, "animation.block", "STONE")));
-
-        particleAni.setParticleData(particleData);
-        return Optional.of(particleAni);
-    }
-
-    /**
-     * Get a gui animation values from the config.
-     *
-     * @param config    The file configuration
-     * @param animation The base animation
-     * @return The GUI Animation.
-     */
-    public Optional<GuiAnimation> getGuiAnimation(CommentedConfigurationSection config, Animation animation) {
-        if (!(animation instanceof GuiAnimation gui))
-            return Optional.empty();
-
-        // TODO load gui animation values
-
-        return Optional.of(gui);
-    }
-
-
-    public Map<String, Class<? extends Animation>> getAnimationClasses() {
-        return animationClasses;
+    public Map<String, Animation> getCachedAnimations() {
+        return cachedAnimations;
     }
 
     @Override
     public void disable() {
-        // Unused
+        this.cachedAnimations.clear();
     }
+
 }

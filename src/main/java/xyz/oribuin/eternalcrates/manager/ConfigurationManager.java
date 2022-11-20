@@ -9,7 +9,8 @@ import xyz.oribuin.eternalcrates.EternalCrates;
 public class ConfigurationManager extends AbstractConfigurationManager {
 
     public enum Setting implements RoseSetting {
-        PICKUP_IN_ANIMATION("crate-settings.item-pickup-in-animation", true, "Should players be able to pick up items mid animation?");
+        PICKUP_IN_ANIMATION("crate-settings.item-pickup-in-animation", true, "Should players be able to pick up items mid animation?"),
+        NO_KEY_VELOCITY("crate-settings.no-key-velocity", true, "Should the player be sent flying when failing to open a crate?");
 
         private final String key;
         private final Object defaultValue;

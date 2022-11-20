@@ -28,13 +28,14 @@ public class Crate {
 
     private final String id;
     private String name;
-    private Map<Integer, Reward> rewardMap;
+    private Map<String, Reward> rewardMap;
     private Animation animation;
     private List<Location> locations;
     private ItemStack key;
     private int maxRewards;
     private int minRewards;
     private int minGuiSlots;
+    private int multiplier;
     private CommentedFileConfiguration config;
     private List<Action> openActions;
     private CrateType type;
@@ -45,6 +46,7 @@ public class Crate {
         this.setRewardMap(new HashMap<>());
         this.setAnimation(null);
         this.locations = new ArrayList<>();
+        this.multiplier = 1;
         this.maxRewards = 1;
         this.minRewards = 1;
         this.minGuiSlots = this.maxRewards;
@@ -63,12 +65,12 @@ public class Crate {
         if (this.getAnimation().isBlockRequired(location))
             return false;
 
-        final CrateOpenEvent event = new CrateOpenEvent(this, player);
+        final var event = new CrateOpenEvent(this, player);
         Bukkit.getPluginManager().callEvent(event);
         if (event.isCancelled())
             return false;
 
-        final StringPlaceholders plc = StringPlaceholders.builder()
+        final var plc = StringPlaceholders.builder()
                 .addPlaceholder("player", player.getName())
                 .addPlaceholder("add", this.getName())
                 .build();
@@ -78,15 +80,15 @@ public class Crate {
         EternalCrates.getInstance().getManager(CrateManager.class).getActiveUsers().add(player.getUniqueId());
 
         // The crate location or the player location.
-        final Location spawnLocation = location != null ? PluginUtils.centerLocation(location) : player.getLocation();
+        final var spawnLocation = location != null ? PluginUtils.centerLocation(location) : player.getLocation();
 
         Bukkit.getPluginManager().callEvent(new AnimationStartEvent(this, this.getAnimation()));
 
-        switch (animation.getAnimationType()) {
+        switch (animation.getType()) {
 //            case GUI -> new SpinningGUI(plugin, this, player);
-            case PARTICLES -> ((ParticleAnimation) animation).play(spawnLocation, 1, player);
-            case FIREWORKS -> ((FireworkAnimation) animation).play(spawnLocation, player);
-            case CUSTOM, SEASONAL -> ((CustomAnimation) animation).spawn(spawnLocation, player);
+            case PARTICLES -> ((ParticleAnimation) animation).play(spawnLocation, 1, player, this);
+            case FIREWORKS -> ((FireworkAnimation) animation).play(spawnLocation, player, this);
+            case CUSTOM, SEASONAL -> ((CustomAnimation) animation).spawn(spawnLocation, player, this);
             case NONE -> this.finish(player, location);
         }
 
@@ -124,7 +126,10 @@ public class Crate {
      */
     public List<Reward> createRewards() {
         final List<Reward> rewards = new ArrayList<>();
-        for (int i = this.minRewards; i <= this.maxRewards; i++)
+
+        // Select a random amount of rewards from the min and max reward count and times by the multiplier.
+        final var rewardCount = ThreadLocalRandom.current().nextInt(this.getMinRewards(), this.getMaxRewards() + 1) * this.getMultiplier();
+        for (var i = 0; i <= rewardCount; i++)
             rewards.add(this.selectReward());
 
         return rewards;
@@ -136,10 +141,10 @@ public class Crate {
         // https://stackoverflow.com/a/28711505
         Map<Reward, Double> chanceMap = new HashMap<>();
         this.rewardMap.forEach((integer, reward) -> chanceMap.put(reward, reward.getChance()));
-        double sumOfPercentages = chanceMap.values().stream().reduce(0.0, Double::sum);
-        double current = 0;
-        double randomNumber = ThreadLocalRandom.current().nextDouble(sumOfPercentages);
-        for (Map.Entry<Reward, Double> entry : chanceMap.entrySet()) {
+        var sumOfPercentages = chanceMap.values().stream().reduce(0.0, Double::sum);
+        var current = 0;
+        var randomNumber = ThreadLocalRandom.current().nextDouble(sumOfPercentages);
+        for (var entry : chanceMap.entrySet()) {
             current += entry.getValue();
             if (randomNumber > current)
                 continue;
@@ -186,6 +191,14 @@ public class Crate {
         this.key = key;
     }
 
+    public int getMultiplier() {
+        return multiplier;
+    }
+
+    public void setMultiplier(int multiplier) {
+        this.multiplier = multiplier;
+    }
+
     public int getMaxRewards() {
         return maxRewards;
     }
@@ -218,11 +231,11 @@ public class Crate {
         this.minGuiSlots = minGuiSlots;
     }
 
-    public Map<Integer, Reward> getRewardMap() {
+    public Map<String, Reward> getRewardMap() {
         return rewardMap;
     }
 
-    public void setRewardMap(Map<Integer, Reward> rewardMap) {
+    public void setRewardMap(Map<String, Reward> rewardMap) {
         this.rewardMap = rewardMap;
     }
 

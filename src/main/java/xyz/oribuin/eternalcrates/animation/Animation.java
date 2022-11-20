@@ -1,9 +1,9 @@
 package xyz.oribuin.eternalcrates.animation;
 
+import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.crate.Crate;
 
 import java.util.ArrayList;
@@ -13,21 +13,19 @@ import java.util.Map;
 public abstract class Animation {
 
     private final String name;
-    private final AnimationType animationType;
+    private final AnimationType type;
     private final String author;
-    private Crate crate;
     private List<Material> requiredBlocks;
     private boolean canBeVirtual;
     private boolean active;
 
-    public Animation(final String name, final AnimationType animationType, String author, boolean canBeVirtual) {
+    public Animation(final String name, final AnimationType type, String author, boolean canBeVirtual) {
         this.name = name;
-        this.animationType = animationType;
+        this.type = type;
         this.author = author;
         this.requiredBlocks = new ArrayList<>();
         this.canBeVirtual = canBeVirtual;
         this.active = false;
-        this.crate = null;
     }
 
     /**
@@ -37,20 +35,10 @@ public abstract class Animation {
 
     /**
      * The function called after animation default values are set.
+     *
+     * @param config The configuration of the animation
      */
-    public abstract void load();
-
-    @SuppressWarnings("unchecked")
-    public final <T> T get(String path, T def) {
-        T value = (T) crate.getConfig().get(path);
-
-        if (value == null) {
-            EternalCrates.getInstance().getLogger().warning("Missing option in crate config. (Path: " + path + ")");
-            return def;
-        }
-
-        return value;
-    }
+    public abstract void load(CommentedConfigurationSection config);
 
     /**
      * Check if a crate animation can be ran by checking the required blocks
@@ -76,8 +64,8 @@ public abstract class Animation {
         // Empty Function
     }
 
-    public AnimationType getAnimationType() {
-        return animationType;
+    public AnimationType getType() {
+        return type;
     }
 
     public String getName() {
@@ -112,11 +100,4 @@ public abstract class Animation {
         this.requiredBlocks = requiredBlocks;
     }
 
-    public Crate getCrate() {
-        return crate;
-    }
-
-    public void setCrate(Crate crate) {
-        this.crate = crate;
-    }
 }

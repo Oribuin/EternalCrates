@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -46,7 +45,7 @@ public final class PluginAction {
      */
     public static void registerAction(String name, Supplier<Action> actionSupplier) {
         registerAction(name, s -> {
-            Action action = actionSupplier.get();
+            var action = actionSupplier.get();
             action.setMessage(s);
             return action;
         });
@@ -60,19 +59,19 @@ public final class PluginAction {
      */
     public static Optional<Action> parse(String text) {
         // Check if the text matches the pattern ("[<action>] <message>") and get the action and message
-        final Matcher matcher = ACTION_PATTERN.matcher(text);
+        final var matcher = ACTION_PATTERN.matcher(text);
         if (!matcher.find()) {
             return Optional.empty();
         }
-        final String actionName = matcher.group(1).toLowerCase(Locale.ROOT); // toLowerCase to avoid case-sensitive issues
-        final String actionText = matcher.group(2);
+        final var actionName = matcher.group(1).toLowerCase(Locale.ROOT); // toLowerCase to avoid case-sensitive issues
+        final var actionText = matcher.group(2);
 
-        Optional<Function<String, Action>> optional = Optional.ofNullable(ACTIONS.get(actionName));
+        var optional = Optional.ofNullable(ACTIONS.get(actionName));
 
         if (optional.isEmpty())
             return Optional.empty();
 
-        Action action = optional.get().apply(actionText);
+        var action = optional.get().apply(actionText);
         return Optional.of(action);
     }
 

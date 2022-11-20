@@ -2,16 +2,15 @@ package xyz.oribuin.eternalcrates.manager;
 
 import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.manager.Manager;
-import xyz.oribuin.eternalcrates.gui.ClaimGUI;
+import xyz.oribuin.eternalcrates.gui.PluginMenu;
 import xyz.oribuin.eternalcrates.gui.PreviewGUI;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 public class MenuManager extends Manager {
 
-    private final Map<String, OriGUI> registeredGUIs = new HashMap<>();
+    private final Map<Class<? extends PluginMenu>, PluginMenu> registeredGUIs = new HashMap<>();
 
     public MenuManager(RosePlugin rosePlugin) {
         super(rosePlugin);
@@ -19,20 +18,21 @@ public class MenuManager extends Manager {
 
     @Override
     public void reload() {
-        this.registeredGUIs.put("preview-gui", new PreviewGUI(this.rosePlugin));
-        this.registeredGUIs.put("claim-gui", new ClaimGUI(this.rosePlugin));
+        this.registeredGUIs.put(PreviewGUI.class, new PreviewGUI(this.rosePlugin));
 
         this.registeredGUIs.forEach((name, gui) -> gui.load());
     }
 
     /**
-     * Get a gui by name
+     * Get a registered GUI
      *
-     * @param name The name of the gui
-     * @return The gui
+     * @param clazz The class of the GUI
+     * @param <T>   The type of the GUI
+     * @return The GUI
      */
-    public Optional<OriGUI> getGUI(String name) {
-        return Optional.ofNullable(this.registeredGUIs.get(name));
+    @SuppressWarnings("unchecked")
+    public <T extends PluginMenu> T getGUI(Class<T> clazz) {
+        return (T) this.registeredGUIs.get(clazz);
     }
 
     @Override

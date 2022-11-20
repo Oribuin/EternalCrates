@@ -4,60 +4,69 @@ package xyz.oribuin.eternalcrates.gui;
 import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
+import dev.triumphteam.gui.guis.GuiItem;
+import dev.triumphteam.gui.guis.PaginatedGui;
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import xyz.oribuin.eternalcrates.action.PluginAction;
 import xyz.oribuin.eternalcrates.crate.Crate;
-import xyz.oribuin.eternalcrates.util.PluginUtils;
-import xyz.oribuin.gui.PaginatedGui;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-public class PreviewGUI extends OriGUI {
+public class PreviewGUI extends PluginMenu {
 
     public PreviewGUI(RosePlugin rosePlugin) {
         super(rosePlugin);
     }
 
-    @Override
+    /**
+     * Open the preview GUI for a crate
+     *
+     * @param player The player to open the GUI for
+     * @param crate  The crate to open the GUI for
+     */
     public void open(Player player, Crate crate) {
-        // Create the GUI
-        final PaginatedGui gui = this.createPagedGUI(player, this.getPageSlots());
-        final List<Integer> borderSlots = this.parseList(this.get("gui-settings.border-slots", List.of("0-8", "36-44")));
+        PaginatedGui gui = this.createPagedGUI(player);
 
-        ItemStack item = PluginUtils.getItemStack(this.config, "border-item", player, StringPlaceholders.empty());
-        for (int slot : borderSlots) {
-            this.put(gui, slot, item);
-        }
+        final StringPlaceholders cratePlaceholders = StringPlaceholders.builder("crate_id", crate.getId())
+                .addPlaceholder("crate", crate.getName())
+                .addPlaceholder("crate_rewards", String.valueOf(crate.getRewardMap().size()))
+                .addPlaceholder("crate_type", StringUtils.capitalize(crate.getType().name().toLowerCase()))
+                .addPlaceholder("crate_min", crate.getMinRewards())
+                .addPlaceholder("crate_max", crate.getMaxRewards())
+                .addPlaceholder("crate_multiplier", crate.getMultiplier())
+                .build();
 
-        this.put(gui, "next-page", player, event -> gui.next(player));
-        this.put(gui, "previous-page", player, event -> gui.previous(player));
-
-        final CommentedConfigurationSection section = this.config.getConfigurationSection("extra-items");
-        if (section != null) {
-            for (String key : section.getKeys(false)) {
-                this.put(gui, "extra-items." + key, player, event -> this.get("extra-items." + key + ".actions", new ArrayList<String>())
-                        .stream()
-                        .map(PluginAction::parse)
-                        .filter(Optional::isPresent)
-                        .forEach(action -> action.get().execute(player, StringPlaceholders.empty())));
+        final CommentedConfigurationSection extraItems = this.config.getConfigurationSection("extra-items");
+        if (extraItems != null) {
+            for (String key : extraItems.getKeys(false)) {
+                MenuItem.create(this.config)
+                        .path("extra-items." + key)
+                        .placeholders(cratePlaceholders)
+                        .player(player)
+                        .place(gui);
             }
         }
 
-        crate.getRewardMap().forEach((key, value) -> gui.addPageItem(value.getPreviewItem(), event -> {
-            // Do nothing
-        }));
+        MenuItem.create(this.config)
+                .path("next-page")
+                .player(player)
+                .placeholders(cratePlaceholders)
+                .action(event -> gui.next())
+                .conditional(gui.getNextPageNum() > gui.getCurrentPageNum())
+                .place(gui);
 
+        MenuItem.create(this.config)
+                .path("previous-page")
+                .player(player)
+                .placeholders(cratePlaceholders)
+                .action(event -> gui.previous())
+                .conditional(gui.getPrevPageNum() < gui.getCurrentPageNum())
+                .place(gui);
+
+        crate.getRewardMap().forEach((slot, reward) -> gui.addItem(new GuiItem(reward.getPreviewItem())));
         gui.open(player);
-    }
-
-    @Override
-    public int rows() {
-        return this.get("gui-settings.rows", 5);
     }
 
     @Override
@@ -66,22 +75,34 @@ public class PreviewGUI extends OriGUI {
             this.put("#0", "GUI Settings");
             this.put("gui-settings.title", "Crate Preview");
             this.put("gui-settings.rows", 5);
-            this.put("gui-settings.page-slots", List.of("9-35"));
-            this.put("gui-settings.border-slots", List.of("0-8", "36-44"));
 
-            this.put("#1", "Border Item");
-            this.put("border-item.material", "BLACK_STAINED_GLASS_PANE");
-            this.put("border-item.name", " ");
-
-            this.put("#2", "Next Page");
-            this.put("next-page.material", "ARROW");
+            this.put("#2", "Page Settings");
+            this.put("next-page.material", "PAPER");
             this.put("next-page.name", "#00B4DB&lNext Page");
-            this.put("next-page.lore", List.of(" &f| &7Click to go to", " &f| &7the next page"));
+            this.put("next-page.slot", 5);
 
-            this.put("#3", "Previous Page");
-            this.put("previous-page.material", "ARROW");
+            this.put("previous-page.material", "PAPER");
             this.put("previous-page.name", "#00B4DB&lPrevious Page");
-            this.put("previous-page.lore", List.of(" &f| &7Click to go to", " &f| &7the previous page"));
+            this.put("previous-page.slot", 3);
+
+            this.put("#3", "Extra Items");
+            this.put("extra-items.border-item.material", "BLACK_STAINED_GLASS_PANE");
+            this.put("extra-items.border-item.name", " ");
+            this.put("extra-items.border-item.slots", List.of("0-8", "36-44"));
+
+            this.put("extra-items.crate-info.material", "OAK_SIGN");
+            this.put("extra-items.crate-info.name", "#00B4DB&lCrate Info");
+            this.put("extra-items.crate-info.lore", List.of(
+                    " &f| #00B4DB&lName: &7%crate%",
+                    " &f| #00B4DB&lType: &7%crate_type%",
+                    " &f| #00B4DB&lRewards: &7%crate_rewards%",
+                    " &f| #00B4DB&lMin Rewards: &7%crate_min%",
+                    " &f| #00B4DB&lMax Rewards: &7%crate_max%",
+                    " &f| #00B4DB&lMultiplier: &7%crate_multiplier%"
+            ));
+            this.put("extra-items.crate-info.slot", 4);
+
+
         }};
     }
 
@@ -90,39 +111,4 @@ public class PreviewGUI extends OriGUI {
         return "preview-gui";
     }
 
-    @Override
-    public List<Integer> getPageSlots() {
-        return this.parseList(this.get("gui-settings.page-slots", List.of("9-35")));
-    }
-
-    // Parse a List of X-X into a List of Integers
-    public List<Integer> parseList(List<String> list) {
-        List<Integer> newList = new ArrayList<>();
-        for (String s : list) {
-            String[] split = s.split("-");
-            if (split.length != 2) {
-                continue;
-            }
-
-            newList.addAll(this.getNumberRange(Integer.parseInt(split[0]), Integer.parseInt(split[1])));
-        }
-
-        return newList;
-    }
-
-    /**
-     * Get a range of numbers as a list
-     *
-     * @param start The start of the range
-     * @param end   The end of the range
-     * @return A list of numbers
-     */
-    private List<Integer> getNumberRange(int start, int end) {
-        final List<Integer> list = new ArrayList<>();
-        for (int i = start; i <= end; i++) {
-            list.add(i);
-        }
-
-        return list;
-    }
 }

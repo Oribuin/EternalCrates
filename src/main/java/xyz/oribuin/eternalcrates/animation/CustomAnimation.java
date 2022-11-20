@@ -2,6 +2,8 @@ package xyz.oribuin.eternalcrates.animation;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import xyz.oribuin.eternalcrates.crate.Crate;
 
 public abstract class CustomAnimation extends Animation {
 
@@ -15,5 +17,5 @@ public abstract class CustomAnimation extends Animation {
      * @param location The location of the crate
      * @param player   The player who is opening the crate.
      */
-    public abstract void spawn(Location location, Player player);
+    public abstract void spawn(@NotNull Location location, @NotNull Player player, @NotNull Crate crate);
 }

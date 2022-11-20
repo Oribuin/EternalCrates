@@ -8,8 +8,6 @@ import org.jetbrains.annotations.NotNull;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.manager.DataManager;
 
-import java.util.Map;
-
 // oh yes
 public class PAPI extends PlaceholderExpansion {
 
@@ -31,11 +29,11 @@ public class PAPI extends PlaceholderExpansion {
     public String onRequest(OfflinePlayer player, @NotNull String params) {
 
         if (params.toLowerCase().startsWith("keys_")) {
-            String[] args = params.split("_");
+            var args = params.split("_");
             if (args.length < 2)
                 return "Unknown Crate";
 
-            final Map<String, Integer> keys = this.data.getUsersVirtualKeys(player.getUniqueId());
+            final var keys = this.data.getUser(player.getUniqueId()).getKeys();
             return String.valueOf(keys.getOrDefault(args[1], 0));
         }
         return params;
