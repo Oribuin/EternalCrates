@@ -2,6 +2,7 @@ package xyz.oribuin.eternalcrates.animation.defaults.custom;
 
 import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -43,7 +44,7 @@ public class SwordsAnimation extends CustomAnimation {
             return;
 
         for (int i = 0; i <= 3; i++) {
-            var armorStand = location.getWorld().spawn(location.clone().subtract(0.0, 1.0, 0.0), ArmorStand.class, stand -> {
+            var armorStand = location.getWorld().spawn(location.clone().subtract(0.0, 0.5, 0.0), ArmorStand.class, stand -> {
                 stand.setVisible(false);
                 stand.setGravity(false);
                 stand.setSmall(true);
@@ -67,13 +68,19 @@ public class SwordsAnimation extends CustomAnimation {
 
         var animationTask = Bukkit.getScheduler().runTaskTimerAsynchronously(EternalCrates.getInstance(), () -> this.animate(location, armorStands), 0, 1);
         Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), () -> {
-
-            new ParticleData(Particle.EXPLOSION_LARGE)
-                    .spawn(player, location.clone().add(0.0, 1.0, 0.0), 3, 0.1, 0.1, 0.1);
-
             animationTask.cancel();
             armorStands.forEach(ArmorStand::remove);
             crate.finish(player, location);
+//            world.spigot().strikeLightningEffect(location, true); // mmm, lightning
+
+            ParticleData data = new ParticleData(Particle.DUST_COLOR_TRANSITION)
+                    .setDustColor(Color.RED)
+                    .setTransitionColor(Color.ORANGE)
+                    .cacheParticleData();
+
+            for (int i = 0; i < 15; i++) {
+                data.spawn(null, location, 2, 0.5, 0.5, 0.5);
+            }
         }, 5 * 20);
     }
 
@@ -84,7 +91,7 @@ public class SwordsAnimation extends CustomAnimation {
      * @param values   list of armor stands
      */
     public void animate(Location location, List<ArmorStand> values) {
-        var radius = 1.0; // Radius of circle
+        var radius = 1; // Radius of circle
 
         // make sure they're not just standing still
         this.step = (this.step + Math.PI * 2 / this.numSteps) % this.numSteps;
@@ -96,7 +103,7 @@ public class SwordsAnimation extends CustomAnimation {
             var x = location.getX() + radius * Math.cos(angle);
             var z = location.getZ() + radius * Math.sin(angle);
 
-            Location newLoc = new Location(location.getWorld(), x, location.getY() - 1, z);
+            Location newLoc = new Location(location.getWorld(), x, location.getY() - 0.5, z);
             newLoc.setDirection(location.toVector().subtract(newLoc.toVector()));
             armorStand.teleport(newLoc);
         }
