@@ -19,25 +19,16 @@ import xyz.oribuin.eternalcrates.util.ItemBuilder;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class MiniMeAnimation extends CustomAnimation {
 
     private long rotationSpeed;
+    private String texture;
 
     public MiniMeAnimation() {
         super("Mini-Me", "Oribuin", AnimationType.CUSTOM);
-
-        var requiredBlocks = List.of(
-                Material.BARREL,
-                Material.CHEST,
-                Material.TRAPPED_CHEST,
-                Material.ENDER_CHEST
-        );
-
-        this.setRequiredBlocks(requiredBlocks);
     }
 
     @Override
@@ -56,37 +47,39 @@ public class MiniMeAnimation extends CustomAnimation {
         entityLoc.setDirection(crateBlock.getLocation().getDirection().clone());
 
         lid.open();
+        String headText = this.texture;
+        if (headText == null || headText.equalsIgnoreCase("DEFAULT"))
+            headText = this.getBlockSkin(crateBlock.getType());
 
+        String finalHeadText = headText;
         var stand = world.spawn(entityLoc, ArmorStand.class, x -> {
             x.setGravity(false);
             x.setVisible(false);
             x.setInvulnerable(true);
             x.setSmall(true);
             final var equipment = x.getEquipment();
-            if (equipment != null) {
-                final var item = new ItemBuilder(Material.PLAYER_HEAD)
-                        .setTexture(this.getBlockSkin(crateBlock.getType()))
-                        .create();
+            final var item = new ItemBuilder(Material.PLAYER_HEAD)
+                    .setTexture(finalHeadText)
+                    .create();
 
-                equipment.setHelmet(item);
-                x.getPersistentDataContainer().set(EternalCrates.getEntityKey(), PersistentDataType.INTEGER, 1);
-                Arrays.stream(EquipmentSlot.values()).forEach(equipmentSlot -> {
-                    x.addEquipmentLock(equipmentSlot, ArmorStand.LockType.ADDING_OR_CHANGING);
-                    x.addEquipmentLock(equipmentSlot, ArmorStand.LockType.REMOVING_OR_CHANGING);
-                });
-            }
+            equipment.setHelmet(item);
+            x.getPersistentDataContainer().set(EternalCrates.getEntityKey(), PersistentDataType.INTEGER, 1);
+            Arrays.stream(EquipmentSlot.values()).forEach(equipmentSlot -> {
+                x.addEquipmentLock(equipmentSlot, ArmorStand.LockType.ADDING_OR_CHANGING);
+                x.addEquipmentLock(equipmentSlot, ArmorStand.LockType.REMOVING_OR_CHANGING);
+            });
         });
 
         final var atomic = new AtomicInteger(Math.round(stand.getLocation().clone().getYaw()));
         final var task = Bukkit.getScheduler().runTaskTimer(EternalCrates.getInstance(), () -> {
             final var loc = stand.getLocation();
-            if (loc.clone().getY() <= location.getY() + 1.0)
-                loc.add(0, 0.2, 0.0);
+            if (loc.clone().getY() <= location.getY() + 0.5)
+                loc.add(0, 0.075, 0.0);
 
             if (atomic.get() == 360f)
                 atomic.set(-1);
 
-            loc.setYaw(atomic.addAndGet(50));
+            loc.setYaw(atomic.addAndGet(25));
             stand.teleport(loc);
             world.spawnParticle(Particle.CRIT_MAGIC, loc.clone(), 5, 0.1, 0.5, 0.1, 0);
         }, 0, this.rotationSpeed);
@@ -123,11 +116,13 @@ public class MiniMeAnimation extends CustomAnimation {
     public Map<String, Object> getRequiredValues() {
         return new HashMap<>() {{
             this.put("rotation-speed", 3L);
+            this.put("texture", "DEFAULT");
         }};
     }
 
     @Override
     public void load(CommentedConfigurationSection config) {
         this.rotationSpeed = config.getLong("animation.rotation-speed");
+        this.texture = config.getString("animation.texture");
     }
 }
