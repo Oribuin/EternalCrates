@@ -78,7 +78,7 @@ public class SnowmanAnimation extends CustomAnimation {
 
     @Override
     public void load(CommentedConfigurationSection config) {
-        this.snowballCount = config.getInt("animation.snowball-count");
+        this.snowballCount = config.getInt("crate-settings.animation.snowball-count");
 
     }
 }

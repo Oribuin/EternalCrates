@@ -122,7 +122,7 @@ public class MiniMeAnimation extends CustomAnimation {
 
     @Override
     public void load(CommentedConfigurationSection config) {
-        this.rotationSpeed = config.getLong("animation.rotation-speed");
-        this.texture = config.getString("animation.texture");
+        this.rotationSpeed = config.getLong("crate-settings.animation.rotation-speed");
+        this.texture = config.getString("crate-settings.animation.texture");
     }
 }

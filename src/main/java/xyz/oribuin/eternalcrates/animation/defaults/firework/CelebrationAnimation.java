@@ -40,8 +40,8 @@ public class CelebrationAnimation extends FireworkAnimation {
 
     @Override
     public void load(CommentedConfigurationSection config) {
-        this.primaryColor = PluginUtils.fromHex(config.getString("animation.primary-color"));
-        this.secondaryColor = PluginUtils.fromHex(config.getString("animation.secondary-color"));
+        this.primaryColor = PluginUtils.fromHex(config.getString("crate-settings.animation.primary-color"));
+        this.secondaryColor = PluginUtils.fromHex(config.getString("crate-settings.animation.secondary-color"));
     }
 
     /**

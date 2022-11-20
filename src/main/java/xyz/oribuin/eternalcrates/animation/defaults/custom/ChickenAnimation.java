@@ -61,7 +61,7 @@ public class ChickenAnimation extends CustomAnimation {
 
     @Override
     public void load(CommentedConfigurationSection config) {
-        this.chickenCount = config.getInt("animation.chicken-count", 10);
+        this.chickenCount = config.getInt("crate-settings.animation.chicken-count", 10);
     }
 
 }

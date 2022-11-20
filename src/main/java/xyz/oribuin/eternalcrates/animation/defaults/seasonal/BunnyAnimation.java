@@ -69,8 +69,8 @@ public class BunnyAnimation extends CustomAnimation {
 
     @Override
     public void load(CommentedConfigurationSection config) {
-        this.bunnyCount = config.getInt("animation.bunny.count");
-        this.duration = config.getInt("animation.duration");
+        this.bunnyCount = config.getInt("crate-settings.animation.bunny.count");
+        this.duration = config.getInt("crate-settings.animation.duration");
     }
 
 

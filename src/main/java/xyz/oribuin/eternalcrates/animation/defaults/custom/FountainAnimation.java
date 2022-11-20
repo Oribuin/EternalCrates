@@ -74,6 +74,6 @@ public class FountainAnimation extends CustomAnimation {
 
     @Override
     public void load(CommentedConfigurationSection config) {
-        this.itemCount = config.getInt("animation.item-count", 10);
+        this.itemCount = config.getInt("crate-settings.animation.item-count", 10);
     }
 }

@@ -127,7 +127,7 @@ public class PumpkinAnimation extends CustomAnimation {
 
     @Override
     public void load(CommentedConfigurationSection config) {
-        this.pumpkinCount = config.getInt("animation.pumpkin-count");
-        this.smokeCount = config.getInt("animation.smoke-count");
+        this.pumpkinCount = config.getInt("crate-settings.animation.pumpkin-count");
+        this.smokeCount = config.getInt("crate-settings.animation.smoke-count");
     }
 }
