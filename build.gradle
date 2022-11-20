@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'xyz.oribuin.eternalcrates'
-version '1.0.5'
+version '1.0.5-pre1'
 
 java {
     toolchain {
