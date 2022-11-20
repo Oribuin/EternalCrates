@@ -38,15 +38,14 @@ public class MiniMeAnimation extends CustomAnimation {
             return;
 
         var crateBlock = location.getBlock();
-        if (!(crateBlock.getState() instanceof Lidded lid))
-            return;
-
         this.setActive(true);
 
         var entityLoc = location.clone().subtract(0.0, 0.5, 0.0);
         entityLoc.setDirection(crateBlock.getLocation().getDirection().clone());
 
-        lid.open();
+        if (crateBlock.getState() instanceof Lidded lid)
+            lid.open();
+
         String headText = this.texture;
         if (headText == null || headText.equalsIgnoreCase("DEFAULT"))
             headText = this.getBlockSkin(crateBlock.getType());
@@ -92,7 +91,8 @@ public class MiniMeAnimation extends CustomAnimation {
 
         Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), () -> {
             this.setActive(false);
-            lid.close();
+            if (crateBlock.getState() instanceof Lidded lid)
+                lid.close();
         }, 70);
 
     }
