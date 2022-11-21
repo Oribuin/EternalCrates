@@ -144,7 +144,7 @@ public class DataManager extends AbstractDataManager {
      */
     public void dropTableMigration() {
         this.async(() -> this.databaseConnector.connect(connection -> {
-            try (var statement = connection.prepareStatement("DROP TABLE IF EXISTS " + this.getTablePrefix() + "migrations")) {
+            try (var statement = connection.prepareStatement("DROP TABLE " + this.getTablePrefix() + "migrations")) {
                 statement.executeUpdate();
             }
         }));
@@ -172,7 +172,7 @@ public class DataManager extends AbstractDataManager {
                 }
             }
 
-            var dropOldLocations = "DROP TABLE IF EXISTS " + this.getTablePrefix() + "crates";
+            var dropOldLocations = "DROP TABLE " + this.getTablePrefix() + "crates";
             try (var statement = connection.prepareStatement(dropOldLocations)) {
                 statement.executeUpdate();
             }
@@ -209,7 +209,7 @@ public class DataManager extends AbstractDataManager {
             }
 
             // Drop the old virtual keys table
-            var dropVirtualKeys = "DROP TABLE IF EXISTS " + this.getTablePrefix() + "virtual";
+            var dropVirtualKeys = "DROP TABLE " + this.getTablePrefix() + "virtual";
             try (var statement = connection.prepareStatement(dropVirtualKeys)) {
                 statement.executeUpdate();
             }
@@ -253,7 +253,7 @@ public class DataManager extends AbstractDataManager {
             }
 
             // Drop the old table
-            var dropUnclaimedKeys = "DROP TABLE IF EXISTS " + this.getTablePrefix() + "items";
+            var dropUnclaimedKeys = "DROP TABLE " + this.getTablePrefix() + "items";
             try (var statement = connection.prepareStatement(dropUnclaimedKeys)) {
                 statement.executeUpdate();
             }
