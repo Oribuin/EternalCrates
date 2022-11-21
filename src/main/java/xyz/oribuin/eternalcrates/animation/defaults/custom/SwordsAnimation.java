@@ -7,6 +7,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.EquipmentSlot;
@@ -14,6 +15,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.EulerAngle;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.animation.AnimationType;
@@ -67,11 +69,13 @@ public class SwordsAnimation extends CustomAnimation {
         }
 
         var animationTask = Bukkit.getScheduler().runTaskTimerAsynchronously(EternalCrates.getInstance(), () -> this.animate(location, armorStands), 0, 1);
+
+        var items = new ArrayList<Item>();
+        var rewards = crate.createRewards();
+
         Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), () -> {
             animationTask.cancel();
             armorStands.forEach(ArmorStand::remove);
-            crate.finish(player, location);
-//            world.spigot().strikeLightningEffect(location, true); // mmm, lightning
 
             ParticleData data = new ParticleData(Particle.DUST_COLOR_TRANSITION)
                     .setDustColor(Color.RED)
@@ -81,7 +85,27 @@ public class SwordsAnimation extends CustomAnimation {
             for (int i = 0; i < 15; i++) {
                 data.spawn(null, location, 2, 0.5, 0.5, 0.5);
             }
+
+            var randomReward = rewards.get(0);
+            if (randomReward != null && randomReward.getPreviewItem() != null) {
+                var item = world.spawn(location.clone().add(0.0, 1.0, 0.0), Item.class, x -> {
+                    x.setItemStack(randomReward.getPreviewItem());
+                    x.setPickupDelay(Integer.MAX_VALUE);
+                    x.setInvulnerable(true);
+                    x.getPersistentDataContainer().set(EternalCrates.getEntityKey(), PersistentDataType.INTEGER, 1);
+                    x.setCustomNameVisible(true);
+                    x.setVelocity(new Vector());
+                });
+
+                items.add(item);
+            }
+
         }, 5 * 20);
+
+        Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), () -> {
+            items.forEach(Item::remove);
+            crate.finish(player, location);
+        }, 7 * 20);
     }
 
     /**
