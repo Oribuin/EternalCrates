@@ -22,7 +22,7 @@ public class _1_CreateInitialTables extends DataMigration {
         }
 
         // The table for crate locations, crateName, x, y, z, world
-        final var crateQuery = "CREATE TABLE IF NOT EXISTS " + tablePrefix + "crates (crateName VARCHAR(50), x INT, y INT, z INT, world VARCHAR(50))";
+        final var crateQuery = "CREATE TABLE IF NOT EXISTS " + tablePrefix + "locations (crateName VARCHAR(50), x INT, y INT, z INT, world VARCHAR(50))";
         try (var statement = connection.prepareStatement(crateQuery)) {
             statement.executeUpdate();
         }

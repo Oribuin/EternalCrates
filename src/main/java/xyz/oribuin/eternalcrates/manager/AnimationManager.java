@@ -66,7 +66,6 @@ public class AnimationManager extends Manager {
         this.cachedAnimations.put("none", new EmptyAnimation());
 
         this.rosePlugin.getLogger().info("Loaded " + this.cachedAnimations.size() + " EternalCrates animations .");
-        this.rosePlugin.getManager(CrateManager.class).loadCrates();
     }
 
     /**

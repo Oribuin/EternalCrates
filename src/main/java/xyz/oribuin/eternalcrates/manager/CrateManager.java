@@ -49,15 +49,58 @@ public class CrateManager extends Manager {
 
     @Override
     public void reload() {
-        this.activeUsers.clear();
-
         final var folder = new File(this.rosePlugin.getDataFolder(), "crates");
-        if (folder.exists()) {
-            return;
+        if (!folder.exists()) {
+            folder.mkdir();
+
+            this.createExampleCrate(folder);
         }
 
-        folder.mkdir();
+        this.loadCrates();
+    }
 
+    @Override
+    public void disable() {
+        this.cachedCrates.clear();
+        this.activeUsers.clear();
+        this.unregisteredCrates.clear();
+    }
+
+
+    /**
+     * Load all the plugin crates from the /EternalCrates/crates folder
+     * and cache them
+     */
+    public void loadCrates() {
+        this.cachedCrates.clear();
+        this.rosePlugin.getLogger().info("Loading all crates from the /EternalCrates/crates folder");
+        final var folder = new File(this.rosePlugin.getDataFolder(), "crates");
+        var files = folder.listFiles();
+        if (files == null) {
+            this.createExampleCrate(folder);
+        }
+
+        Arrays.stream(files).filter(file -> file.getName().toLowerCase().endsWith(".yml"))
+                .forEach(file -> {
+                    final var config = CommentedFileConfiguration.loadConfiguration(file);
+
+                    if (config.get("crate-settings") == null)
+                        return;
+
+                    this.rosePlugin.getLogger().info("Attempting to load crate " + file.getName());
+
+                    final var crate = this.createCreate(config);
+                    if (crate == null)
+                        return;
+
+                    this.cachedCrates.put(crate.getId(), crate);
+                });
+    }
+
+    /**
+     * Create the example crate if it doesn't exist
+     */
+    public void createExampleCrate(File folder) {
         final var file = new File(folder, "example.yml");
         try {
             if (!file.exists()) {
@@ -79,37 +122,6 @@ public class CrateManager extends Manager {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    @Override
-    public void disable() {
-        this.cachedCrates.clear();
-    }
-
-
-    /**
-     * Load all the plugin crates from the /EternalCrates/crates folder
-     * and cache them
-     */
-    public void loadCrates() {
-        this.cachedCrates.clear();
-        this.rosePlugin.getLogger().info("Loading all crates from the /EternalCrates/crates folder");
-        final var folder = new File(this.rosePlugin.getDataFolder(), "crates");
-        var files = folder.listFiles();
-        if (files == null) {
-            return;
-        }
-
-        Arrays.stream(files).filter(file -> file.getName().toLowerCase().endsWith(".yml"))
-                .forEach(file -> {
-                    this.rosePlugin.getLogger().info("Attempting to load crate " + file.getName());
-                    final var config = CommentedFileConfiguration.loadConfiguration(file);
-                    final var crate = this.createCreate(config);
-                    if (crate == null)
-                        return;
-
-                    this.cachedCrates.put(crate.getId(), crate);
-                });
     }
 
     /**
@@ -565,7 +577,6 @@ public class CrateManager extends Manager {
             this.put("#42", "[MESSAGE] Text - Sends a message to the player.");
             this.put("#43", "[PLAYER] Command - Executes a command as the player.");
             this.put("#44", "[SOUND] ENTITY_ARROW_HIT_PLAYER - Plays a sound to the player.");
-            this.put("#45", "[TITLE] title:Text1 subtitle:Text2 - The title to send to the player.");
             this.put("#46", "");
 
             // General Crate Settings

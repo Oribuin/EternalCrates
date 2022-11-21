@@ -12,6 +12,7 @@ import xyz.oribuin.eternalcrates.listener.PlayerListeners;
 import xyz.oribuin.eternalcrates.manager.AnimationManager;
 import xyz.oribuin.eternalcrates.manager.CommandManager;
 import xyz.oribuin.eternalcrates.manager.ConfigurationManager;
+import xyz.oribuin.eternalcrates.manager.ConversionManager;
 import xyz.oribuin.eternalcrates.manager.CrateManager;
 import xyz.oribuin.eternalcrates.manager.DataManager;
 import xyz.oribuin.eternalcrates.manager.LocaleManager;
@@ -67,7 +68,12 @@ public class EternalCrates extends RosePlugin {
 
     @Override
     protected List<Class<? extends Manager>> getManagerLoadPriority() {
-        return Arrays.asList(AnimationManager.class, MenuManager.class, CrateManager.class);
+        return Arrays.asList(
+                ConversionManager.class,
+                AnimationManager.class,
+                MenuManager.class,
+                CrateManager.class
+        );
     }
 
     public static EternalCrates getInstance() {
