@@ -162,9 +162,11 @@ public class FireworkAnimation extends Animation {
                 var fireworkData = entry.getValue();
 
                 // Check the delay between each firework,
-                if (fireworkData.getFireDelay() != 0 && System.currentTimeMillis() - startTime > fireworkData.getFireDelay() * 1000) {
-                    return;
+                var launchDelay = fireworkData.getFireDelay() * 1000;
+                if (launchDelay != 0 && System.currentTimeMillis() - startTime < launchDelay) {
+                    continue;
                 }
+
                 // Remove firework from map
                 remove.add(entry.getKey());
 
@@ -189,9 +191,11 @@ public class FireworkAnimation extends Animation {
 
             }
 
+            // remove any of the fireworks from remove list from newFireworkMap
+            remove.forEach(newFireworkMap::remove);
 
             // check if all the firework have been played
-            if (remove.size() == newFireworkMap.size()) {
+            if (newFireworkMap.isEmpty()) {
                 crate.finish(player, loc);
                 this.setActive(false);
                 task.cancel();
