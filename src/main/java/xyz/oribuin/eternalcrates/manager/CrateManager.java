@@ -224,6 +224,8 @@ public class CrateManager extends Manager {
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException ignored) {
         }
 
+        animation.load(config);
+
         // Get the crate type
         final var crateType = Arrays.stream(CrateType.values())
                 .filter(x -> x.name().equalsIgnoreCase(PluginUtils.get(config, "crate-type", "PHYSICAL")))

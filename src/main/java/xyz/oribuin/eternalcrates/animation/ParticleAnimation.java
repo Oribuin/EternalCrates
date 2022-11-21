@@ -77,11 +77,11 @@ public abstract class ParticleAnimation extends Animation {
                 .orElse(Particle.FLAME);
 
         this.particleData = new ParticleData(particle)
-                .setDustColor(PluginUtils.fromHex(PluginUtils.get(config, "crate-settings.animation.color", "#FFFFFF")))
-                .setTransitionColor(PluginUtils.fromHex(PluginUtils.get(config, "crate-settings.animation.transition", "#ff0000")))
-                .setNote(PluginUtils.get(config, "crate-settings.animation.note", 1))
-                .setItemMaterial(Material.matchMaterial(PluginUtils.get(config, "crate-settings.animation.item", "STONE")))
-                .setBlockMaterial(Material.matchMaterial(PluginUtils.get(config, "crate-settings.animation.block", "STONE")));
+                .setDustColor(PluginUtils.fromHex(config.getString("crate-settings.animation.color")))
+                .setTransitionColor(PluginUtils.fromHex(config.getString("crate-settings.animation.transition")))
+                .setNote(config.getInt("crate-settings.animation.note"))
+                .setItemMaterial(Material.matchMaterial(config.getString("crate-settings.animation.item", "STONE")))
+                .setBlockMaterial(Material.matchMaterial(config.getString("crate-settings.animation.block", "STONE")));
     }
 
     public int getSpeed() {
