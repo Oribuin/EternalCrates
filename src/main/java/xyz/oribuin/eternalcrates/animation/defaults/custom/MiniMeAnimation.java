@@ -84,6 +84,7 @@ public class MiniMeAnimation extends CustomAnimation {
             world.spawnParticle(Particle.CRIT_MAGIC, loc.clone(), 5, 0.1, 0.5, 0.1, 0);
         }, 0, this.rotationSpeed);
 
+
         Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), () -> {
 
             crate.finish(player, location);
@@ -109,15 +110,11 @@ public class MiniMeAnimation extends CustomAnimation {
             stand.remove();
         }, 60);
 
-        Bukkit.getScheduler().
-
-                runTaskLater(EternalCrates.getInstance(), () ->
-
-                {
-                    this.setActive(false);
-                    if (crateBlock.getState() instanceof Lidded lid)
-                        lid.close();
-                }, 70);
+        Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), () -> {
+            this.setActive(false);
+            if (crateBlock.getState() instanceof Lidded lid)
+                lid.close();
+        }, 70);
 
     }
 
