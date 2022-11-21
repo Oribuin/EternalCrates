@@ -44,7 +44,7 @@ public class FountainAnimation extends CustomAnimation {
 
             for (int i = 0; i < rewards.size() * this.itemCount; i++) {
                 var item = world.spawn(location.clone(), Item.class, x -> {
-                    x.setItemStack(reward.getItemStack());
+                    x.setItemStack(reward.getPreviewItem());
                     x.setPickupDelay(Integer.MAX_VALUE);
                     x.setInvulnerable(true);
                     x.getPersistentDataContainer().set(EternalCrates.getEntityKey(), PersistentDataType.INTEGER, 1);
