@@ -98,15 +98,15 @@ public class DataManager extends AbstractDataManager {
             try (var statement = connection.prepareStatement("SELECT `x`, `y`, `z`, `world` FROM " + this.getTablePrefix() + "locations WHERE `crateName` = ?")) {
                 statement.setString(1, crate.getId());
                 var resultSet = statement.executeQuery();
-                if (resultSet.next()) {
-                    Location loc = new Location(
-                            Bukkit.getWorld(resultSet.getString("world")),
-                            resultSet.getDouble("x"),
-                            resultSet.getDouble("y"),
-                            resultSet.getDouble("z")
-                    );
+                while (resultSet.next()) {
+                    var x = resultSet.getDouble("x");
+                    var y = resultSet.getDouble("y");
+                    var z = resultSet.getDouble("z");
+                    var world = Bukkit.getWorld(resultSet.getString("world"));
+                    if (world == null)
+                        continue;
 
-                    crate.getLocations().add(loc);
+                    crate.getLocations().add(new Location(world, x, y, z));
                 }
             }
         }));
