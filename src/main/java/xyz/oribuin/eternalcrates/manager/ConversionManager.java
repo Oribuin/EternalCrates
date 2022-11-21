@@ -83,7 +83,6 @@ public class ConversionManager extends Manager {
         final var messagesFile = new File(this.rosePlugin.getDataFolder(), "messages.yml");
         final var files = folder.listFiles();
 
-        System.out.println(Arrays.toString(files));
         if (files == null)
             return false;
 
