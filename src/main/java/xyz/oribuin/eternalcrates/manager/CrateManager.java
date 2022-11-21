@@ -173,6 +173,18 @@ public class CrateManager extends Manager {
                 .getKeys();
     }
 
+    /**
+     * Check if a crate is already at a location.
+     *
+     * @param location The location to check.
+     * @return True if there is a crate at the location.
+     */
+    public boolean hasCrateAtLocation(Location location) {
+        return this.getCachedCrates().values()
+                .stream()
+                .anyMatch(crate -> crate.getLocations().contains(location));
+    }
+
     public void saveUserKeys(UUID uuid, Map<String, Integer> keys) {
         this.rosePlugin.getManager(DataManager.class).saveUser(uuid, new CrateKeys(keys));
     }

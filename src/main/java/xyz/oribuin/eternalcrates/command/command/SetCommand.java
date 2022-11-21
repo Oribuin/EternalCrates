@@ -23,7 +23,8 @@ public class SetCommand extends RoseCommand {
 
     @RoseExecutable
     public void execute(CommandContext context, Crate crate) {
-        final LocaleManager locale = this.rosePlugin.getManager(LocaleManager.class);
+        final var locale = this.rosePlugin.getManager(LocaleManager.class);
+        final var manager = this.rosePlugin.getManager(CrateManager.class);
 
         // Cast the command sender as a player
         var player = (Player) context.getSender();
@@ -35,9 +36,20 @@ public class SetCommand extends RoseCommand {
             return;
         }
 
-        crate.getLocations().add(targetBlock.getLocation());
+
+        Crate blockCrate = manager.getCrate(targetBlock.getLocation());
+        if (blockCrate != null) {
+            locale.sendMessage(player, "command-set-already-set", StringPlaceholders.single("crate", blockCrate.getId()));
+            return;
+        }
+
+
+        if (!crate.getLocations().contains(targetBlock.getLocation())) {
+            crate.getLocations().add(targetBlock.getLocation());
+            this.rosePlugin.getManager(CrateManager.class).saveCrate(crate);
+        }
+
         locale.sendMessage(player, "command-set-success", StringPlaceholders.single("crate", crate.getId()));
-        this.rosePlugin.getManager(CrateManager.class).saveCrate(crate);
 
         final var data = new ParticleData(Particle.REDSTONE);
         data.setDustColor(Color.LIME);

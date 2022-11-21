@@ -85,6 +85,7 @@ public class EnglishLocale implements Locale {
             this.put("command-set-description", "Set a crate location.");
             this.put("command-set-success", "You have set a crate location for #00B4DB&l%crate%&f.");
             this.put("command-set-no-target", "You must be looking at a chest to set a crate location.");
+            this.put("command-set-already-set", "The crate #00B4DB&l%crate%&f is already set at this location.");
 
             // General Crate Messages
             this.put("#13", "General Crate Messages");
