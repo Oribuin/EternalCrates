@@ -1,4 +1,4 @@
-package xyz.oribuin.eternalcrates.animation.defaults.custom;
+package xyz.oribuin.eternalcrates.animation.defaults.misc;
 
 import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
 import org.bukkit.Bukkit;
@@ -18,8 +18,7 @@ import org.bukkit.util.EulerAngle;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import xyz.oribuin.eternalcrates.EternalCrates;
-import xyz.oribuin.eternalcrates.animation.AnimationType;
-import xyz.oribuin.eternalcrates.animation.CustomAnimation;
+import xyz.oribuin.eternalcrates.animation.MiscAnimation;
 import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.particle.ParticleData;
 
@@ -29,7 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class SwordsAnimation extends CustomAnimation {
+public class SwordsAnimation extends MiscAnimation {
 
     private double step = 0;
     private int numSteps = 80;
@@ -38,7 +37,7 @@ public class SwordsAnimation extends CustomAnimation {
     private int swordCount = 3;
 
     public SwordsAnimation() {
-        super("Swords", "Oribuin", AnimationType.CUSTOM);
+        super("Swords", "Oribuin");
     }
 
     @Override

@@ -16,7 +16,7 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.animation.AnimationType;
-import xyz.oribuin.eternalcrates.animation.CustomAnimation;
+import xyz.oribuin.eternalcrates.animation.MiscAnimation;
 import xyz.oribuin.eternalcrates.crate.Crate;
 
 import java.util.ArrayList;
@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * @author Oribuin
  */
-public class PumpkinAnimation extends CustomAnimation {
+public class PumpkinAnimation extends MiscAnimation {
 
     private int pumpkinCount = 10;
     private int smokeCount = 10;

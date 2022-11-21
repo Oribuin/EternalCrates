@@ -1,4 +1,4 @@
-package xyz.oribuin.eternalcrates.animation.defaults.custom;
+package xyz.oribuin.eternalcrates.animation.defaults.misc;
 
 import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
 import org.bukkit.Bukkit;
@@ -12,8 +12,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import xyz.oribuin.eternalcrates.EternalCrates;
-import xyz.oribuin.eternalcrates.animation.AnimationType;
-import xyz.oribuin.eternalcrates.animation.CustomAnimation;
+import xyz.oribuin.eternalcrates.animation.MiscAnimation;
 import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.particle.ParticleData;
 import xyz.oribuin.eternalcrates.util.ItemBuilder;
@@ -23,13 +22,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class MiniMeAnimation extends CustomAnimation {
+public class MiniMeAnimation extends MiscAnimation {
 
     private long rotationSpeed;
     private String texture;
 
     public MiniMeAnimation() {
-        super("Mini-Me", "Oribuin", AnimationType.CUSTOM);
+        super("Mini-Me", "Oribuin");
     }
 
     @Override

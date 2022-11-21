@@ -2,44 +2,131 @@ package xyz.oribuin.eternalcrates.animation;
 
 import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.crate.Crate;
+import xyz.oribuin.eternalcrates.util.PluginUtils;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class FireworkAnimation extends Animation {
 
-    private final Map<Integer, CustomFirework> fireworkMap;
-    private final long delay; // The delay between each firework spawn.
+    private final Map<Integer, CustomFirework> fireworkMap = new HashMap<>();
 
-    public FireworkAnimation(String name, String author, long delay) {
-        super(name, AnimationType.FIREWORKS, author, true);
-        this.delay = delay;
-        this.fireworkMap = new HashMap<>();
+    public FireworkAnimation() {
+        super("General", AnimationType.CUSTOM, "Oribuin", true);
     }
 
-    /**
-     * Register all the fireworks into the map.
-     */
-    public abstract void registerFireworks(Location location);
+    @Override
+    public Map<String, Object> getRequiredValues() {
+        return new HashMap<>() {{
 
-    /**
-     * Add a firework to the animation map
-     *
-     * @param location The location relative to the crate location
-     * @param firework The firework to be spawned.
-     */
-    public void addFirework(Location location, FireworkEffect firework) {
-        this.fireworkMap.put(new AtomicInteger(this.fireworkMap.size()).incrementAndGet(), new CustomFirework(location, firework));
+            // First Firework Effect
+            this.put("1.offset-x", 0.0);
+            this.put("1.offset-y", 0.0);
+            this.put("1.offset-z", 0.0);
+            this.put("1.fire-type", 0.0);
+            this.put("1.detonation-delay", 0.0);
+            this.put("1.power", 0.0);
+
+            // First Effect
+            this.put("1.effects.1.colors", List.of("#FFFFFF"));
+            this.put("1.effects.1.fade-colors", List.of("#000000"));
+            this.put("1.effects.1.flicker", true);
+            this.put("1.effects.1.trail", true);
+            this.put("1.effects.1.type", "BALL_LARGE");
+
+            // Second Firework Effect
+            this.put("2.offset-x", 0.0);
+            this.put("2.offset-y", 0.0);
+            this.put("2.offset-z", 0.0);
+            this.put("2.fire-type", "0");
+            this.put("2.detonation-delay", 3.0);
+            this.put("2.power", 3.0);
+
+            // Second Effect
+            this.put("2.effects.1.colors", List.of("#FFFFFF"));
+            this.put("2.effects.1.fade-colors", List.of("#000000"));
+            this.put("2.effects.1.flicker", true);
+            this.put("2.effects.1.trail", true);
+            this.put("2.effects.1.type", "BALL_LARGE");
+        }};
+    }
+
+    @Override
+    public void load(CommentedConfigurationSection config) {
+
+        CommentedConfigurationSection section = config.getConfigurationSection("crate-settings.animation.firework-settings");
+        if (section == null)
+            return;
+
+        this.fireworkMap.clear();
+        for (String key : section.getKeys(false)) {
+            CustomFirework firework = new CustomFirework();
+
+            // Set the basic firework settings
+            firework.setOffsetX(section.getDouble(key + ".offset-x"));
+            firework.setOffsetY(section.getDouble(key + ".offset-y"));
+            firework.setOffsetZ(section.getDouble(key + ".offset-z"));
+            firework.setDetonationDelay(section.getDouble(key + ".detonation-delay"));
+            firework.setFireDelay(section.getDouble(key + ".fire-delay"));
+            firework.setPower(Math.min(Math.max(section.getInt(key + ".power"), 0), 127));
+
+            // Build the firework effect
+            CommentedConfigurationSection effectSection = section.getConfigurationSection(key + ".effects");
+            if (effectSection == null)
+                continue;
+
+            for (String effectKey : effectSection.getKeys(false)) {
+                FireworkEffect.Builder builder = FireworkEffect.builder();
+                effectSection.getStringList(effectKey + ".colors").forEach(colorCode -> {
+                    Color color = PluginUtils.fromHex(colorCode);
+                    if (color != null)
+                        builder.withColor(color);
+
+                });
+
+                // Load the firework fade colors
+                effectSection.getStringList(effectKey + ".fade-colors").forEach(colorCode -> {
+                    Color color = PluginUtils.fromHex(colorCode);
+                    if (color != null)
+                        builder.withFade(color);
+                });
+
+
+                // Load the firework type
+                FireworkEffect.Type type = null;
+                String typeString = effectSection.getString(effectKey + ".type");
+                for (FireworkEffect.Type t : FireworkEffect.Type.values()) {
+                    if (t.name().equalsIgnoreCase(typeString)) {
+                        type = t;
+                        break;
+                    }
+                }
+
+                builder.with(type == null ? FireworkEffect.Type.BALL : type);
+
+                // Load the firework flicker
+                builder.flicker(effectSection.getBoolean(effectKey + ".flicker"));
+
+                // Load the firework trail
+                builder.trail(effectSection.getBoolean(effectKey + ".trail"));
+
+                // add effect to firework
+                firework.getEffects().add(builder.build());
+            }
+
+            this.fireworkMap.put(new AtomicInteger(this.fireworkMap.size()).incrementAndGet(), firework);
+        }
     }
 
     /**
@@ -53,59 +140,50 @@ public abstract class FireworkAnimation extends Animation {
             return;
 
         this.setActive(true);
-        // Remove all the fireworks and register them again when the animation is played.
-        this.fireworkMap.clear();
-        this.registerFireworks(loc);
 
-        final var startNumber = new AtomicInteger();
+        double startTime = System.currentTimeMillis();
+        var world = loc.getWorld();
+        if (world == null)
+            return;
 
-        this.fireworkMap.keySet().forEach(integer -> {
-            final CustomFirework customFirework = this.fireworkMap.get(integer);
+        Map<Integer, CustomFirework> newFireworkMap = new HashMap<>(this.fireworkMap);
 
-            // Just because intellij is annoying.
-            final World world = customFirework.location.getWorld();
-            if (world == null)
-                return;
+        Bukkit.getScheduler().runTaskTimer(EternalCrates.getInstance(), task -> {
+            for (var entry : newFireworkMap.entrySet()) {
+                var fireworkData = entry.getValue();
 
-            // Spawn the firework
-            Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), () -> {
-                var firework = world.spawn(customFirework.location, Firework.class, fireWork -> {
-                    final var meta = fireWork.getFireworkMeta();
-
-                    // Set meta because we're not trying to kill anyone here.
-                    fireWork.getPersistentDataContainer().set(EternalCrates.getEntityKey(), PersistentDataType.INTEGER, 1);
-                    meta.addEffect(customFirework.effect);
-                    fireWork.setFireworkMeta(meta);
-                });
-
-                if (integer == this.fireworkMap.size()) {
-                    crate.finish(player, loc);
+                // Check the delay between each firework,
+                if (fireworkData.getFireDelay() != 0 && System.currentTimeMillis() - startTime > fireworkData.getFireDelay() * 1000) {
+                    return;
                 }
 
-                firework.detonate();
+                // Remove firework from map
+                newFireworkMap.remove(entry.getKey());
 
-                // Delay each effect by each firework that has been set off.
-            }, integer == 0 ? 1 : startNumber.incrementAndGet() * delay);
-        });
-    }
+                // Spawn the firework
+                var newLocation = loc.clone().add(fireworkData.getOffsetX(), fireworkData.getOffsetY(), fireworkData.getOffsetZ());
+                var firework = world.spawn(newLocation.clone(), Firework.class, x -> {
+                    final var meta = x.getFireworkMeta();
 
-    @Override
-    public Map<String, Object> getRequiredValues() {
-        return new HashMap<>();
-    }
+                    meta.addEffects(fireworkData.getEffects());
+                    meta.setPower(fireworkData.getPower());
+                    meta.getPersistentDataContainer().set(EternalCrates.getEntityKey(), PersistentDataType.INTEGER, 1);
+                    x.setFireworkMeta(meta);
+                });
 
-    @Override
-    public void load(CommentedConfigurationSection config) {
-        // Nothing to load
-    }
+                // Detonate the firework
+                if (fireworkData.getDetonationDelay() != 0 && System.currentTimeMillis() - startTime > fireworkData.getDetonationDelay() * 1000) {
+                    firework.detonate();
+                }
+            }
 
-    /**
-     * Create a record for the custom firework object.
-     *
-     * @param location The location of the firework.
-     * @param effect   The firework effect.
-     */
-    public record CustomFirework(Location location, FireworkEffect effect) {
+            if (newFireworkMap.isEmpty()) {
+                crate.finish(player, loc);
+                task.cancel();
+                this.setActive(false);
+            }
+        }, 0, 1);
+
     }
 
 }

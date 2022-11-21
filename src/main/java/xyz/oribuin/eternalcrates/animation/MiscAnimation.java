@@ -5,10 +5,10 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import xyz.oribuin.eternalcrates.crate.Crate;
 
-public abstract class CustomAnimation extends Animation {
+public abstract class MiscAnimation extends Animation {
 
-    public CustomAnimation(String name, String author, AnimationType type) {
-        super(name, type, author, true);
+    public MiscAnimation(String name, String author) {
+        super(name, AnimationType.MISC, author, true);
     }
 
     /**

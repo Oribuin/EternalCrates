@@ -9,7 +9,7 @@ import org.bukkit.inventory.ItemStack;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.action.Action;
 import xyz.oribuin.eternalcrates.animation.Animation;
-import xyz.oribuin.eternalcrates.animation.CustomAnimation;
+import xyz.oribuin.eternalcrates.animation.MiscAnimation;
 import xyz.oribuin.eternalcrates.animation.FireworkAnimation;
 import xyz.oribuin.eternalcrates.animation.ParticleAnimation;
 import xyz.oribuin.eternalcrates.event.AnimationEndEvent;
@@ -88,7 +88,7 @@ public class Crate {
 //            case GUI -> new SpinningGUI(plugin, this, player);
             case PARTICLES -> ((ParticleAnimation) animation).play(spawnLocation, 1, player, this);
             case FIREWORKS -> ((FireworkAnimation) animation).play(spawnLocation, player, this);
-            case CUSTOM, SEASONAL -> ((CustomAnimation) animation).spawn(spawnLocation, player, this);
+            case CUSTOM, SEASONAL -> ((MiscAnimation) animation).spawn(spawnLocation, player, this);
             case NONE -> this.finish(player, location);
         }
 

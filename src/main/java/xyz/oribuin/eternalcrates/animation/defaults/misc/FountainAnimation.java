@@ -1,4 +1,4 @@
-package xyz.oribuin.eternalcrates.animation.defaults.custom;
+package xyz.oribuin.eternalcrates.animation.defaults.misc;
 
 import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
 import org.bukkit.Bukkit;
@@ -9,8 +9,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import xyz.oribuin.eternalcrates.EternalCrates;
-import xyz.oribuin.eternalcrates.animation.AnimationType;
-import xyz.oribuin.eternalcrates.animation.CustomAnimation;
+import xyz.oribuin.eternalcrates.animation.MiscAnimation;
 import xyz.oribuin.eternalcrates.crate.Crate;
 
 import java.util.ArrayList;
@@ -19,12 +18,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class FountainAnimation extends CustomAnimation {
+public class FountainAnimation extends MiscAnimation {
 
     private int itemCount;
 
     public FountainAnimation() {
-        super("Fountain", "Oribuin", AnimationType.CUSTOM);
+        super("Fountain", "Oribuin");
     }
 
     @Override
