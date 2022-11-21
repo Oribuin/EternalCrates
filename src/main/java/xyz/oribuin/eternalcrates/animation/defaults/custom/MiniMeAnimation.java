@@ -15,6 +15,7 @@ import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.animation.AnimationType;
 import xyz.oribuin.eternalcrates.animation.CustomAnimation;
 import xyz.oribuin.eternalcrates.crate.Crate;
+import xyz.oribuin.eternalcrates.particle.ParticleData;
 import xyz.oribuin.eternalcrates.util.ItemBuilder;
 
 import java.util.Arrays;
@@ -84,16 +85,39 @@ public class MiniMeAnimation extends CustomAnimation {
         }, 0, this.rotationSpeed);
 
         Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), () -> {
+
             crate.finish(player, location);
             task.cancel();
+
+            final Location loc = stand.getLocation().clone();
+
+            ParticleData data = new ParticleData(Particle.FLAME);
+
+            // Send crit particles outwards from the crate in star shape
+            // add each number of 0.1 from -0.5 to 0.5
+            for (double x = -0.5; x <= 0.5; x += 0.1) {
+
+                Location newLoc = loc.clone().add(x, 0, 0);
+                data.spawn(null, newLoc, 5);
+            }
+
+            for (double z = -0.5; z <= 0.5; z += 0.1) {
+                Location newLoc = loc.clone().add(0, 0, z);
+                data.spawn(null, newLoc, 5);
+            }
+
             stand.remove();
         }, 60);
 
-        Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), () -> {
-            this.setActive(false);
-            if (crateBlock.getState() instanceof Lidded lid)
-                lid.close();
-        }, 70);
+        Bukkit.getScheduler().
+
+                runTaskLater(EternalCrates.getInstance(), () ->
+
+                {
+                    this.setActive(false);
+                    if (crateBlock.getState() instanceof Lidded lid)
+                        lid.close();
+                }, 70);
 
     }
 

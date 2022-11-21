@@ -89,7 +89,7 @@ public class ParticleData {
             }
 
             // Any other particle.
-            default -> world.spawnParticle(this.particle, loc, count, 0, 0.0, 0.0, 0.0);
+            default -> world.spawnParticle(this.particle, loc, count, offsetX, offsetY, offsetZ, 0);
         }
     }
 
