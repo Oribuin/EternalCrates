@@ -1,10 +1,12 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
 plugins {
     id 'com.github.johnrengelman.shadow' version '7.1.0'
     id 'java-library'
 }
 
 group 'xyz.oribuin.eternalcrates'
-version '1.0.5-pre1'
+version '1.0.5-pre2'
 
 java {
     toolchain {
@@ -78,7 +80,14 @@ shadowJar {
     relocate "dev.rosewood.rosegarden", "${project.group}.libs.rosegarden"
     relocate "io.github.bananapuncher714.nbteditor", "${project.group}.libs.nbteditor"
     relocate "dev.triumphteam.gui", "${project.group}.libs.triumph-gui"
+}
 
+processResources {
+    from(sourceSets.main.resources.srcDirs) {
+        include '**/*.yml'
+        filter ReplaceTokens, tokens: ["version": project.property("version")]
+        duplicatesStrategy DuplicatesStrategy.INCLUDE
+    }
 }
 
 tasks.getByName("build").dependsOn("shadowJar")
