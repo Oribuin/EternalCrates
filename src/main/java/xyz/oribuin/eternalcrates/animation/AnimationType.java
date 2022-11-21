@@ -2,7 +2,7 @@ package xyz.oribuin.eternalcrates.animation;
 
 public enum AnimationType {
 
-    GUI, // GUI Animations
+//    GUI, // GUI Animations
     PARTICLES, // Animations that show particles spawn in specific shapes
     MISC, // Misc animations are animations that don't fit into the other categories.
     SEASONAL, // Animations that are centered around a holiday or season.
