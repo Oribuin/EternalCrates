@@ -7,12 +7,11 @@ import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.animation.Animation;
 import xyz.oribuin.eternalcrates.animation.AnimationType;
 import xyz.oribuin.eternalcrates.animation.defaults.EmptyAnimation;
-import xyz.oribuin.eternalcrates.animation.defaults.custom.ChickenAnimation;
-import xyz.oribuin.eternalcrates.animation.defaults.custom.FountainAnimation;
-import xyz.oribuin.eternalcrates.animation.defaults.custom.MiniMeAnimation;
-import xyz.oribuin.eternalcrates.animation.defaults.custom.SwordsAnimation;
-import xyz.oribuin.eternalcrates.animation.defaults.firework.CelebrationAnimation;
-import xyz.oribuin.eternalcrates.animation.defaults.firework.SparkleAnimation;
+import xyz.oribuin.eternalcrates.animation.defaults.misc.ChickenAnimation;
+import xyz.oribuin.eternalcrates.animation.defaults.misc.FireworkAnimation;
+import xyz.oribuin.eternalcrates.animation.defaults.misc.FountainAnimation;
+import xyz.oribuin.eternalcrates.animation.defaults.misc.MiniMeAnimation;
+import xyz.oribuin.eternalcrates.animation.defaults.misc.SwordsAnimation;
 import xyz.oribuin.eternalcrates.animation.defaults.particle.QuadAnimation;
 import xyz.oribuin.eternalcrates.animation.defaults.particle.RingsAnimation;
 import xyz.oribuin.eternalcrates.animation.defaults.particle.RippleAnimation;
@@ -47,11 +46,8 @@ public class AnimationManager extends Manager {
         this.cachedAnimations.put("ripple", new RippleAnimation());
         this.cachedAnimations.put("quad", new QuadAnimation());
 
-        // Firework Particles
-        this.cachedAnimations.put("sparkle", new SparkleAnimation()); // we may need a better name for this.
-        this.cachedAnimations.put("celebration", new CelebrationAnimation());
-
-        // Custom
+        // Misc Animations
+        this.cachedAnimations.put("fireworks", new FireworkAnimation());
         this.cachedAnimations.put("chicken", new ChickenAnimation());
         this.cachedAnimations.put("fountain", new FountainAnimation());
         this.cachedAnimations.put("mini-me", new MiniMeAnimation());
@@ -64,6 +60,7 @@ public class AnimationManager extends Manager {
 
         // Other
         this.cachedAnimations.put("none", new EmptyAnimation());
+
 
         this.rosePlugin.getLogger().info("Loaded " + this.cachedAnimations.size() + " EternalCrates animations .");
     }

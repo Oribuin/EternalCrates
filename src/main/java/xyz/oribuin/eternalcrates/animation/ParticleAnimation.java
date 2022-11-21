@@ -6,6 +6,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.particle.ParticleData;
@@ -22,40 +23,40 @@ public abstract class ParticleAnimation extends Animation {
     private int speed;
     private int length;
 
-    public ParticleAnimation(String name, String author, int speed) {
-        super(name, AnimationType.PARTICLES, author, true);
-        this.speed = speed;
-        this.length = 60;
-    }
-
-    public abstract List<Location> particleLocations(Location crateLocation);
-
-    public abstract void updateTimer();
-
-    public ParticleData getParticleData() {
-        return particleData;
-    }
-
-    public void setParticleData(ParticleData particleData) {
-        this.particleData = particleData;
+    public ParticleAnimation(String name, String author) {
+        super(name, author, AnimationType.PARTICLES, true);
     }
 
     /**
-     * Spawn a particle at a location.
+     * The function to get all the particle spawn locations
      *
-     * @param loc   The location of the particle
-     * @param count the amount of particles being spawned
+     * @param location The location of the crate
+     * @return A list of locations to spawn particles at
      */
-    public void play(Location loc, int count, Player player, Crate crate) {
+    public abstract List<Location> particleLocations(Location location);
+
+    /**
+     * Function called before the particles are spawned
+     */
+    public abstract void updateTimer();
+
+    /**
+     * Play the particle animation
+     *
+     * @param loc    The location of the particles
+     * @param player The player who is opening the crate
+     * @param crate  The crate being opened
+     */
+    public void play(@NotNull Location loc, @NotNull Player player, @NotNull Crate crate) {
         final var task = Bukkit.getScheduler().runTaskTimerAsynchronously(EternalCrates.getInstance(), () -> {
             this.updateTimer();
-            this.particleLocations(loc.clone()).forEach(location -> particleData.spawn(player, location, count));
+            this.particleLocations(loc.clone()).forEach(location -> particleData.spawn(player, location, 1));
         }, 0, this.speed);
 
         Bukkit.getScheduler().runTaskLater(EternalCrates.getInstance(), x -> {
             task.cancel();
             crate.finish(player, loc);
-        }, this.getLength());
+        }, this.length);
     }
 
     @Override
@@ -67,11 +68,17 @@ public abstract class ParticleAnimation extends Animation {
             this.put("note", 1);
             this.put("item", "STONE");
             this.put("block", "STONE");
+            this.put("speed", 1);
+            this.put("length", 60);
         }};
     }
 
     @Override
     public void load(CommentedConfigurationSection config) {
+
+        this.speed = config.getInt("speed");
+        this.length = config.getInt("length");
+
         var particle = Arrays.stream(Particle.values()).filter(x -> x.name().equalsIgnoreCase(config.getString("crate-settings.animation.particle")))
                 .findFirst()
                 .orElse(Particle.FLAME);
@@ -84,20 +91,12 @@ public abstract class ParticleAnimation extends Animation {
                 .setBlockMaterial(Material.matchMaterial(config.getString("crate-settings.animation.block", "STONE")));
     }
 
-    public int getSpeed() {
-        return speed;
+    public ParticleData getParticleData() {
+        return particleData;
     }
 
-    public void setSpeed(int speed) {
-        this.speed = speed;
-    }
-
-    public int getLength() {
-        return length;
-    }
-
-    public void setLength(int length) {
-        this.length = length;
+    public void setParticleData(ParticleData particleData) {
+        this.particleData = particleData;
     }
 
 }

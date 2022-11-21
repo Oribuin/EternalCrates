@@ -41,7 +41,7 @@ public class SwordsAnimation extends MiscAnimation {
     }
 
     @Override
-    public void spawn(@NotNull Location location, @NotNull Player player, @NotNull Crate crate) {
+    public void play(@NotNull Location location, @NotNull Player player, @NotNull Crate crate) {
         List<ArmorStand> armorStands = new ArrayList<>();
         var world = location.getWorld();
         if (world == null)

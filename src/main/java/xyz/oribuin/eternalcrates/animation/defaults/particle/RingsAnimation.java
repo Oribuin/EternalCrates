@@ -17,22 +17,22 @@ public class RingsAnimation extends ParticleAnimation {
     private int step = 0;
 
     public RingsAnimation() {
-        super("Rings", "Oribuin", 1);
+        super("Rings", "Oribuin");
     }
 
     @Override
-    public List<Location> particleLocations(Location crateLocation) {
+    public List<Location> particleLocations(Location location) {
 
         final List<Location> locations = new ArrayList<>();
 
         double ring1 = Math.PI / (maxStep / 2D) * this.step;
         double ring2 = Math.PI / (maxStep / 2D) * ((((this.step + this.maxStep / 2D) % this.maxStep)));
 
-        locations.add(crateLocation.clone().add(MathL.cos(ring1), MathL.sin(ring1), MathL.sin(ring1)));
-        locations.add(crateLocation.clone().add(MathL.cos(ring2), MathL.sin(ring2), MathL.sin(ring2)));
+        locations.add(location.clone().add(MathL.cos(ring1), MathL.sin(ring1), MathL.sin(ring1)));
+        locations.add(location.clone().add(MathL.cos(ring2), MathL.sin(ring2), MathL.sin(ring2)));
 
-        locations.add(crateLocation.clone().add(MathL.cos(ring1 + Math.PI), MathL.sin(ring1), MathL.sin(ring1 + Math.PI)));
-        locations.add(crateLocation.clone().add(MathL.cos(ring2 + Math.PI), MathL.sin(ring2), MathL.sin(ring2 + Math.PI)));
+        locations.add(location.clone().add(MathL.cos(ring1 + Math.PI), MathL.sin(ring1), MathL.sin(ring1 + Math.PI)));
+        locations.add(location.clone().add(MathL.cos(ring2 + Math.PI), MathL.sin(ring2), MathL.sin(ring2 + Math.PI)));
 
         return locations;
     }

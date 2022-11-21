@@ -224,8 +224,6 @@ public class CrateManager extends Manager {
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException ignored) {
         }
 
-        animation.load(config);
-
         // Get the crate type
         final var crateType = Arrays.stream(CrateType.values())
                 .filter(x -> x.name().equalsIgnoreCase(PluginUtils.get(config, "crate-type", "PHYSICAL")))
@@ -285,19 +283,6 @@ public class CrateManager extends Manager {
         final var crate = new Crate(name);
         final var data = this.rosePlugin.getManager(DataManager.class);
 
-        // Set the crate data
-        crate.setAnimation(animation);
-        crate.setName(displayName);
-        crate.setRewardMap(rewards);
-        crate.setMaxRewards(Math.max(PluginUtils.get(config, "crate-settings.max-rewards", 1), 1));
-        crate.setMinRewards(Math.min(PluginUtils.get(config, "crate-settings.min-rewards", 1), crate.getMaxRewards()));
-        crate.setMultiplier(Math.min(PluginUtils.get(config, "crate-settings.multiplier", 1), 1));
-        crate.setMinGuiSlots(Math.max(PluginUtils.get(config, "crate-settings.min-inv-slots", crate.getMaxRewards()), crate.getMaxRewards()));
-        crate.setConfig(config);
-        crate.setOpenActions(openActions);
-        crate.setType(crateType);
-        data.loadCrateLocation(crate);
-
         // Get the physical crate key data
         if (crate.getType() == CrateType.PHYSICAL) {
             var item = new ItemBuilder(PluginUtils.getItemStack(config, "crate-settings.key"))
@@ -320,14 +305,39 @@ public class CrateManager extends Manager {
         }
 
         // Add crate animation settings to plugin config.
-        animation.getRequiredValues().forEach((path, object) -> {
-            final var newPath = "crate-settings.animation." + path;
-            if (config.get(newPath) == null) {
-                config.set(newPath, object);
-            }
-        });
+        Animation finalAnimation = animation;
+
+        // Fireworks have default values, so we don't need to add them to the config if they don't exist.
+        if (finalAnimation.getName().equalsIgnoreCase("fireworks")) {
+            if (config.get("crate-settings.animation.firework-settings") == null)
+                animation.getRequiredValues().forEach((path, object) -> config.set("crate-settings.animation.firework-settings." + path, object));
+        } else {
+            animation.getRequiredValues().forEach((path, object) -> {
+                // All other animations have default values, so we need to add them to the config if they don't exist.
+                final var newPath = "crate-settings.animation." + path;
+                if (config.get(newPath) == null) {
+                    config.set(newPath, object);
+                }
+            });
+        }
+
+        finalAnimation.load(config);
 
         config.save();
+        // Set the crate data
+        crate.setAnimation(finalAnimation);
+        crate.setName(displayName);
+        crate.setRewardMap(rewards);
+        crate.setMaxRewards(Math.max(PluginUtils.get(config, "crate-settings.max-rewards", 1), 1));
+        crate.setMinRewards(Math.min(PluginUtils.get(config, "crate-settings.min-rewards", 1), crate.getMaxRewards()));
+        crate.setMultiplier(Math.min(PluginUtils.get(config, "crate-settings.multiplier", 1), 1));
+        crate.setMinGuiSlots(Math.max(PluginUtils.get(config, "crate-settings.min-inv-slots", crate.getMaxRewards()), crate.getMaxRewards()));
+        crate.setConfig(config);
+        crate.setOpenActions(openActions);
+        crate.setType(crateType);
+        data.loadCrateLocation(crate);
+
+
         this.rosePlugin.getLogger().info("Registered Crate: " + crate.getId() + " with " + crate.getRewardMap().size() + " rewards!");
         return crate;
     }

@@ -4,6 +4,7 @@ import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 import xyz.oribuin.eternalcrates.crate.Crate;
 
 import java.util.ArrayList;
@@ -19,13 +20,34 @@ public abstract class Animation {
     private boolean canBeVirtual;
     private boolean active;
 
-    public Animation(final String name, final AnimationType type, String author, boolean canBeVirtual) {
+    public Animation(final String name, String author, final AnimationType type, boolean canBeVirtual) {
         this.name = name;
         this.type = type;
         this.author = author;
         this.requiredBlocks = new ArrayList<>();
         this.canBeVirtual = canBeVirtual;
         this.active = false;
+    }
+
+    /**
+     * Define the animation values with virtual crate option predefined
+     *
+     * @param name   The name of the animation
+     * @param author The author of the animation
+     * @param type   The type of the animation
+     */
+    public Animation(final String name, String author, final AnimationType type) {
+        this(name, author, type, true);
+    }
+
+    /**
+     * Define the animation values with bare minimum values.
+     *
+     * @param name   The name of the animation.
+     * @param author The author of the animation.
+     */
+    public Animation(final String name, String author) {
+        this(name, author, AnimationType.UNKNOWN, true);
     }
 
     /**
@@ -39,6 +61,17 @@ public abstract class Animation {
      * @param config The configuration of the animation
      */
     public abstract void load(CommentedConfigurationSection config);
+
+
+    /**
+     * Play an animation at a location
+     *
+     * @param loc    The location to play the animation at
+     * @param player The player who is opening the crate
+     * @param crate  The crate being opened
+     */
+    public abstract void play(@NotNull Location loc, @NotNull Player player, @NotNull Crate crate);
+
 
     /**
      * Check if a crate animation can be ran by checking the required blocks

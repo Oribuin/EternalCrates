@@ -2,11 +2,8 @@ package xyz.oribuin.eternalcrates.animation;
 
 public abstract class GuiAnimation extends Animation {
 
-    private final GuiAnimation.Type type;
-
-    public GuiAnimation(String name, String author, GuiAnimation.Type type) {
-        super(name, AnimationType.GUI, author, true);
-        this.type = type;
+    public GuiAnimation(String name, String author) {
+        super(name, author, AnimationType.GUI);
     }
 
     // TODO Add general gui animations

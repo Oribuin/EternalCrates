@@ -32,7 +32,7 @@ public class MiniMeAnimation extends MiscAnimation {
     }
 
     @Override
-    public void spawn(@NotNull Location location, @NotNull Player player, @NotNull Crate crate) {
+    public void play(@NotNull Location location, @NotNull Player player, @NotNull Crate crate) {
         final var world = location.getWorld();
         if (world == null)
             return;

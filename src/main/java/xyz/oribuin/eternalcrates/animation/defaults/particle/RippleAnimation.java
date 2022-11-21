@@ -16,12 +16,12 @@ public class RippleAnimation extends ParticleAnimation {
     private double ringNumber = 0;
 
     public RippleAnimation() {
-        super("Ripple", "Oribuin", 3);
+        super("Ripple", "Oribuin");
     }
 
     @Override
-    public List<Location> particleLocations(Location crateLocation) {
-        final var loc = crateLocation.clone().subtract(0.0, 0.5, 0.0);
+    public List<Location> particleLocations(Location location) {
+        final var loc = location.clone().subtract(0.0, 0.5, 0.0);
         return this.createCircle(loc, ringNumber);
     }
 

@@ -15,20 +15,17 @@ public class AnimationListeners implements Listener {
 
     private final NamespacedKey key = EternalCrates.getEntityKey();
 
-    public AnimationListeners(final EternalCrates plugin) {
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
-    }
-
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void onDamage(EntityDamageByEntityEvent event) {
         final var cont = event.getEntity().getPersistentDataContainer();
         final var damager = event.getDamager().getPersistentDataContainer();
-        if (cont.has(key, PersistentDataType.INTEGER) || damager.has(key, PersistentDataType.INTEGER)) {
+
+        if (cont.has(key, PersistentDataType.INTEGER) || damager.has(key, PersistentDataType.INTEGER))
             event.setCancelled(true);
-        }
+
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void onDeath(EntityDeathEvent event) {
         final var cont = event.getEntity().getPersistentDataContainer();
 
@@ -39,7 +36,7 @@ public class AnimationListeners implements Listener {
         event.getDrops().clear();
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void onChunkUnload(ChunkUnloadEvent event) {
         for (var entity : event.getChunk().getEntities()) {
             final var cont = entity.getPersistentDataContainer();
@@ -49,7 +46,7 @@ public class AnimationListeners implements Listener {
         }
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void onChange(EntityChangeBlockEvent event) {
         final var cont = event.getEntity().getPersistentDataContainer();
 

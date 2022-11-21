@@ -9,9 +9,6 @@ import org.bukkit.inventory.ItemStack;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.action.Action;
 import xyz.oribuin.eternalcrates.animation.Animation;
-import xyz.oribuin.eternalcrates.animation.MiscAnimation;
-import xyz.oribuin.eternalcrates.animation.FireworkAnimation;
-import xyz.oribuin.eternalcrates.animation.ParticleAnimation;
 import xyz.oribuin.eternalcrates.event.AnimationEndEvent;
 import xyz.oribuin.eternalcrates.event.AnimationStartEvent;
 import xyz.oribuin.eternalcrates.event.CrateOpenEvent;
@@ -83,15 +80,7 @@ public class Crate {
         final var spawnLocation = location != null ? PluginUtils.centerLocation(location) : player.getLocation();
 
         Bukkit.getPluginManager().callEvent(new AnimationStartEvent(this, this.getAnimation()));
-
-        switch (animation.getType()) {
-//            case GUI -> new SpinningGUI(plugin, this, player);
-            case PARTICLES -> ((ParticleAnimation) animation).play(spawnLocation, 1, player, this);
-            case FIREWORKS -> ((FireworkAnimation) animation).play(spawnLocation, player, this);
-            case CUSTOM, SEASONAL -> ((MiscAnimation) animation).spawn(spawnLocation, player, this);
-            case NONE -> this.finish(player, location);
-        }
-
+        animation.play(spawnLocation, player, this);
         return true;
     }
 

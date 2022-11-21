@@ -1,22 +1,31 @@
 package xyz.oribuin.eternalcrates.animation;
 
-import org.bukkit.Location;
-import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
-import xyz.oribuin.eternalcrates.crate.Crate;
-
+/**
+ * Here you can create your own animations with no restrictions.
+ * All you need to do is extend the MiscAnimation class and override the methods.
+ * <p>
+ * These animations are difficult to define in a single Category, so they are placed in their own category.
+ *
+ * @author Oribuin
+ */
 public abstract class MiscAnimation extends Animation {
 
     public MiscAnimation(String name, String author) {
-        super(name, AnimationType.MISC, author, true);
+        super(name, author, AnimationType.MISC, true);
     }
 
-    /**
-     * The function for when the player spawns
-     *
-     * @param location The location of the crate
-     * @param player   The player who is opening the crate.
-     */
-    public abstract void spawn(@NotNull Location location, @NotNull Player player, @NotNull Crate crate);
+    // Seasonal Animation Start
+    // Seasonal animations are handled in the MiscAnimation class.
+
+    public MiscAnimation(String name, String author, AnimationType type) {
+        super(name, author, type, true);
+    }
+
+    public MiscAnimation(String name, String author, AnimationType type, boolean canBeVirtual) {
+        super(name, author, type, canBeVirtual);
+    }
+
+    // Seasonal Animation End
+
 
 }

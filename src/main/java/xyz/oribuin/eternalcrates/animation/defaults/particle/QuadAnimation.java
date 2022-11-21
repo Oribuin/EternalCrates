@@ -17,14 +17,14 @@ public class QuadAnimation extends ParticleAnimation {
     private double radius = 1.0;
 
     public QuadAnimation() {
-        super("Quad", "Oribuin", 1);
+        super("Quad", "Oribuin");
     }
 
     @Override
-    public List<Location> particleLocations(Location crate) {
+    public List<Location> particleLocations(Location location) {
         final List<Location> locs = new ArrayList<>();
         int orbs = 4;
-        final var newLoc = crate.clone().subtract(0.0, 0.5, 0.0);
+        final var newLoc = location.clone().subtract(0.0, 0.5, 0.0);
         for (int i = 0; i < orbs; i++) {
             var dx = -(MathL.cos((this.step / (double) this.numSteps) * (Math.PI * 2) + (((Math.PI * 2) / orbs) * i))) * this.radius;
             var dz = -(MathL.sin((this.step / (double) this.numSteps) * (Math.PI * 2) + (((Math.PI * 2) / orbs) * i))) * this.radius;

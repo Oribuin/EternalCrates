@@ -5,7 +5,8 @@ public enum AnimationType {
     GUI, // GUI Animations
     PARTICLES, // Animations that show particles spawn in specific shapes
     MISC, // Misc animations are animations that don't fit into the other categories.
-    SEASONAL; // Animations that are centered around a holiday or season.
+    SEASONAL, // Animations that are centered around a holiday or season.
+    UNKNOWN; // For animations that shouldn't be categorized.
 
     public static AnimationType fromString(String string) {
         for (AnimationType type : AnimationType.values()) {

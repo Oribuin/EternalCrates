@@ -43,7 +43,7 @@ public class EternalCrates extends RosePlugin {
         entityKey = new NamespacedKey(this, "entity");
 
         // Register Listeners
-        this.getServer().getPluginManager().registerEvents(new AnimationListeners(this), this);
+        this.getServer().getPluginManager().registerEvents(new AnimationListeners(), this);
         this.getServer().getPluginManager().registerEvents(new CrateListeners(this), this);
         this.getServer().getPluginManager().registerEvents(new PlayerListeners(this), this);
 

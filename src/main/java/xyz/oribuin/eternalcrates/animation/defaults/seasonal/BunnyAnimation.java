@@ -27,7 +27,7 @@ public class BunnyAnimation extends MiscAnimation {
     }
 
     @Override
-    public void spawn(@NotNull Location location, @NotNull Player player, @NotNull Crate crate) {
+    public void play(@NotNull Location location, @NotNull Player player, @NotNull Crate crate) {
         List<Rabbit> rabbits = new ArrayList<>();
 
         final var world = location.getWorld();
@@ -72,6 +72,5 @@ public class BunnyAnimation extends MiscAnimation {
         this.bunnyCount = config.getInt("crate-settings.animation.bunny.count");
         this.duration = config.getInt("crate-settings.animation.duration");
     }
-
 
 }

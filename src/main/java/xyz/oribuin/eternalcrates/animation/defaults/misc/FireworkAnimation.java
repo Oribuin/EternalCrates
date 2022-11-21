@@ -1,4 +1,4 @@
-package xyz.oribuin.eternalcrates.animation;
+package xyz.oribuin.eternalcrates.animation.defaults.misc;
 
 import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
 import org.bukkit.Bukkit;
@@ -10,20 +10,24 @@ import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import xyz.oribuin.eternalcrates.EternalCrates;
+import xyz.oribuin.eternalcrates.animation.Animation;
+import xyz.oribuin.eternalcrates.animation.AnimationType;
+import xyz.oribuin.eternalcrates.animation.CustomFirework;
 import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.util.PluginUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public abstract class FireworkAnimation extends Animation {
+public class FireworkAnimation extends Animation {
 
     private final Map<Integer, CustomFirework> fireworkMap = new HashMap<>();
 
     public FireworkAnimation() {
-        super("General", AnimationType.CUSTOM, "Oribuin", true);
+        super("fireworks", "Oribuin", AnimationType.MISC);
     }
 
     @Override
@@ -32,10 +36,11 @@ public abstract class FireworkAnimation extends Animation {
 
             // First Firework Effect
             this.put("1.offset-x", 0.0);
-            this.put("1.offset-y", 0.0);
+            this.put("1.offset-y", 1.0);
             this.put("1.offset-z", 0.0);
-            this.put("1.fire-type", 0.0);
+            this.put("1.fire-type", "0");
             this.put("1.detonation-delay", 0.0);
+            this.put("1.fire-delay", 3.0);
             this.put("1.power", 0.0);
 
             // First Effect
@@ -43,7 +48,7 @@ public abstract class FireworkAnimation extends Animation {
             this.put("1.effects.1.fade-colors", List.of("#000000"));
             this.put("1.effects.1.flicker", true);
             this.put("1.effects.1.trail", true);
-            this.put("1.effects.1.type", "BALL_LARGE");
+            this.put("1.effects.1.type", "BALL");
 
             // Second Firework Effect
             this.put("2.offset-x", 0.0);
@@ -51,11 +56,12 @@ public abstract class FireworkAnimation extends Animation {
             this.put("2.offset-z", 0.0);
             this.put("2.fire-type", "0");
             this.put("2.detonation-delay", 3.0);
-            this.put("2.power", 3.0);
+            this.put("2.fire-delay", 3.0);
+            this.put("2.power", 0.0);
 
             // Second Effect
-            this.put("2.effects.1.colors", List.of("#FFFFFF"));
-            this.put("2.effects.1.fade-colors", List.of("#000000"));
+            this.put("2.effects.1.colors", List.of("#000000"));
+            this.put("2.effects.1.fade-colors", List.of("#FF0000"));
             this.put("2.effects.1.flicker", true);
             this.put("2.effects.1.trail", true);
             this.put("2.effects.1.type", "BALL_LARGE");
@@ -149,6 +155,9 @@ public abstract class FireworkAnimation extends Animation {
         Map<Integer, CustomFirework> newFireworkMap = new HashMap<>(this.fireworkMap);
 
         Bukkit.getScheduler().runTaskTimer(EternalCrates.getInstance(), task -> {
+            // remove the firework from the map if it has been played
+            List<Integer> remove = new ArrayList<>();
+
             for (var entry : newFireworkMap.entrySet()) {
                 var fireworkData = entry.getValue();
 
@@ -156,9 +165,8 @@ public abstract class FireworkAnimation extends Animation {
                 if (fireworkData.getFireDelay() != 0 && System.currentTimeMillis() - startTime > fireworkData.getFireDelay() * 1000) {
                     return;
                 }
-
                 // Remove firework from map
-                newFireworkMap.remove(entry.getKey());
+                remove.add(entry.getKey());
 
                 // Spawn the firework
                 var newLocation = loc.clone().add(fireworkData.getOffsetX(), fireworkData.getOffsetY(), fireworkData.getOffsetZ());
@@ -167,21 +175,28 @@ public abstract class FireworkAnimation extends Animation {
 
                     meta.addEffects(fireworkData.getEffects());
                     meta.setPower(fireworkData.getPower());
-                    meta.getPersistentDataContainer().set(EternalCrates.getEntityKey(), PersistentDataType.INTEGER, 1);
+                    x.getPersistentDataContainer().set(EternalCrates.getEntityKey(), PersistentDataType.INTEGER, 1);
                     x.setFireworkMeta(meta);
                 });
 
                 // Detonate the firework
-                if (fireworkData.getDetonationDelay() != 0 && System.currentTimeMillis() - startTime > fireworkData.getDetonationDelay() * 1000) {
+                double totalDelay = (fireworkData.getDetonationDelay() + fireworkData.getFireDelay()) * 1000;
+                if (fireworkData.getDetonationDelay() == 0)
                     firework.detonate();
-                }
+
+                else if (System.currentTimeMillis() - startTime > totalDelay)
+                    firework.detonate();
+
             }
 
-            if (newFireworkMap.isEmpty()) {
+
+            // check if all the firework have been played
+            if (remove.size() == newFireworkMap.size()) {
                 crate.finish(player, loc);
-                task.cancel();
                 this.setActive(false);
+                task.cancel();
             }
+
         }, 0, 1);
 
     }

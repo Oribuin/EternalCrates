@@ -38,7 +38,7 @@ public final class VectorUtils {
     /**
      * Rotates a vector around the X axis at an angle
      *
-     * @param v Starting vector
+     * @param v     Starting vector
      * @param angle How much to rotate
      * @return The starting vector rotated
      */
@@ -54,7 +54,7 @@ public final class VectorUtils {
     /**
      * Rotates a vector around the Y axis at an angle
      *
-     * @param v Starting vector
+     * @param v     Starting vector
      * @param angle How much to rotate
      * @return The starting vector rotated
      */
@@ -70,7 +70,7 @@ public final class VectorUtils {
     /**
      * Rotates a vector around the Z axis at an angle
      *
-     * @param v Starting vector
+     * @param v     Starting vector
      * @param angle How much to rotate
      * @return The starting vector rotated
      */
@@ -86,7 +86,7 @@ public final class VectorUtils {
     /**
      * Rotates a vector around the X, Y, and Z axes
      *
-     * @param v The starting vector
+     * @param v      The starting vector
      * @param angleX The change angle on X
      * @param angleY The change angle on Y
      * @param angleZ The change angle on Z
@@ -102,7 +102,7 @@ public final class VectorUtils {
     /**
      * Rotate a vector about a location using that location's direction
      *
-     * @param v The starting vector
+     * @param v        The starting vector
      * @param location The location to rotate around
      * @return The starting vector rotated
      */
@@ -112,11 +112,11 @@ public final class VectorUtils {
 
     /**
      * This handles non-unit vectors, with yaw and pitch instead of X,Y,Z angles.
-     *
+     * <p>
      * Thanks to SexyToad!
      *
-     * @param v The starting vector
-     * @param yawDegrees The yaw offset in degrees
+     * @param v            The starting vector
+     * @param yawDegrees   The yaw offset in degrees
      * @param pitchDegrees The pitch offset in degrees
      * @return The starting vector rotated
      */
