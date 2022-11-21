@@ -33,6 +33,9 @@ public class SwordsAnimation extends CustomAnimation {
 
     private double step = 0;
     private int numSteps = 80;
+    private int swordRotation = 260;
+    private int radius = 1;
+    private int swordCount = 3;
 
     public SwordsAnimation() {
         super("Swords", "Oribuin", AnimationType.CUSTOM);
@@ -45,7 +48,7 @@ public class SwordsAnimation extends CustomAnimation {
         if (world == null)
             return;
 
-        for (int i = 0; i <= 3; i++) {
+        for (int i = 0; i < this.swordCount; i++) {
             var armorStand = location.getWorld().spawn(location.clone().subtract(0.0, 0.5, 0.0), ArmorStand.class, stand -> {
                 stand.setVisible(false);
                 stand.setGravity(false);
@@ -59,7 +62,7 @@ public class SwordsAnimation extends CustomAnimation {
 
                 // make arm straight ahead
 //                stand.setLeftArmPose(new EulerAngle(260f, 0f, 0f));
-                stand.setRightArmPose(new EulerAngle(260 * Math.PI / 180, 0.0, 0.0));
+                stand.setRightArmPose(new EulerAngle(this.swordRotation * Math.PI / 180, 0.0, 0.0));
 
                 PersistentDataContainer cont = stand.getPersistentDataContainer();
                 cont.set(EternalCrates.getEntityKey(), PersistentDataType.INTEGER, 1);
@@ -115,8 +118,6 @@ public class SwordsAnimation extends CustomAnimation {
      * @param values   list of armor stands
      */
     public void animate(Location location, List<ArmorStand> values) {
-        var radius = 1; // Radius of circle
-
         // make sure they're not just standing still
         this.step = (this.step + Math.PI * 2 / this.numSteps) % this.numSteps;
 
@@ -124,8 +125,8 @@ public class SwordsAnimation extends CustomAnimation {
         for (int i = 0; i < values.size(); i++) {
             var armorStand = values.get(i);
             var angle = (2 * Math.PI / values.size()) * i + this.step;
-            var x = location.getX() + radius * Math.cos(angle);
-            var z = location.getZ() + radius * Math.sin(angle);
+            var x = location.getX() + this.radius * Math.cos(angle);
+            var z = location.getZ() + this.radius * Math.sin(angle);
 
             Location newLoc = new Location(location.getWorld(), x, location.getY() - 0.5, z);
             newLoc.setDirection(location.toVector().subtract(newLoc.toVector()));
@@ -136,16 +137,25 @@ public class SwordsAnimation extends CustomAnimation {
 
     @Override
     public Map<String, Object> getRequiredValues() {
-        return new HashMap<>();
+        return new HashMap<>() {{
+            this.put("numSteps", 80);
+            this.put("sword-rotation", 260);
+            this.put("radius", 1);
+            this.put("swordCount", 3);
+        }};
     }
 
     @Override
     public void load(CommentedConfigurationSection config) {
-        // Nothing to load here (tumbleweed passes by)
+        this.numSteps = config.getInt("crate-settings.animation.numSteps");
+        this.swordRotation = config.getInt("crate-settings.animation.sword-rotation");
+        this.radius = config.getInt("crate-settings.animation.radius");
+        this.swordCount = config.getInt("crate-settings.animation.swordCount");
     }
 
     @Override
     public void finish(Player player, Crate crate, Location location) {
         this.step = 0;
     }
+
 }
