@@ -225,10 +225,17 @@ public class CrateManager extends Manager {
         }
 
         // Get the crate type
-        final var crateType = Arrays.stream(CrateType.values())
-                .filter(x -> x.name().equalsIgnoreCase(PluginUtils.get(config, "crate-type", "PHYSICAL")))
+        var crateTypeName = config.getString("crate-settings.type");
+        var crateType = Arrays.stream(CrateType.values())
+                .filter(x -> x.name().equalsIgnoreCase(crateTypeName))
                 .findFirst()
-                .orElse(CrateType.PHYSICAL);
+                .orElse(null);
+
+        if (crateType == null) {
+            this.rosePlugin.getLogger().warning("Failed to load crate type for crate: " + name + " because [" + crateTypeName + "] is not a valid crate type, defaulting to PHYSICAL");
+            crateType = CrateType.PHYSICAL;
+        }
+
 
         // Check if the crate is a virtual crate and the animation is a physical crate animation
         if (crateType == CrateType.VIRTUAL && !animation.canBeVirtual()) {
@@ -549,7 +556,7 @@ public class CrateManager extends Manager {
             this.put("#0", "Change the general settings for the crate.");
             this.put("#1", "name - The name of the crate.");
             this.put("#2", "display-name - The display name of the crate.");
-            this.put("#3", "crate-type - The type of crate. [VIRTUAL, PHYSICAL]");
+            this.put("#3", "type - The type of crate, one uses physical items, the other doesn't [VIRTUAL, PHYSICAL]");
             this.put("#4", "max-rewards - The maximum amount of rewards a player can get from the crate.");
             this.put("#5", "min-rewards - The minimum amount of rewards a player can get from the crate.");
             this.put("#6", "multiplier - The multiplier for the rewards.");
