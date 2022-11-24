@@ -66,7 +66,7 @@ dependencies {
     compileOnly 'com.github.LoneDev6:api-itemsadder:2.5.5'
     compileOnly 'nl.knokko:customitems:9.18'
     compileOnly 'net.Indyuce:MMOItems:6.7'
-    compileOnly 'com.github.oraxen:oraxen:afc4903680'
+    compileOnly 'com.github.oraxen:oraxen:597c4a4727'
     compileOnly 'com.github.Slimefun:Slimefun4:RC-30'
     compileOnly 'thirtyvirus.uber:uberitems:2.6'
     compileOnly 'io.lumine:Mythic-Dist:5.0.1-SNAPSHOT'

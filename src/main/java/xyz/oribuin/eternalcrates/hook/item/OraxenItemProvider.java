@@ -1,6 +1,6 @@
 package xyz.oribuin.eternalcrates.hook.item;
 
-import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.api.OraxenItems;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
@@ -17,6 +17,7 @@ public class OraxenItemProvider implements ItemProvider {
         if (!this.enabled) {
             return null;
         }
+
 
         var itemBuilder = OraxenItems.getItemById(key);
         if (itemBuilder == null) {
