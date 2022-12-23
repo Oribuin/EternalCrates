@@ -1,27 +1,19 @@
 package xyz.oribuin.eternalcrates.hook.item;
 
-import io.th0rgal.oraxen.api.OraxenItems;
+import io.lumine.mythic.bukkit.MythicBukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class OraxenItemProvider implements ItemProvider {
-
+public class MythicMobsItemProvider implements ItemProvider{
     @Override
     public String getPluginName() {
-        return "Oraxen";
+        return "MythicMobs";
     }
 
     @Override
     public ItemStack getItem(@NotNull String key, @Nullable Player player) {
-
-        var itemBuilder = OraxenItems.getItemById(key);
-        if (itemBuilder == null) {
-            return null;
-        }
-
-        return itemBuilder.build();
+        return MythicBukkit.inst().getItemManager().getItemStack(key);
     }
-
 }

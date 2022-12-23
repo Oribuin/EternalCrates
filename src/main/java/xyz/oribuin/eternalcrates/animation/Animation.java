@@ -72,7 +72,6 @@ public abstract class Animation {
      */
     public abstract void play(@NotNull Location loc, @NotNull Player player, @NotNull Crate crate);
 
-
     /**
      * Check if a crate animation can be ran by checking the required blocks
      *

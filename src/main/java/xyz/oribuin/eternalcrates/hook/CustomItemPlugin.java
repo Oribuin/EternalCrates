@@ -1,7 +1,11 @@
 package xyz.oribuin.eternalcrates.hook;
 
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import xyz.oribuin.eternalcrates.hook.item.EcoItemProvider;
+import xyz.oribuin.eternalcrates.hook.item.ExecutableItemProvider;
 import xyz.oribuin.eternalcrates.hook.item.ItemBridgeItemProvider;
 import xyz.oribuin.eternalcrates.hook.item.ItemEditItemProvider;
 import xyz.oribuin.eternalcrates.hook.item.ItemProvider;
@@ -17,6 +21,7 @@ import xyz.oribuin.eternalcrates.hook.item.UberItemProvider;
  */
 public enum CustomItemPlugin {
     ECOITEMS(new EcoItemProvider()),
+    EXECUTABLEITEMS(new ExecutableItemProvider()),
     ITEMBRIDGE(new ItemBridgeItemProvider()),
     ITEMEDIT(new ItemEditItemProvider()),
     ITEMSADDER(new ItemsAdderItemProvider()),
@@ -39,9 +44,7 @@ public enum CustomItemPlugin {
      * @param text The text to parse
      * @return The custom plugin item
      */
-    public static ItemStack parse(String text) {
-        if (text == null)
-            return null;
+    public static ItemStack parse(@NotNull String text, @Nullable Player player) {
 
         var split = text.split(":");
         if (split.length != 2) {
@@ -55,17 +58,7 @@ public enum CustomItemPlugin {
         }
 
         // get item
-        return plugin.provider.getItem(split[1]);
-    }
-
-    /**
-     * Test if the text is a custom plugin item
-     *
-     * @param text The text to test
-     * @return True if the text is a custom plugin item
-     */
-    public ItemStack test(String text) {
-        return this.provider.getItem(text);
+        return plugin.provider.getItem(split[1], player);
     }
 
     /**

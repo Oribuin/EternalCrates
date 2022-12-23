@@ -3,6 +3,7 @@ package xyz.oribuin.eternalcrates.crate;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 import xyz.oribuin.eternalcrates.action.Action;
 import xyz.oribuin.eternalcrates.util.PluginUtils;
 
@@ -14,13 +15,13 @@ import java.util.List;
  */
 public class Reward {
 
-    private final String id;
-    private ItemStack itemStack;
-    private ItemStack previewItem;
-    private double chance;
-    private final List<Action> actions;
+    private final @NotNull String id; // The ID of the reward
+    private @NotNull ItemStack itemStack; // The reward itemstack
+    private @NotNull ItemStack previewItem; // The preview itemstack
+    private double chance; // The chance of the reward
+    private final @NotNull List<Action> actions; // The actions to perform when the reward is given
 
-    public Reward(String id, ItemStack itemStack, double chance) {
+    public Reward(@NotNull String id, @NotNull ItemStack itemStack, double chance) {
         this.id = id;
         this.itemStack = itemStack;
         this.previewItem = itemStack;
@@ -32,9 +33,10 @@ public class Reward {
      * Execute a reward's specific actions
      *
      * @param player The player who gets the reward
+     * @param crate The crate the reward is from
      * @param plc    The string placeholders.
      */
-    public void execute(Player player, Crate crate, StringPlaceholders plc) {
+    public void execute(@NotNull Player player, @NotNull Crate crate, @NotNull StringPlaceholders plc) {
         plc.addPlaceholder("name", crate.getName());
         plc.addPlaceholder("player", player.getName());
 
@@ -53,19 +55,19 @@ public class Reward {
      * @param player The player who gets the reward
      * @param crate  The crate the reward is from
      */
-    public void execute(Player player, Crate crate) {
+    public void execute(@NotNull Player player, @NotNull Crate crate) {
         this.execute(player, crate, StringPlaceholders.empty());
     }
 
-    public String getId() {
+    public @NotNull String getId() {
         return id;
     }
 
-    public ItemStack getItemStack() {
+    public @NotNull ItemStack getItemStack() {
         return itemStack;
     }
 
-    public void setItemStack(ItemStack itemStack) {
+    public void setItemStack(@NotNull ItemStack itemStack) {
         this.itemStack = itemStack;
     }
 
@@ -77,15 +79,15 @@ public class Reward {
         this.chance = chance;
     }
 
-    public List<Action> getActions() {
+    public @NotNull List<Action> getActions() {
         return actions;
     }
 
-    public ItemStack getPreviewItem() {
+    public @NotNull ItemStack getPreviewItem() {
         return previewItem;
     }
 
-    public void setPreviewItem(ItemStack previewItem) {
+    public void setPreviewItem(@NotNull ItemStack previewItem) {
         this.previewItem = previewItem;
     }
 }

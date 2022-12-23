@@ -42,9 +42,9 @@ public class DataManager extends AbstractDataManager {
         this.userKeys.put(player, keys);
 
         this.async(() -> this.databaseConnector.connect(connection -> {
-            try (var statement = connection.prepareStatement("UPDATE " + this.getTablePrefix() + "keys SET `items` = ? WHERE `player` = ?")) {
-                statement.setString(1, this.gson.toJson(keys));
-                statement.setString(2, player.toString());
+            try (var statement = connection.prepareStatement("REPLACE INTO " + this.getTablePrefix() + "keys (`player`, `items`) VALUES (?, ?)")) {
+                statement.setString(1, player.toString());
+                statement.setString(2, this.gson.toJson(keys));
                 statement.executeUpdate();
             }
         }));

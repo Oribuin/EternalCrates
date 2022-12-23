@@ -47,8 +47,10 @@ public class SwordsAnimation extends MiscAnimation {
         if (world == null)
             return;
 
+        final var startPoint = location.clone().subtract(0, 0.5, 0);
+
         for (int i = 0; i < this.swordCount; i++) {
-            var armorStand = location.getWorld().spawn(location.clone().subtract(0.0, 0.5, 0.0), ArmorStand.class, stand -> {
+            var armorStand = location.getWorld().spawn(startPoint, ArmorStand.class, stand -> {
                 stand.setVisible(false);
                 stand.setGravity(false);
                 stand.setSmall(true);
@@ -60,7 +62,6 @@ public class SwordsAnimation extends MiscAnimation {
                 });
 
                 // make arm straight ahead
-//                stand.setLeftArmPose(new EulerAngle(260f, 0f, 0f));
                 stand.setRightArmPose(new EulerAngle(this.swordRotation * Math.PI / 180, 0.0, 0.0));
 
                 PersistentDataContainer cont = stand.getPersistentDataContainer();
@@ -70,7 +71,7 @@ public class SwordsAnimation extends MiscAnimation {
             armorStands.add(armorStand);
         }
 
-        var animationTask = Bukkit.getScheduler().runTaskTimerAsynchronously(EternalCrates.getInstance(), () -> this.animate(location, armorStands), 0, 1);
+        var animationTask = Bukkit.getScheduler().runTaskTimer(EternalCrates.getInstance(), () -> this.animate(startPoint, armorStands), 0, 1);
 
         var items = new ArrayList<Item>();
         var rewards = crate.createRewards();
@@ -89,9 +90,8 @@ public class SwordsAnimation extends MiscAnimation {
             }
 
             var randomReward = rewards.get(0);
-            if (randomReward != null && randomReward.getPreviewItem() != null) {
-                var item = world.spawn(location.clone().add(0.0, 1.0, 0.0), Item.class, x -> {
-                    x.setItemStack(randomReward.getPreviewItem());
+            if (randomReward != null) {
+                var item = world.dropItem(location.clone().add(0.0, 1.0, 0.0), randomReward.getPreviewItem(), x -> {
                     x.setPickupDelay(Integer.MAX_VALUE);
                     x.setInvulnerable(true);
                     x.getPersistentDataContainer().set(EternalCrates.getEntityKey(), PersistentDataType.INTEGER, 1);
@@ -117,7 +117,7 @@ public class SwordsAnimation extends MiscAnimation {
      * @param values   list of armor stands
      */
     public void animate(Location location, List<ArmorStand> values) {
-        // make sure they're not just standing still
+        // TODO: This animation completely breaks when the server is using spigot, i don't know why. It works fine on paper.
         this.step = (this.step + Math.PI * 2 / this.numSteps) % this.numSteps;
 
         // spin(spin)
@@ -127,8 +127,9 @@ public class SwordsAnimation extends MiscAnimation {
             var x = location.getX() + this.radius * Math.cos(angle);
             var z = location.getZ() + this.radius * Math.sin(angle);
 
-            Location newLoc = new Location(location.getWorld(), x, location.getY() - 0.5, z);
-            newLoc.setDirection(location.toVector().subtract(newLoc.toVector()));
+            var newLoc = new Location(location.getWorld(), x, location.getY(), z);
+            var direction = newLoc.toVector().clone().subtract(location.toVector());
+            newLoc.setDirection(direction);
             armorStand.teleport(newLoc);
         }
 
@@ -137,19 +138,19 @@ public class SwordsAnimation extends MiscAnimation {
     @Override
     public Map<String, Object> getRequiredValues() {
         return new HashMap<>() {{
-            this.put("numSteps", 80);
+            this.put("num-steps", 80);
             this.put("sword-rotation", 260);
             this.put("radius", 1);
-            this.put("swordCount", 3);
+            this.put("sword-count", 3);
         }};
     }
 
     @Override
     public void load(CommentedConfigurationSection config) {
-        this.numSteps = config.getInt("crate-settings.animation.numSteps");
+        this.numSteps = config.getInt("crate-settings.animation.num-steps");
         this.swordRotation = config.getInt("crate-settings.animation.sword-rotation");
         this.radius = config.getInt("crate-settings.animation.radius");
-        this.swordCount = config.getInt("crate-settings.animation.swordCount");
+        this.swordCount = config.getInt("crate-settings.animation.sword-count");
     }
 
     @Override

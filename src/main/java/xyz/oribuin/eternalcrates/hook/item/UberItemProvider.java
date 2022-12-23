@@ -1,23 +1,20 @@
 package xyz.oribuin.eternalcrates.hook.item;
 
-import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import thirtyvirus.uber.UberItems;
 
 public class UberItemProvider implements ItemProvider {
 
-    private final boolean enabled;
-
-    public UberItemProvider() {
-        this.enabled = Bukkit.getPluginManager().isPluginEnabled("UberItems");
+    @Override
+    public String getPluginName() {
+        return "UberItems";
     }
 
     @Override
-    public ItemStack getItem(String key) {
-
-        if (!this.enabled) {
-            return null;
-        }
+    public ItemStack getItem(@NotNull String key, @Nullable Player player) {
 
         var item = UberItems.getItem(key);
         if (item != null) {

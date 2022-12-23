@@ -42,11 +42,11 @@ public class FountainAnimation extends MiscAnimation {
             crate.finish(player, rewards, location);
 
             for (int i = 0; i < rewards.size() * this.itemCount; i++) {
-                var item = world.spawn(location.clone(), Item.class, x -> {
-                    x.setItemStack(reward.getPreviewItem());
+                var item = world.dropItem(location.clone(), reward.getPreviewItem() , x -> {
                     x.setPickupDelay(Integer.MAX_VALUE);
                     x.setInvulnerable(true);
                     x.getPersistentDataContainer().set(EternalCrates.getEntityKey(), PersistentDataType.INTEGER, 1);
+                    x.setCustomNameVisible(true);
                 });
 
                 var vectorX = random.nextDouble(-0.2, 0.2);

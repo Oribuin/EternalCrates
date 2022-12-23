@@ -613,7 +613,7 @@ public class CrateManager extends Manager {
             // General Crate Settings
             this.put("crate-settings.name", "example");
             this.put("crate-settings.display-name", "Example Crate");
-            this.put("crate-settings.crate-type", "PHYSICAL");
+            this.put("crate-settings.type", "PHYSICAL");
 
             // Global Crate Rewards Settings
             this.put("crate-settings.max-rewards", 1);

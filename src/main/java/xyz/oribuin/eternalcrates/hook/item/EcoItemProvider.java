@@ -1,7 +1,10 @@
 package xyz.oribuin.eternalcrates.hook.item;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
 
@@ -28,7 +31,12 @@ public class EcoItemProvider implements ItemProvider {
     }
 
     @Override
-    public ItemStack getItem(String key) {
+    public String getPluginName() {
+        return "eco";
+    }
+
+    @Override
+    public ItemStack getItem(@NotNull String key, @Nullable Player player) {
         if (this.lookupMethod == null || this.getItemMethod == null) {
             return null;
         }

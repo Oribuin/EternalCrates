@@ -6,7 +6,7 @@ plugins {
 }
 
 group 'xyz.oribuin.eternalcrates'
-version '1.0.5-pre2'
+version '1.0.5-pre1'
 
 java {
     toolchain {
@@ -47,7 +47,8 @@ repositories {
 }
 
 dependencies {
-    compileOnly 'io.papermc.paper:paper-api:1.19.2-R0.1-SNAPSHOT'
+//    compileOnly 'io.papermc.paper:paper-api:1.19.2-R0.1-SNAPSHOT'
+    compileOnly 'org.spigotmc:spigot-api:1.19.2-R0.1-SNAPSHOT'
     compileOnly 'me.clip:placeholderapi:2.10.9'
     compileOnly 'org.jetbrains:annotations:23.0.0'
     compileOnly 'com.mojang:authlib:1.5.21'
@@ -57,10 +58,11 @@ dependencies {
     implementation 'io.github.bananapuncher714:nbteditor:7.18.2'
     implementation('dev.triumphteam:triumph-gui:3.1.3') {
         exclude group: 'com.google.code.gson', module: 'gson' // Already included in spigot-api
-        exclude group: "net.kyori", module: "*" // Already included in paper-api
     }
 
     // Custom Item Plugins
+//    compileOnly 'me.wolfyscript:customcrafting:3.16.6.2'
+//    compileOnly 'com.wolfyscript:utilities:4.16.4.1'
     compileOnly 'com.github.jojodmo:ItemBridge:master-SNAPSHOT'
     compileOnly 'com.github.emanondev:ItemEdit:2.18'
     compileOnly 'com.github.LoneDev6:api-itemsadder:2.5.5'
@@ -70,16 +72,22 @@ dependencies {
     compileOnly 'com.github.Slimefun:Slimefun4:RC-30'
     compileOnly 'thirtyvirus.uber:uberitems:2.6'
     compileOnly 'io.lumine:Mythic-Dist:5.0.1-SNAPSHOT'
+    compileOnly 'com.ssomar:executableitems:4.2.1.7'
+    compileOnly 'com.ssomar:score:1.7.1.7'
+    compileOnly 'io.lumine:Mythic-Dist:5.1.0-SNAPSHOT'
 }
 
 shadowJar {
     archiveClassifier.set(null)
-//    minimize() // This removes the IntegerRoseCommandArgumentHandler class, which is needed for the plugin to work.
+    minimize {
+        exclude(dependency("dev.rosewood:rosegarden:.*"))
+    }
 
-    relocate "org.jetbrains", "${project.group}.libs.jetbrains"
     relocate "dev.rosewood.rosegarden", "${project.group}.libs.rosegarden"
     relocate "io.github.bananapuncher714.nbteditor", "${project.group}.libs.nbteditor"
     relocate "dev.triumphteam.gui", "${project.group}.libs.triumph-gui"
+    relocate "net.kyori", "${project.group}.libs.kyori"
+
 }
 
 processResources {

@@ -1,23 +1,20 @@
 package xyz.oribuin.eternalcrates.hook.item;
 
 import emanondev.itemedit.ItemEdit;
-import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ItemEditItemProvider implements ItemProvider {
 
-    private final boolean enabled;
-
-    public ItemEditItemProvider() {
-        this.enabled = Bukkit.getPluginManager().isPluginEnabled("ItemEdit");
+    @Override
+    public String getPluginName() {
+        return "ItemEdit";
     }
 
     @Override
-    public ItemStack getItem(String key) {
-        if (!this.enabled) {
-            return null;
-        }
-
+    public ItemStack getItem(@NotNull String key, @Nullable Player player) {
         return ItemEdit.get().getServerStorage().getItem(key);
     }
 

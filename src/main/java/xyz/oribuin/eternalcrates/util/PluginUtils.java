@@ -171,12 +171,12 @@ public final class PluginUtils {
         var pluginItem = config.getString(path + ".plugin");
 
         if (pluginItem != null) {
-            return CustomItemPlugin.parse(pluginItem);
+            return CustomItemPlugin.parse(pluginItem, player);
         }
 
-        var material = Material.getMaterial(get(config, path + ".material", "STONE"));
+        var material = Material.getMaterial(get(config, path + ".material", null));
         if (material == null) {
-            return new ItemStack(Material.STONE);
+            return null;
         }
 
         // Format the item lore

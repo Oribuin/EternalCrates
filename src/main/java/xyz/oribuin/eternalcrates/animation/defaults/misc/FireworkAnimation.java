@@ -27,7 +27,7 @@ public class FireworkAnimation extends Animation {
     private final Map<Integer, CustomFirework> fireworkMap = new HashMap<>();
 
     public FireworkAnimation() {
-        super("fireworks", "Oribuin", AnimationType.MISC);
+        super("Fireworks", "Oribuin", AnimationType.MISC);
     }
 
     @Override
