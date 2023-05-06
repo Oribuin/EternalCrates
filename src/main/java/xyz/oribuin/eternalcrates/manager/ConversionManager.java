@@ -3,11 +3,14 @@ package xyz.oribuin.eternalcrates.manager;
 import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.manager.Manager;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import xyz.oribuin.eternalcrates.util.CrateUtils;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class ConversionManager extends Manager {
@@ -49,7 +52,7 @@ public class ConversionManager extends Manager {
             crateFiles = Arrays.stream(crateFiles).filter(file -> file.getName().endsWith(".yml")).toArray(File[]::new);
 
             this.rosePlugin.getLogger().severe("Found " + crateFiles.length + " crates. Transferring...");
-            var oldCrateConfigFolder = new File(newFolder, "crates");
+            File oldCrateConfigFolder = new File(newFolder, "crates");
 
             if (!oldCrateConfigFolder.exists()) {
                 oldCrateConfigFolder.mkdir();
@@ -60,16 +63,13 @@ public class ConversionManager extends Manager {
             }
         }
 
-        var data = this.rosePlugin.getManager(DataManager.class);
+        DataManager data = this.rosePlugin.getManager(DataManager.class);
         data.dropTableMigration();
         data.recreateKeys();
         data.recreateLocations();
 
         this.rosePlugin.getLogger().severe("Converting complete. Disabling plugin, You will probably see an error soon");
-        var manager = this.rosePlugin.getManager(CrateManager.class);
-        manager.createExampleCrate(crateFolder);
-
-
+        CrateUtils.createFile(this.rosePlugin, "crates", "example.yml");
         Bukkit.getPluginManager().disablePlugin(this.rosePlugin);
     }
 
@@ -79,9 +79,9 @@ public class ConversionManager extends Manager {
     }
 
     public boolean shouldConvert() {
-        final var folder = new File(this.rosePlugin.getDataFolder(), "crates");
-        final var messagesFile = new File(this.rosePlugin.getDataFolder(), "messages.yml");
-        final var files = folder.listFiles();
+        final File folder = new File(this.rosePlugin.getDataFolder(), "crates");
+        final File messagesFile = new File(this.rosePlugin.getDataFolder(), "messages.yml");
+        final File[] files = folder.listFiles();
 
         if (files == null)
             return false;
@@ -89,12 +89,12 @@ public class ConversionManager extends Manager {
 
         boolean shouldConvert = false;
 
-        var fileList = Arrays.stream(files)
+        List<File> fileList = Arrays.stream(files)
                 .filter(file -> file.getName().endsWith(".yml"))
-                .collect(Collectors.toCollection(ArrayList::new));
+                .toList();
 
-        for (var file : fileList) {
-            final var config = YamlConfiguration.loadConfiguration(file);
+        for (File file : fileList) {
+            final FileConfiguration config = YamlConfiguration.loadConfiguration(file);
             if (!config.contains("crate-settings")) {
                 shouldConvert = true;
                 break;

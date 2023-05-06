@@ -1,7 +1,5 @@
 package xyz.oribuin.eternalcrates.util;
 
-import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -9,17 +7,19 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.jetbrains.annotations.Nullable;
+import xyz.oribuin.eternalcrates.util.nms.SkullUtils;
 
-import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 public class ItemBuilder {
 
@@ -33,15 +33,20 @@ public class ItemBuilder {
         this.item = item.clone();
     }
 
+    public ItemBuilder setMaterial(Material material) {
+        this.item.setType(material);
+        return this;
+    }
+
     /**
      * Set the ItemStack's Display Name.
      *
      * @param text The text.
-     * @return ItemBuilder.
+     * @return Item.Builder.
      */
     @SuppressWarnings("deprecation")
-    public ItemBuilder setName(String text) {
-        final var meta = this.item.getItemMeta();
+    public ItemBuilder setName(@Nullable String text) {
+        final ItemMeta meta = this.item.getItemMeta();
         if (meta == null || text == null)
             return this;
 
@@ -55,11 +60,11 @@ public class ItemBuilder {
      * Set the ItemStack's Lore
      *
      * @param lore The lore
-     * @return ItemBuilder.
+     * @return Item.Builder.
      */
     @SuppressWarnings("deprecation")
-    public ItemBuilder setLore(List<String> lore) {
-        final var meta = this.item.getItemMeta();
+    public ItemBuilder setLore(@Nullable List<String> lore) {
+        final ItemMeta meta = this.item.getItemMeta();
         if (meta == null || lore == null)
             return this;
 
@@ -73,11 +78,11 @@ public class ItemBuilder {
      * Set the ItemStack's Lore
      *
      * @param lore The lore
-     * @return ItemBuilder.
+     * @return Item.Builder.
      */
     @SuppressWarnings("deprecation")
-    public ItemBuilder setLore(String... lore) {
-        final var meta = this.item.getItemMeta();
+    public ItemBuilder setLore(@Nullable String... lore) {
+        final ItemMeta meta = this.item.getItemMeta();
         if (meta == null || lore == null)
             return this;
 
@@ -91,7 +96,7 @@ public class ItemBuilder {
      * Set the ItemStack amount.
      *
      * @param amount The amount of items.
-     * @return ItemBuilder
+     * @return Item.Builder
      */
     public ItemBuilder setAmount(int amount) {
         item.setAmount(amount);
@@ -103,10 +108,10 @@ public class ItemBuilder {
      *
      * @param ench  The enchantment.
      * @param level The level of the enchantment
-     * @return ItemBuilder
+     * @return Item.Builder
      */
     public ItemBuilder addEnchant(Enchantment ench, int level) {
-        final var meta = this.item.getItemMeta();
+        final ItemMeta meta = this.item.getItemMeta();
         if (meta == null)
             return this;
 
@@ -120,7 +125,7 @@ public class ItemBuilder {
      * Remove an enchantment from an Item
      *
      * @param ench The enchantment.
-     * @return ItemBuilder
+     * @return Item.Builder
      */
     public ItemBuilder removeEnchant(Enchantment ench) {
         item.removeEnchantment(ench);
@@ -131,10 +136,10 @@ public class ItemBuilder {
      * Remove and reset the ItemStack's Flags
      *
      * @param flags The ItemFlags.
-     * @return ItemBuilder
+     * @return Item.Builder
      */
     public ItemBuilder setFlags(ItemFlag[] flags) {
-        final var meta = this.item.getItemMeta();
+        final ItemMeta meta = this.item.getItemMeta();
         if (meta == null)
             return this;
 
@@ -150,10 +155,10 @@ public class ItemBuilder {
      * Change the item's unbreakable status.
      *
      * @param unbreakable true if unbreakable
-     * @return ItemBuilder
+     * @return Item.Builder
      */
     public ItemBuilder setUnbreakable(boolean unbreakable) {
-        final var meta = this.item.getItemMeta();
+        final ItemMeta meta = this.item.getItemMeta();
         if (meta == null)
             return this;
 
@@ -164,13 +169,13 @@ public class ItemBuilder {
     /**
      * Set an item to glow.
      *
-     * @return ItemBuilder
+     * @return Item.Builder
      */
     public ItemBuilder glow(boolean b) {
         if (!b)
             return this;
 
-        final var meta = this.item.getItemMeta();
+        final ItemMeta meta = this.item.getItemMeta();
         if (meta == null)
             return this;
 
@@ -186,14 +191,14 @@ public class ItemBuilder {
      *
      * @param key   The key to the nbt
      * @param value The value of the nbt
-     * @return ItemBuilder
+     * @return Item.Builder
      */
     public ItemBuilder setNBT(Plugin plugin, String key, String value) {
-        final var meta = item.getItemMeta();
+        final ItemMeta meta = item.getItemMeta();
         if (meta == null)
             return this;
 
-        final var container = meta.getPersistentDataContainer();
+        final PersistentDataContainer container = meta.getPersistentDataContainer();
         container.set(new NamespacedKey(plugin, key), PersistentDataType.STRING, value);
         item.setItemMeta(meta);
         return this;
@@ -204,14 +209,14 @@ public class ItemBuilder {
      *
      * @param key   The key to the nbt
      * @param value The value of the nbt
-     * @return ItemBuilder
+     * @return Item.Builder
      */
     public ItemBuilder setNBT(Plugin plugin, String key, int value) {
-        final var meta = item.getItemMeta();
+        final ItemMeta meta = item.getItemMeta();
         if (meta == null)
             return this;
 
-        final var container = meta.getPersistentDataContainer();
+        final PersistentDataContainer container = meta.getPersistentDataContainer();
         container.set(new NamespacedKey(plugin, key), PersistentDataType.INTEGER, value);
         item.setItemMeta(meta);
         return this;
@@ -222,54 +227,38 @@ public class ItemBuilder {
      *
      * @param key   The key to the nbt
      * @param value The value of the nbt
-     * @return ItemBuilder
+     * @return Item.Builder
      */
     public ItemBuilder setNBT(Plugin plugin, String key, double value) {
-        final var meta = item.getItemMeta();
+        final ItemMeta meta = item.getItemMeta();
         if (meta == null)
             return this;
 
-        final var container = meta.getPersistentDataContainer();
+        final PersistentDataContainer container = meta.getPersistentDataContainer();
         container.set(new NamespacedKey(plugin, key), PersistentDataType.DOUBLE, value);
         item.setItemMeta(meta);
         return this;
     }
 
-    public ItemBuilder setTexture(String texture) {
-        if (item.getType() != Material.PLAYER_HEAD)
+    public ItemBuilder setTexture(@Nullable String texture) {
+        if (item.getType() != Material.PLAYER_HEAD || texture == null)
             return this;
 
-        if (texture == null)
-            return this;
-
-        final var skullMeta = (SkullMeta) item.getItemMeta();
+        final SkullMeta skullMeta = (SkullMeta) item.getItemMeta();
         if (skullMeta == null)
             return this;
 
-        final Field field;
-        try {
-            field = skullMeta.getClass().getDeclaredField("profile");
-            field.setAccessible(true);
-            final var profile = new GameProfile(UUID.randomUUID(), null);
-            profile.getProperties().put("textures", new Property("textures", texture));
-
-            field.set(skullMeta, profile);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
-
+        SkullUtils.setSkullTexture(skullMeta, texture);
         item.setItemMeta(skullMeta);
+
         return this;
     }
 
     public ItemBuilder setOwner(OfflinePlayer owner) {
-        if (item.getType() != Material.PLAYER_HEAD)
+        if (item.getType() != Material.PLAYER_HEAD || owner == null)
             return this;
 
-        if (owner == null)
-            return this;
-
-        final var skullMeta = (SkullMeta) item.getItemMeta();
+        final SkullMeta skullMeta = (SkullMeta) item.getItemMeta();
         if (skullMeta == null)
             return this;
 
@@ -279,8 +268,8 @@ public class ItemBuilder {
     }
 
     public ItemBuilder setModel(int model) {
-        final var meta = this.item.getItemMeta();
-        if (meta == null)
+        ItemMeta meta = this.item.getItemMeta();
+        if (meta == null || model == -1)
             return this;
 
         meta.setCustomModelData(model);

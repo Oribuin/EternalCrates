@@ -8,6 +8,8 @@ import org.jetbrains.annotations.NotNull;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.manager.DataManager;
 
+import java.util.Map;
+
 // oh yes
 public class PAPI extends PlaceholderExpansion {
 
@@ -29,11 +31,11 @@ public class PAPI extends PlaceholderExpansion {
     public String onRequest(OfflinePlayer player, @NotNull String params) {
 
         if (params.toLowerCase().startsWith("keys_")) {
-            var args = params.split("_");
+            String[] args = params.split("_");
             if (args.length < 2)
                 return "Unknown Crate";
 
-            final var keys = this.data.getUser(player.getUniqueId()).getKeys();
+            final Map<String, Integer> keys = this.data.getUser(player.getUniqueId()).getKeys();
             return String.valueOf(keys.getOrDefault(args[1], 0));
         }
         return params;
@@ -47,11 +49,7 @@ public class PAPI extends PlaceholderExpansion {
      * @return The text with the placeholders applied
      */
     public static String apply(OfflinePlayer player, String text) {
-        if (enabled) {
-            return PlaceholderAPI.setPlaceholders(player, text);
-        }
-
-        return text;
+        return enabled ? PlaceholderAPI.setPlaceholders(player, text) : text;
     }
 
     @Override
@@ -74,12 +72,8 @@ public class PAPI extends PlaceholderExpansion {
         return true;
     }
 
-    @Override
-    public boolean canRegister() {
-        return enabled;
-    }
-
     public static boolean isEnabled() {
         return enabled;
     }
+
 }

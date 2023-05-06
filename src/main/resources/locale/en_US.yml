@@ -1,0 +1,72 @@
+# en_US translation by Oribuin
+# Plugin Message Prefix
+prefix: "<g:#00B4DB:#0083B0>&l{{PLUGIN_NAME}} &8| &f"
+
+# Generic Command Messages
+no-permission: "You don't have permission for that."
+only-player: "This command can only be executed by a player."
+only-console: "This command can only be executed by console."
+unknown-command: 'Unknown command, use #00B4DB/%cmd%&f help for more info'
+# Base Command Message
+base-command-color: "&e"
+base-command-help: "&eUse &b/%cmd% help &efor command information."
+
+# Reload Command
+command-reload-description: "Reloads the plugin."
+command-reload-reloaded: "Configuration and locale files were reloaded"
+
+# Help Command
+command-help-title: "&fAvailable Commands:"
+command-help-description: "Displays the help menu."
+command-help-list-description: "&8 - #00B4DB/%cmd% %subcmd% %args% &7- %desc%"
+command-help-list-description-no-args: "&8 - #00B4DB/%cmd% %subcmd% &7- %desc%"
+
+# Animation Command
+command-animation-description: "Shows all available animations."
+command-animation-header: "All animations of type #00B4DB%type%&f:"
+command-animation-format: " &f| #00B4DB&l%name% &7by &f%author%"
+command-animation-empty: "There are no animations of this type."
+
+# Claim Command
+command-claim-description: "Claim any unclaimed crate keys."
+command-claim-no-keys: "You have no unclaimed crate keys."
+command-claim-success: "You have claimed #00B4DBx%total% &fkey(s)."
+
+# Give Command
+command-give-description: "Give a crate key to a player."
+command-give-success: "You gave #00B4DBx%amount% &l%crate% &fkey(s) &fto #00B4DB&l%player%&f."
+command-give-success-other: "You have received #00B4DBx%amount% &l%crate% &fkey(s)."
+command-give-full-inventory: "Your inventory is full, your key(s) have been placed in /crate claim."
+
+# Giveall Command
+command-giveall-description: "Give all players online crate keys."
+command-giveall-success: "You gave #00B4DBx%amount% &l%crate% &fkey(s) &fto all online players."
+
+# List Command"
+command-list-description: "List all available crates."
+command-list-header: "All available crates:"
+command-list-format: " &f| #00B4DB&l%id% &7- [&f%reward_count%&7] rewards &f| &7[&f%locations%&7]"
+
+# Preview Command
+command-preview-description: "Preview a crate."
+
+# Set Command
+command-set-description: "Set a crate location."
+command-set-success: "You have set a crate location for #00B4DB&l%crate%&f."
+command-set-no-target: "You must be looking at a chest to set a crate location."
+command-set-already-set: "The crate #00B4DB&l%crate%&f is already set at this location."
+
+# General Crate Messages
+crate-remove-success: "You have successfully removed the crate location."
+crate-open-no-keys: "You don't have an available key for this crate."
+crate-open-invalid-key: "You don't have a valid key for this crate."
+crate-open-no-slots: "You don't have enough inventory space to open this crate."
+crate-open-using-crate: "You are already using a crate."
+crate-open-animation-active: "This crate is already being opened."
+
+# Argument Handler Messages
+argument-handler-animation: "%animation% is not a valid animation."
+argument-handler-animation-type: "%type% is not a valid animation type."
+argument-handler-crate: "%crate% is not a valid crate."
+argument-handler-integer: "Integer [%input%] must be a whole number between -2^31 and 2^31-1 inclusively"
+argument-handler-player: "No Player with the username [%input%] was found online"

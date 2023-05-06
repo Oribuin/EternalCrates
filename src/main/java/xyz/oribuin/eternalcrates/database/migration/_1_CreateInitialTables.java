@@ -5,6 +5,7 @@ import dev.rosewood.rosegarden.database.DatabaseConnector;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 public class _1_CreateInitialTables extends DataMigration {
 
@@ -16,17 +17,14 @@ public class _1_CreateInitialTables extends DataMigration {
     public void migrate(DatabaseConnector connector, Connection connection, String tablePrefix) throws SQLException {
 
         // Create the required tables unclaimed keys.
-        final var itemsQuery = "CREATE TABLE IF NOT EXISTS " + tablePrefix + "keys (player VARCHAR(50), items TEXT, PRIMARY KEY(player))";
-        try (var statement = connection.prepareStatement(itemsQuery)) {
-            statement.executeUpdate();
-        }
+        final String itemsQuery = "CREATE TABLE IF NOT EXISTS " + tablePrefix + "keys (player VARCHAR(36), items TEXT, PRIMARY KEY(player))";
+        final String crateQuery = "CREATE TABLE IF NOT EXISTS " + tablePrefix + "locations (crateName VARCHAR(36), x INT, y INT, z INT, world VARCHAR(50))";
 
-        // The table for crate locations, crateName, x, y, z, world
-        final var crateQuery = "CREATE TABLE IF NOT EXISTS " + tablePrefix + "locations (crateName VARCHAR(50), x INT, y INT, z INT, world VARCHAR(50))";
-        try (var statement = connection.prepareStatement(crateQuery)) {
-            statement.executeUpdate();
+        try (Statement statement = connection.createStatement()) {
+            statement.addBatch(itemsQuery);
+            statement.addBatch(crateQuery);
+            statement.executeBatch();
         }
-
     }
 
 }

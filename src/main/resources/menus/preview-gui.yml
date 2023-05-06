@@ -1,0 +1,89 @@
+# pre-title - The title of the GUI before the page numbers are loaded
+# title - The title of the GUI
+# rows - The amount of rows in the GUI
+# scrolling-gui - Whether to use a scrolling GUI
+# scrolling-type - The type of scrolling for the GUI [HORIZONTAL, VERTICAL]
+# update-title - Whether to update the title of the GUI on load, If this is set to false, the title will be the "pre-title" option until the page is changed.
+# add-pages-asynchronously - Whether to add pages asynchronously (This will improve performance, however, it may take a few seconds for the GUI to load)
+#
+# The general options for the customising itemstacks.
+#  
+# material - The material of the reward.
+# amount - The amount of the reward.
+# name - The name of the reward.
+# lore - The lore of the reward, You can use the %description% placeholder to add the description of the tag.
+# glow - Whether the reward item should glow.
+# texture - The base64 texture of the reward item (Only for skulls), You can also use hdbLoader to load a texture if you have HeadDatabase installed.
+# potion-color - The color of the potion reward. (Only for potions)
+# model-data - The model data of the reward item. (Requires texture packs)
+# owner - The uuid of the player for the reward item (Only for skulls)
+# flags - The item flags for the reward item.
+# enchants - The enchantments for the reward item.
+#  
+# Icon Actions
+#  
+# Actions is an optional configuration option that can replace an item's functionality with a new one.
+# Available Actions: [BROADCAST, CLOSE, CONSOLE, MESSAGE, PLAYER, SOUND]
+# These actions can be defined in the `commands` section of the item, They require a ClickType to be defined.
+# Available ClickTypes: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/event/inventory/ClickType.html
+# Here is an example of how to use actions:
+# commands:
+#  LEFT:
+#    - '[message] You clicked the left button!'
+#  RIGHT:
+#    - '[message] You clicked the right button!'
+#  MIDDLE:
+#    - '[console] ban %player_name%'
+# GUI Settings
+gui-settings:
+  title: 'Crate Preview'
+  rows: 5
+  scrolling-gui: false
+  scrolling-type: HORIZONTAL
+  add-pages-asynchronously: true
+
+# Next Page Item - Changes the current page to the next page
+next-page:
+  material: PAPER
+  name: '#00B4DB&lNext Page'
+  lore:
+    - ''
+    - '&f| #00B4DBLeft-Click &7to change '
+    - '&f| &7to the next page'
+    - ''
+  slot: 7
+
+# Previous Page Item - Changes the current page to the previous page
+previous-page:
+  material: PAPER
+  name: '#00B4DB&lPrevious Page'
+  lore:
+    - ''
+    - '&f| #00B4DBLeft-Click &7to change '
+    - '&f| &7to the previous page'
+    - ''
+  slot: 1
+
+# Extra Items - Allows you to add extra items to the GUI [These are placed in the gui first]
+extra-items:
+  crate-info:
+    material: OAK_SIGN
+    name: '#00B4DB&lCrate Info'
+    lore:
+      - " &f|"
+      - " &f| #00B4DB&lName: &7%crate%"
+      - " &f| #00B4DB&lType: &7%crate_type%"
+      - " &f| #00B4DB&lRewards: &7%crate_rewards%"
+      - " &f| #00B4DB&lMin Rewards: &7%crate_min%"
+      - " &f| #00B4DB&lMax Rewards: &7%crate_max%"
+      - " &f| #00B4DB&lMultiplier: &7%crate_multiplier%"
+    slot: 4
+
+  # Border Item - The item that will be used for the border of the GUI
+  border-item:
+    enabled: true
+    material: GRAY_STAINED_GLASS_PANE
+    name: ' '
+    slots:
+      - 0-8
+      - 36-44

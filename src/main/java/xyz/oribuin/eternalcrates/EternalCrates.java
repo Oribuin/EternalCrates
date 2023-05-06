@@ -4,6 +4,8 @@ import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.manager.Manager;
 import dev.rosewood.rosegarden.utils.NMSUtil;
 import org.bukkit.NamespacedKey;
+import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.persistence.PersistentDataType;
 import xyz.oribuin.eternalcrates.hook.PAPI;
 import xyz.oribuin.eternalcrates.listener.AnimationListeners;
@@ -56,8 +58,8 @@ public class EternalCrates extends RosePlugin {
     @Override
     public void disable() {
         // Let's make sure there's no EternalCrates Entities left
-        for (var world : this.getServer().getWorlds()) {
-            for (var entity : world.getEntities()) {
+        for (World world : this.getServer().getWorlds()) {
+            for (Entity entity : world.getEntities()) {
                 if (entity.getPersistentDataContainer().has(entityKey, PersistentDataType.STRING)) {
                     entity.remove();
                 }

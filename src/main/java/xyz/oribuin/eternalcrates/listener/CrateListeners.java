@@ -2,7 +2,10 @@ package xyz.oribuin.eternalcrates.listener;
 
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import org.bukkit.Color;
+import org.bukkit.Location;
 import org.bukkit.Particle;
+import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -10,14 +13,18 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.scheduler.BukkitTask;
 import xyz.oribuin.eternalcrates.EternalCrates;
+import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.event.CrateDestroyEvent;
 import xyz.oribuin.eternalcrates.gui.PreviewGUI;
 import xyz.oribuin.eternalcrates.manager.CrateManager;
 import xyz.oribuin.eternalcrates.manager.LocaleManager;
 import xyz.oribuin.eternalcrates.manager.MenuManager;
 import xyz.oribuin.eternalcrates.particle.ParticleData;
-import xyz.oribuin.eternalcrates.util.PluginUtils;
+import xyz.oribuin.eternalcrates.util.CrateUtils;
+
+import java.util.List;
 
 public class CrateListeners implements Listener {
 
@@ -34,55 +41,49 @@ public class CrateListeners implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onCrateDestroy(BlockBreakEvent event) {
-        var player = event.getPlayer();
-        var block = event.getBlock();
+        Player player = event.getPlayer();
+        Block block = event.getBlock();
 
-        var crate = this.crateManager.getCrate(block);
-        if (crate == null) {
-            return;
-        }
+        Crate crate = this.crateManager.getCrate(block);
+        if (crate == null) return;
 
         event.setCancelled(true);
 
-        if (!event.getPlayer().isSneaking()) {
+        if (!player.isSneaking() && !player.hasPermission("eternalcrates.admin")) {
             return;
         }
 
-        if (!player.hasPermission("eternalcrates.admin")) {
-            return;
-        }
-
-        var destroyEvent = new CrateDestroyEvent(crate, player);
+        CrateDestroyEvent destroyEvent = new CrateDestroyEvent(crate, player);
         this.plugin.getServer().getPluginManager().callEvent(destroyEvent);
         if (destroyEvent.isCancelled())
             return;
 
         crate.getLocations().remove(block.getLocation());
-        this.crateManager.saveCrate(crate);
-        this.locale.sendMessage(player, "crate-remove-success", StringPlaceholders.single("crate", crate.getId()));
+        this.crateManager.saveCrate(crate, crate.getFile());
+        this.locale.sendMessage(player, "crate-remove-success", StringPlaceholders.of("crate", crate.getId()));
 
-        final var data = new ParticleData(Particle.REDSTONE);
-        data.setDustColor(Color.RED);
+        final ParticleData data = new ParticleData(Particle.REDSTONE);
+        data.setDustOptions(Color.RED);
 
-        final var cube = PluginUtils.getCube(block.getLocation().clone(), block.getLocation().clone().add(1, 1, 1), 0.5);
+        final List<Location> cube = CrateUtils.getCube(block.getLocation().clone(), block.getLocation().clone().add(1, 1, 1), 0.5);
 
         // Spawn particles in the cube and then remove them after 1.5s (35 ticks)
-        var task = this.plugin.getServer().getScheduler().runTaskTimerAsynchronously(this.plugin, () -> cube.forEach(loc -> data.spawn(player, loc, 1)), 0, 2);
+        BukkitTask task = this.plugin.getServer().getScheduler().runTaskTimerAsynchronously(this.plugin, () -> cube.forEach(loc -> data.spawn(player, loc, 1)), 0, 2);
         this.plugin.getServer().getScheduler().runTaskLater(this.plugin, task::cancel, 35);
 
     }
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onCratePreview(PlayerInteractEvent event) {
-        var player = event.getPlayer();
+        Player player = event.getPlayer();
         if (event.getHand() != EquipmentSlot.HAND || event.getAction() != Action.LEFT_CLICK_BLOCK)
             return;
 
-        var block = event.getClickedBlock();
+        Block block = event.getClickedBlock();
         if (block == null)
             return;
 
-        var crate = this.crateManager.getCrate(block);
+        Crate crate = this.crateManager.getCrate(block);
         if (crate == null) {
             return;
         }
@@ -98,16 +99,16 @@ public class CrateListeners implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onCrateOpen(PlayerInteractEvent event) {
-        var player = event.getPlayer();
+        Player player = event.getPlayer();
         if (event.getHand() != EquipmentSlot.HAND || event.getAction() != Action.RIGHT_CLICK_BLOCK)
             return;
 
-        var block = event.getClickedBlock();
+        Block block = event.getClickedBlock();
         if (block == null)
             return;
 
-        var location = block.getLocation();
-        var crate = this.crateManager.getCrate(block);
+        Location location = block.getLocation();
+        Crate crate = this.crateManager.getCrate(block);
         if (crate == null) {
             return;
         }
@@ -116,7 +117,7 @@ public class CrateListeners implements Listener {
         event.setCancelled(true);
 
         // CHeck if the user has enough slots for the items
-        if (PluginUtils.getSpareSlots(player) < crate.getMinGuiSlots()) {
+        if (CrateUtils.getSpareSlots(player) < crate.getMinGuiSlots()) {
             this.locale.sendMessage(player, "crate-open-no-slots");
             return;
         }

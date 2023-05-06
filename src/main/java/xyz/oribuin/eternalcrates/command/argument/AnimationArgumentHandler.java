@@ -6,6 +6,7 @@ import dev.rosewood.rosegarden.command.framework.RoseCommandArgumentHandler;
 import dev.rosewood.rosegarden.command.framework.RoseCommandArgumentInfo;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import xyz.oribuin.eternalcrates.animation.Animation;
+import xyz.oribuin.eternalcrates.animation.AnimationType;
 import xyz.oribuin.eternalcrates.manager.AnimationManager;
 
 import java.util.List;
@@ -19,11 +20,11 @@ public class AnimationArgumentHandler extends RoseCommandArgumentHandler<Animati
 
     @Override
     protected Animation handleInternal(RoseCommandArgumentInfo argumentInfo, ArgumentParser argumentParser) throws HandledArgumentException {
-        final var input = argumentParser.next();
-        final var animation = this.rosePlugin.getManager(AnimationManager.class).getAnimation(input);
+        final String input = argumentParser.next();
+        final Animation animation = this.rosePlugin.getManager(AnimationManager.class).getAnimation(input);
 
         if (animation == null) {
-            throw new HandledArgumentException("argument-handler-animation", StringPlaceholders.single("animation", input));
+            throw new HandledArgumentException("argument-handler-animation", StringPlaceholders.of("animation", input));
         }
 
         return animation;

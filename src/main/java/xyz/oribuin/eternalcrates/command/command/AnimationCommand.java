@@ -10,7 +10,7 @@ import xyz.oribuin.eternalcrates.animation.Animation;
 import xyz.oribuin.eternalcrates.animation.AnimationType;
 import xyz.oribuin.eternalcrates.manager.AnimationManager;
 import xyz.oribuin.eternalcrates.manager.LocaleManager;
-import xyz.oribuin.eternalcrates.util.PluginUtils;
+import xyz.oribuin.eternalcrates.util.CrateUtils;
 
 import java.util.List;
 
@@ -22,8 +22,8 @@ public class AnimationCommand extends RoseCommand {
 
     @RoseExecutable
     public void execute(CommandContext context, AnimationType type) {
-        final var manager = this.rosePlugin.getManager(AnimationManager.class);
-        final var locale = this.rosePlugin.getManager(LocaleManager.class);
+        final AnimationManager manager = this.rosePlugin.getManager(AnimationManager.class);
+        final LocaleManager locale = this.rosePlugin.getManager(LocaleManager.class);
 
         // wow this is a lot of mess
         List<Animation> animations = manager.getAnimationsFromType(type);
@@ -33,13 +33,12 @@ public class AnimationCommand extends RoseCommand {
         }
 
         // send the header for the animation type
-        locale.sendSimpleMessage(context.getSender(), "command-animation-header", StringPlaceholders.single("type", PluginUtils.formatEnum(type.name())));
-
+        locale.sendSimpleMessage(context.getSender(), "command-animation-header", StringPlaceholders.of("type", CrateUtils.formatEnum(type.name())));
 
         animations.forEach(animation -> {
-            var plc = StringPlaceholders.builder()
-                    .addPlaceholder("name", animation.getName())
-                    .addPlaceholder("author", animation.getAuthor())
+            StringPlaceholders plc = StringPlaceholders.builder()
+                    .add("name", animation.getName())
+                    .add("author", animation.getAuthor())
                     .build();
 
             locale.sendSimpleMessage(context.getSender(), "command-animation-format", plc);

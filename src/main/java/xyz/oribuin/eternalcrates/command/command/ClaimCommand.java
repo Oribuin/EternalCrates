@@ -7,9 +7,14 @@ import dev.rosewood.rosegarden.command.framework.RoseCommandWrapper;
 import dev.rosewood.rosegarden.command.framework.annotation.RoseExecutable;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.crate.CrateType;
 import xyz.oribuin.eternalcrates.manager.CrateManager;
 import xyz.oribuin.eternalcrates.manager.LocaleManager;
+
+import java.util.List;
+import java.util.Map;
 
 public class ClaimCommand extends RoseCommand {
 
@@ -19,20 +24,20 @@ public class ClaimCommand extends RoseCommand {
 
     @RoseExecutable
     public void execute(CommandContext context) {
-        var player = (Player) context.getSender();
-        var manager = this.rosePlugin.getManager(CrateManager.class);
-        var locale = this.rosePlugin.getManager(LocaleManager.class);
+        Player player = (Player) context.getSender();
+        CrateManager manager = this.rosePlugin.getManager(CrateManager.class);
+        LocaleManager locale = this.rosePlugin.getManager(LocaleManager.class);
 
-        var crates = manager.getCratesByType(CrateType.PHYSICAL);
-        var keyData = manager.getUserKeys(player.getUniqueId());
+        List<Crate> crates = manager.getCratesByType(CrateType.PHYSICAL);
+        Map<String, Integer> keyData = manager.getUserKeys(player.getUniqueId());
 
         int totalClaimed = 0;
-        for (var crate : crates) {
-            var amount = keyData.get(crate.getId());
+        for (Crate crate : crates) {
+            Integer amount = keyData.get(crate.getId());
             if (amount == null || amount == 0)
                 continue;
 
-            var key = crate.getKey().clone();
+            ItemStack key = crate.getKey().clone();
             key.setAmount(amount);
 
             if (player.getInventory().firstEmpty() == -1) {

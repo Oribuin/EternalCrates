@@ -4,6 +4,9 @@ import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
+import org.bukkit.Particle.DustOptions;
+import org.bukkit.Particle.DustTransition;
+import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -13,77 +16,39 @@ import javax.annotation.Nullable;
 public class ParticleData {
 
     // General particle data
-    private final Particle particle;
-    private Color dustColor;
-    private Color transitionColor;
-    private int note;
-    private Material itemMaterial;
-    private Material blockMaterial;
-
-    // Cached particle data
-    private boolean isCached;
+    private Particle particle;
     private Particle.DustOptions dustOptions;
     private Particle.DustTransition dustTransition;
     private BlockData materialData;
     private ItemStack itemStackData;
+    private int note;
 
     public ParticleData(final Particle particle) {
         this.particle = particle;
-        this.dustColor = Color.AQUA;
-        this.transitionColor = Color.WHITE;
-        this.note = 0;
-        this.itemMaterial = Material.DIRT;
-        this.blockMaterial = Material.DIRT;
-
-        this.isCached = false;
-        this.dustOptions = null;
-        this.dustTransition = null;
-        this.materialData = null;
-        this.itemStackData = null;
-    }
-
-    /**
-     * Create the particle data for the player.
-     */
-    public ParticleData cacheParticleData() {
-        this.dustOptions = new Particle.DustOptions(this.dustColor, 1f);
-        this.dustTransition = new Particle.DustTransition(this.dustColor, this.transitionColor, 1f);
-        this.materialData = (this.blockMaterial.isBlock() ? this.blockMaterial : Material.BLACK_WOOL).createBlockData();
-        this.itemStackData = new ItemStack(this.itemMaterial.isItem() ? this.itemMaterial : Material.BLACK_WOOL);
-        this.isCached = true;
-
-        return this;
+        this.dustOptions = new DustOptions(Color.AQUA, 1);
+        this.dustTransition = new DustTransition(Color.AQUA, Color.WHITE, 1);
+        this.materialData = Material.BLACK_WOOL.createBlockData();
+        this.itemStackData = new ItemStack(Material.BLACK_WOOL);
     }
 
     public void spawn(@Nullable Player player, Location loc, int count, double offsetX, double offsetY, double offsetZ) {
 
-        final var world = loc.getWorld();
+        final World world = loc.getWorld();
         if (world == null)
             return;
-
-        if (!this.isCached) {
-            this.cacheParticleData();
-        }
 
         AbstractParticleSpawner spawner = (player == null ? new WorldParticleSpawner(world) : new PlayerParticleSpawner(player));
 
         switch (this.particle.name()) {
             // Dust Particle.
             case "REDSTONE" -> spawner.spawnParticle(this.particle, loc, count, offsetX, offsetY, offsetZ, this.dustOptions);
-
-            // Spawn Dust Transition particles.
             case "DUST_COLOR_TRANSITION" -> spawner.spawnParticle(this.particle, loc, count, offsetX, offsetY, offsetZ, this.dustTransition);
 
             // Spawn in Spell Mob Particles
-            case "SPELL_MOB" -> spawner.spawnParticle(this.particle, loc, 0, this.dustColor.getRed() / 255.0, this.dustColor.getGreen() / 255.0, this.dustColor.getBlue() / 255.0, 1.0);
-            case "SPELL_MOB_AMBIENT" -> spawner.spawnParticle(this.particle, loc, 0, this.dustColor.getRed() / 255.0, this.dustColor.getGreen() / 255.0, this.dustColor.getBlue() / 255.0, 1.0);
-
+            case "SPELL_MOB", "SPELL_MOB_AMBIENT" -> spawner.spawnParticle(this.particle, loc, 0, this.dustOptions.getColor().getRed() / 255.0, this.dustOptions.getColor().getGreen() / 255.0, this.dustOptions.getColor().getBlue() / 255.0, 1.0);
             case "BLOCK_CRACK", "BLOCK_DUST", "FALLING_DUST", "BLOCK_MARKER" -> spawner.spawnParticle(this.particle, loc, count, offsetX, offsetY, offsetZ, 0, this.materialData);
-
             case "ITEM_CRACK" -> spawner.spawnParticle(this.particle, loc, count, offsetX, offsetY, offsetZ, 0, this.itemStackData);
-
             case "NOTE" -> spawner.spawnParticle(this.particle, loc, 0, this.note / 24.0, 0, 0, 1);
-
             case "VIBRATION", "SKULK_CHARGE", "SHRIEK" -> {
                 // fuck these particles
             }
@@ -97,63 +62,102 @@ public class ParticleData {
         this.spawn(player, loc, count, 0.0, 0.0, 0.0);
     }
 
-
     public Particle getParticle() {
         return particle;
     }
 
-    public Color getDustColor() {
-        return dustColor;
-    }
-
-    public ParticleData setDustColor(Color dustColor) {
-        this.dustColor = dustColor;
+    public ParticleData setParticle(final Particle particle) {
+        this.particle = particle;
         return this;
     }
 
-    public Color getTransitionColor() {
-        return transitionColor;
+    public DustOptions getDustOptions() {
+        return dustOptions;
     }
 
-    public ParticleData setTransitionColor(Color transitionColor) {
-        this.transitionColor = transitionColor;
+    public ParticleData setDustOptions(final Color color) {
+        if (color == null)
+            return this;
+
+        this.dustOptions = new DustOptions(color, 1f);
         return this;
     }
+
+    public ParticleData setDustOptions(final DustOptions dustOptions) {
+        if (dustOptions == null)
+            return this;
+
+        this.dustOptions = dustOptions;
+        return this;
+    }
+
+
+    public DustTransition getDustTransition() {
+        return dustTransition;
+    }
+
+    public ParticleData setDustTransition(final Color color1, final Color color2) {
+        if (color1 == null || color2 == null)
+            return this;
+
+        this.dustTransition = new DustTransition(color1, color2, 1f);
+        return this;
+    }
+
+    public ParticleData setDustTransition(final DustTransition dustTransition) {
+        if (dustTransition == null)
+            return this;
+
+        this.dustTransition = dustTransition;
+        return this;
+    }
+
+    public BlockData getMaterialData() {
+        return materialData;
+    }
+
+    public ParticleData setMaterialData(final Material materialData) {
+        if (materialData == null)
+            return this;
+
+        this.materialData = materialData.createBlockData();
+        return this;
+    }
+
+    public ParticleData setMaterialData(final BlockData materialData) {
+        this.materialData = materialData;
+        return this;
+    }
+
+    public ItemStack getItemStackData() {
+        return itemStackData;
+    }
+
+    public ParticleData setItemStackData(final Material materialData) {
+        if (materialData == null)
+            return this;
+
+        this.itemStackData = new ItemStack(materialData);
+        return this;
+    }
+
+    public ParticleData setItemStackData(final ItemStack itemStackData) {
+        if (itemStackData == null)
+            return this;
+
+        this.itemStackData = itemStackData;
+        return this;
+    }
+
 
     public int getNote() {
-        return this.note;
+        return note;
     }
 
-    public ParticleData setNote(int note) {
+    public ParticleData setNote(final int note) {
         this.note = note;
         return this;
     }
 
-    public Material getItemMaterial() {
-        return itemMaterial;
-    }
-
-    public ParticleData setItemMaterial(Material itemMaterial) {
-        this.itemMaterial = itemMaterial;
-        return this;
-    }
-
-    public Material getBlockMaterial() {
-        return blockMaterial;
-    }
-
-    public ParticleData setBlockMaterial(Material blockMaterial) {
-        this.blockMaterial = blockMaterial;
-        return this;
-    }
-
-    public ParticleData clone() {
-        return new ParticleData(this.particle)
-                .setDustColor(this.dustColor)
-                .setTransitionColor(this.transitionColor)
-                .setNote(this.note)
-                .setItemMaterial(this.itemMaterial)
-                .setBlockMaterial(this.blockMaterial);
-    }
 
 }

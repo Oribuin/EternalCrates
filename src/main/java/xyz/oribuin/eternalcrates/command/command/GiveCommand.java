@@ -19,16 +19,16 @@ public class GiveCommand extends RoseCommand {
 
     @RoseExecutable
     public void execute(CommandContext context, Crate crate, Player player, int amount) {
-        final var manager = this.rosePlugin.getManager(CrateManager.class);
+        final CrateManager manager = this.rosePlugin.getManager(CrateManager.class);
 
         switch (crate.getType()) {
             case PHYSICAL -> manager.givePhysicalKey(player, crate, amount);
             case VIRTUAL -> manager.giveVirtualKey(player, crate, amount);
         }
 
-        final var placeholders = StringPlaceholders.builder("crate", crate.getName())
-                .addPlaceholder("amount", amount)
-                .addPlaceholder("player", player.getName())
+        final StringPlaceholders placeholders = StringPlaceholders.builder("crate", crate.getName())
+                .add("amount", amount)
+                .add("player", player.getName())
                 .build();
 
         this.rosePlugin.getManager(LocaleManager.class).sendMessage(context.getSender(), "command-give-success", placeholders);

@@ -7,9 +7,14 @@ import dev.rosewood.rosegarden.command.framework.RoseCommandWrapper;
 import dev.rosewood.rosegarden.command.framework.annotation.RoseExecutable;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.manager.CrateManager;
 import xyz.oribuin.eternalcrates.manager.LocaleManager;
+
+import java.lang.invoke.CallSite;
+import java.util.Collection;
+import java.util.List;
 
 public class GiveAllCommand extends RoseCommand {
 
@@ -19,19 +24,20 @@ public class GiveAllCommand extends RoseCommand {
 
     @RoseExecutable
     public void execute(CommandContext context, Crate crate, int amount) {
-        final var manager = this.rosePlugin.getManager(CrateManager.class);
-        final var players = Bukkit.getOnlinePlayers();
+        final CrateManager manager = this.rosePlugin.getManager(CrateManager.class);
+        final Collection<? extends Player> players = Bukkit.getOnlinePlayers();
 
-        for (var player : players) {
+
+        for (Player player : players) {
             switch (crate.getType()) {
                 case PHYSICAL -> manager.givePhysicalKey(player, crate, amount);
                 case VIRTUAL -> manager.giveVirtualKey(player, crate, amount);
             }
         }
 
-        final var placeholders = StringPlaceholders.builder("crate", crate.getName())
-                .addPlaceholder("amount", amount)
-                .addPlaceholder("total", players.size())
+        final StringPlaceholders placeholders = StringPlaceholders.builder("crate", crate.getName())
+                .add("amount", amount)
+                .add("total", players.size())
                 .build();
 
         this.rosePlugin.getManager(LocaleManager.class).sendMessage(context.getSender(), "command-giveall-success", placeholders);

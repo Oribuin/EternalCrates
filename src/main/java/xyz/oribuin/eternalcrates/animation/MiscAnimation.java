@@ -14,9 +14,6 @@ public abstract class MiscAnimation extends Animation {
         super(name, author, AnimationType.MISC, true);
     }
 
-    // Seasonal Animation Start
-    // Seasonal animations are handled in the MiscAnimation class.
-
     public MiscAnimation(String name, String author, AnimationType type) {
         super(name, author, type, true);
     }
@@ -24,8 +21,5 @@ public abstract class MiscAnimation extends Animation {
     public MiscAnimation(String name, String author, AnimationType type, boolean canBeVirtual) {
         super(name, author, type, canBeVirtual);
     }
-
-    // Seasonal Animation End
-
 
 }

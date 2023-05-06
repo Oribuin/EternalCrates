@@ -8,13 +8,12 @@ import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.PaginatedGui;
 import dev.triumphteam.gui.guis.ScrollingGui;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import xyz.oribuin.eternalcrates.util.PluginUtils;
+import xyz.oribuin.eternalcrates.util.CrateUtils;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.Map;
 
 public abstract class PluginMenu {
 
@@ -26,13 +25,6 @@ public abstract class PluginMenu {
     }
 
     /**
-     * Get the default config values for the GUI
-     *
-     * @return The default config values
-     */
-    public abstract Map<String, Object> getDefaultValues();
-
-    /**
      * @return The name of the GUI
      */
     public abstract String getMenuName();
@@ -40,35 +32,10 @@ public abstract class PluginMenu {
     /**
      * Create the menu file if it doesn't exist and add the default values
      */
-    public final void load() {
-        final var folder = new File(this.rosePlugin.getDataFolder(), "menus");
-        var newFile = false;
-        if (!folder.exists()) {
-            folder.mkdirs();
-        }
-
-        final var file = new File(folder, this.getMenuName() + ".yml");
-        try {
-            if (!file.exists()) {
-                file.createNewFile();
-                newFile = true;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        this.config = CommentedFileConfiguration.loadConfiguration(file);
-        if (newFile) {
-            this.getDefaultValues().forEach((path, object) -> {
-                if (path.startsWith("#")) {
-                    this.config.addPathedComments(path, (String) object);
-                } else {
-                    this.config.set(path, object);
-                }
-            });
-        }
-
-        this.config.save();
+    public void load() {
+        File menuFile = CrateUtils.createFile(this.rosePlugin, "menus", this.getMenuName() + ".yml");
+        this.config = CommentedFileConfiguration.loadConfiguration(menuFile);
+        this.config.save(menuFile);
     }
 
 
@@ -80,12 +47,12 @@ public abstract class PluginMenu {
      */
     protected final @NotNull PaginatedGui createPagedGUI(Player player) {
 
-        final var rows = this.config.getInt("gui-settings.rows");
-        final var title = this.config.getString("gui-settings.title");
+        final int rows = this.config.getInt("gui-settings.rows");
+        final String preTitle = this.config.getString("gui-settings.pre-title", "EternalTags");
 
         return Gui.paginated()
                 .rows(rows == 0 ? 6 : rows)
-                .title(this.format(player, title == null ? "Missing Title" : title))
+                .title(this.format(player, preTitle))
                 .disableAllInteractions()
                 .create();
     }
@@ -97,12 +64,12 @@ public abstract class PluginMenu {
      * @return The created GUI
      */
     protected final @NotNull Gui createGUI(Player player) {
-        final var rows = this.config.getInt("gui-settings.rows");
-        final var title = this.config.getString("gui-settings.title");
+        final int rows = this.config.getInt("gui-settings.rows");
+        final String preTitle = this.config.getString("gui-settings.pre-title", "EternalTags");
 
         return Gui.gui()
                 .rows(rows == 0 ? 6 : rows)
-                .title(this.format(player, title == null ? "Missing Title" : title))
+                .title(this.format(player, preTitle))
                 .disableAllInteractions()
                 .create();
     }
@@ -115,14 +82,14 @@ public abstract class PluginMenu {
      */
     protected final @NotNull ScrollingGui createScrollingGui(Player player, ScrollType scrollType) {
 
-        final var rows = this.config.getInt("gui-settings.rows");
-        final var title = this.config.getString("gui-settings.title");
+        final int rows = this.config.getInt("gui-settings.rows");
+        final String preTitle = this.config.getString("gui-settings.pre-title", "EternalTags");
 
         return Gui.scrolling()
                 .scrollType(scrollType)
                 .rows(rows == 0 ? 6 : rows)
                 .pageSize(0)
-                .title(this.format(player, title == null ? "Missing Title" : title))
+                .title(this.format(player, preTitle))
                 .disableAllInteractions()
                 .create();
     }
@@ -135,7 +102,7 @@ public abstract class PluginMenu {
      * @return The formatted string
      */
     protected final Component format(Player player, String text) {
-        return Component.text(PluginUtils.format(player, text));
+        return Component.text(CrateUtils.format(player, text));
     }
 
     /**
@@ -147,7 +114,7 @@ public abstract class PluginMenu {
      * @return The formatted string
      */
     protected final Component format(Player player, String text, StringPlaceholders placeholders) {
-        return Component.text(PluginUtils.format(player, text, placeholders));
+        return Component.text(CrateUtils.format(player, text, placeholders));
     }
 
     /**
@@ -158,7 +125,7 @@ public abstract class PluginMenu {
      * @return The formatted string
      */
     protected final String formatString(Player player, String text) {
-        return PluginUtils.format(player, text);
+        return CrateUtils.format(player, text);
     }
 
     /**
@@ -170,7 +137,45 @@ public abstract class PluginMenu {
      * @return The formatted string
      */
     protected final String formatString(Player player, String text, StringPlaceholders placeholders) {
-        return PluginUtils.format(player, text, placeholders);
+        return CrateUtils.format(player, text, placeholders);
+    }
+
+    /**
+     * Get the page placeholders for the gui
+     *
+     * @param gui The gui
+     * @return The page placeholders
+     */
+    protected StringPlaceholders getPagePlaceholders(PaginatedGui gui) {
+        return StringPlaceholders.builder()
+                .add("page", gui.getCurrentPageNum())
+                .add("total", Math.max(gui.getPagesNum(), 1))
+                .add("next", gui.getNextPageNum())
+                .add("previous", gui.getPrevPageNum())
+                .build();
+
+    }
+
+    public final void async(Runnable runnable) {
+        Bukkit.getScheduler().runTaskAsynchronously(this.rosePlugin, runnable);
+    }
+
+    public final void sync(Runnable runnable) {
+        Bukkit.getScheduler().runTask(this.rosePlugin, runnable);
+    }
+
+    /**
+     * @return Whether the title should be updated (Used for page placeholders)
+     */
+    public boolean reloadTitle() {
+        return this.config.getBoolean("gui-settings.update-title", true);
+    }
+
+    /**
+     * @return Whether the gui should be updated asynchronously
+     */
+    public boolean addPagesAsynchronously() {
+        return this.config.getBoolean("gui-settings.add-pages-asynchronously", true);
     }
 
 }

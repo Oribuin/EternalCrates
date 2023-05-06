@@ -13,8 +13,9 @@ import xyz.oribuin.eternalcrates.event.AnimationEndEvent;
 import xyz.oribuin.eternalcrates.event.AnimationStartEvent;
 import xyz.oribuin.eternalcrates.event.CrateOpenEvent;
 import xyz.oribuin.eternalcrates.manager.CrateManager;
-import xyz.oribuin.eternalcrates.util.PluginUtils;
+import xyz.oribuin.eternalcrates.util.CrateUtils;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,30 +24,32 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class Crate {
 
-    private final String id;
-    private String name;
-    private Map<String, Reward> rewardMap;
-    private Animation animation;
-    private List<Location> locations;
-    private ItemStack key;
-    private int maxRewards;
-    private int minRewards;
-    private int minGuiSlots;
-    private int multiplier;
-    private CommentedFileConfiguration config;
-    private List<Action> openActions;
-    private CrateType type;
+    private final String id; // The id of the crate.
+    private String name; // The name of the crate.
+    private Map<String, Reward> rewardMap; // The rewards for the crate.
+    private Animation animation; // The animation to play when a crate is opened.
+    private List<Location> locations; // The locations of the crate.
+    private ItemStack key; // The key to open the crate.
+    private int maxRewards; // The maximum amount of rewards to give.
+    private int minRewards;  // The minimum amount of rewards to give.
+    private int minGuiSlots; // The minimum amount of slots in the GUI.
+    private int multiplier; // The multiplier for the rewards.
+    private CommentedFileConfiguration config; // The config where the crate is stored.
+    private List<Action> openActions; // The actions to run when a crate is opened.
+    private CrateType type; // The type of crate.
+    private File file; // The file where the crate is stored.
 
     public Crate(final String id) {
         this.id = id;
-        this.setName(id);
-        this.setRewardMap(new HashMap<>());
-        this.setAnimation(null);
+        this.name = id;
+        this.rewardMap = new HashMap<>();
+        this.animation = null;
         this.locations = new ArrayList<>();
         this.multiplier = 1;
         this.maxRewards = 1;
         this.minRewards = 1;
         this.minGuiSlots = this.maxRewards;
+        this.file = null;
         this.config = null;
         this.openActions = new ArrayList<>();
         this.type = CrateType.PHYSICAL;
@@ -62,14 +65,14 @@ public class Crate {
         if (this.getAnimation().isBlockRequired(location))
             return false;
 
-        final var event = new CrateOpenEvent(this, player);
+        final CrateOpenEvent event = new CrateOpenEvent(this, player);
         Bukkit.getPluginManager().callEvent(event);
         if (event.isCancelled())
             return false;
 
-        final var plc = StringPlaceholders.builder()
-                .addPlaceholder("player", player.getName())
-                .addPlaceholder("add", this.getName())
+        final StringPlaceholders plc = StringPlaceholders.builder()
+                .add("player", player.getName())
+                .add("add", this.getName())
                 .build();
 
         this.openActions.forEach(action -> action.execute(player, plc));
@@ -77,7 +80,7 @@ public class Crate {
         EternalCrates.getInstance().getManager(CrateManager.class).getActiveUsers().add(player.getUniqueId());
 
         // The crate location or the player location.
-        final var spawnLocation = location != null ? PluginUtils.centerLocation(location) : player.getLocation();
+        final Location spawnLocation = location != null ? CrateUtils.centerLocation(location) : player.getLocation();
 
         Bukkit.getPluginManager().callEvent(new AnimationStartEvent(this, this.getAnimation()));
         animation.play(spawnLocation, player, this);
@@ -130,10 +133,10 @@ public class Crate {
         // https://stackoverflow.com/a/28711505
         Map<Reward, Double> chanceMap = new HashMap<>();
         this.rewardMap.forEach((integer, reward) -> chanceMap.put(reward, reward.getChance()));
-        var sumOfPercentages = chanceMap.values().stream().reduce(0.0, Double::sum);
-        var current = 0;
-        var randomNumber = ThreadLocalRandom.current().nextDouble(sumOfPercentages);
-        for (var entry : chanceMap.entrySet()) {
+        double sumOfPercentages = chanceMap.values().stream().reduce(0.0, Double::sum);
+        int current = 0;
+        double randomNumber = ThreadLocalRandom.current().nextDouble(sumOfPercentages);
+        for (Map.Entry<Reward, Double> entry : chanceMap.entrySet()) {
             current += entry.getValue();
             if (randomNumber > current)
                 continue;
@@ -243,4 +246,13 @@ public class Crate {
     public void setType(CrateType type) {
         this.type = type;
     }
+
+    public File getFile() {
+        return file;
+    }
+
+    public void setFile(final File file) {
+        this.file = file;
+    }
+
 }

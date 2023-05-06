@@ -2,15 +2,17 @@ package xyz.oribuin.eternalcrates.animation;
 
 import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.particle.ParticleData;
-import xyz.oribuin.eternalcrates.util.PluginUtils;
+import xyz.oribuin.eternalcrates.util.CrateUtils;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -48,7 +50,7 @@ public abstract class ParticleAnimation extends Animation {
      * @param crate  The crate being opened
      */
     public void play(@NotNull Location loc, @NotNull Player player, @NotNull Crate crate) {
-        final var task = Bukkit.getScheduler().runTaskTimerAsynchronously(EternalCrates.getInstance(), () -> {
+        final BukkitTask task = Bukkit.getScheduler().runTaskTimerAsynchronously(EternalCrates.getInstance(), () -> {
             this.updateTimer();
             this.particleLocations(loc.clone()).forEach(location -> particleData.spawn(player, location, 1));
         }, 0, this.speed);
@@ -79,16 +81,19 @@ public abstract class ParticleAnimation extends Animation {
         this.speed = config.getInt("speed");
         this.length = config.getInt("length");
 
-        var particle = Arrays.stream(Particle.values()).filter(x -> x.name().equalsIgnoreCase(config.getString("crate-settings.animation.particle")))
+        Particle particle = Arrays.stream(Particle.values())
+                .filter(x -> x.name().equalsIgnoreCase(config.getString("crate-settings.animation.particle")))
                 .findFirst()
                 .orElse(Particle.FLAME);
 
+        Color baseColor = CrateUtils.fromHex(config.getString("crate-settings.animation.color"));
+
         this.particleData = new ParticleData(particle)
-                .setDustColor(PluginUtils.fromHex(config.getString("crate-settings.animation.color")))
-                .setTransitionColor(PluginUtils.fromHex(config.getString("crate-settings.animation.transition")))
+                .setDustOptions(baseColor)
+                .setDustTransition(baseColor, CrateUtils.fromHex(config.getString("crate-settings.animation.transition")))
                 .setNote(config.getInt("crate-settings.animation.note"))
-                .setItemMaterial(Material.matchMaterial(config.getString("crate-settings.animation.item", "STONE")))
-                .setBlockMaterial(Material.matchMaterial(config.getString("crate-settings.animation.block", "STONE")));
+                .setItemStackData(Material.matchMaterial(config.getString("crate-settings.animation.item", "BLACK_WOOL")))
+                .setMaterialData(Material.matchMaterial(config.getString("crate-settings.animation.block", "BLACK_WOOL")));
     }
 
     public ParticleData getParticleData() {

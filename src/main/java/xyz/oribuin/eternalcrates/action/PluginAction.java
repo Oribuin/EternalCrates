@@ -1,11 +1,14 @@
 package xyz.oribuin.eternalcrates.action;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -19,11 +22,9 @@ public final class PluginAction {
         registerAction("broadcast", BroadcastAction::new);
         registerAction("close", CloseAction::new);
         registerAction("console", ConsoleAction::new);
-        registerAction("give", GiveAction::new);
         registerAction("message", MessageAction::new);
         registerAction("player", PlayerAction::new);
         registerAction("sound", SoundAction::new);
-//        registerAction("title", TitleAction::new);
     }
 
     /**
@@ -44,11 +45,7 @@ public final class PluginAction {
      * @param actionSupplier Supplier to create the action
      */
     public static void registerAction(String name, Supplier<Action> actionSupplier) {
-        registerAction(name, s -> {
-            var action = actionSupplier.get();
-            action.setMessage(s);
-            return action;
-        });
+        registerAction(name, s -> actionSupplier.get().setMessage(s));
     }
 
     /**
@@ -57,22 +54,29 @@ public final class PluginAction {
      * @param text Text to parse
      * @return Action associated with the text
      */
-    public static Optional<Action> parse(String text) {
+    public static @Nullable Action parse(String text) {
         // Check if the text matches the pattern ("[<action>] <message>") and get the action and message
-        final var matcher = ACTION_PATTERN.matcher(text);
+        final Matcher matcher = ACTION_PATTERN.matcher(text);
         if (!matcher.find()) {
-            return Optional.empty();
+            return null;
         }
-        final var actionName = matcher.group(1).toLowerCase(Locale.ROOT); // toLowerCase to avoid case-sensitive issues
-        final var actionText = matcher.group(2);
 
-        var optional = Optional.ofNullable(ACTIONS.get(actionName));
+        final String actionName = matcher.group(1).toLowerCase(Locale.ROOT); // toLowerCase to avoid case-sensitive issues
+        final String actionText = matcher.group(2);
 
-        if (optional.isEmpty())
-            return Optional.empty();
+        Function<String, Action> action = ACTIONS.get(actionName);
 
-        var action = optional.get().apply(actionText);
-        return Optional.of(action);
+        if (action == null)
+            return null;
+
+        return action.apply(actionText);
     }
 
+    @Nullable
+    public static  String getName(Action action) {
+        return ACTIONS.entrySet().stream().filter(entry -> entry.getKey().equalsIgnoreCase(action.getName()))
+                .findFirst()
+                .map(Map.Entry::getKey)
+                .orElse(null);
+    }
 }

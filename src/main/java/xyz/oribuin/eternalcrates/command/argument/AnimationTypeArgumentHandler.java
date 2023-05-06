@@ -18,11 +18,11 @@ public class AnimationTypeArgumentHandler extends RoseCommandArgumentHandler<Ani
 
     @Override
     protected AnimationType handleInternal(RoseCommandArgumentInfo argumentInfo, ArgumentParser argumentParser) throws HandledArgumentException {
-        final var input = argumentParser.next();
-        final var type = AnimationType.fromString(input);
+        final String input = argumentParser.next();
+        final AnimationType type = AnimationType.fromString(input);
 
         if (type == null) {
-            throw new HandledArgumentException("argument-handler-animation-type", StringPlaceholders.single("type", input));
+            throw new HandledArgumentException("argument-handler-animation-type", StringPlaceholders.of("type", input));
         }
 
         return type;

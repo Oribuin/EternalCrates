@@ -3,9 +3,10 @@ package xyz.oribuin.eternalcrates.crate;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import xyz.oribuin.eternalcrates.action.Action;
-import xyz.oribuin.eternalcrates.util.PluginUtils;
+import xyz.oribuin.eternalcrates.util.CrateUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,20 +34,21 @@ public class Reward {
      * Execute a reward's specific actions
      *
      * @param player The player who gets the reward
-     * @param crate The crate the reward is from
+     * @param crate  The crate the reward is from
      * @param plc    The string placeholders.
      */
-    public void execute(@NotNull Player player, @NotNull Crate crate, @NotNull StringPlaceholders plc) {
-        plc.addPlaceholder("name", crate.getName());
-        plc.addPlaceholder("player", player.getName());
+    @SuppressWarnings("deprecation")
+    public void execute(@NotNull Player player, @NotNull Crate crate, @NotNull StringPlaceholders.Builder plc) {
+        plc.add("name", crate.getName());
+        plc.add("player", player.getName());
 
-        var item = this.getItemStack();
+        ItemStack item = this.getItemStack();
         if (item.getItemMeta() != null) {
-            var meta = item.getItemMeta();
-            plc.addPlaceholder("reward", meta.hasDisplayName() ? meta.getDisplayName() : PluginUtils.formatEnum(item.getType().name()));
+            ItemMeta meta = item.getItemMeta();
+            plc.add("reward", meta.hasDisplayName() ? meta.getDisplayName() : CrateUtils.formatEnum(item.getType().name()));
         }
 
-        this.getActions().forEach(action -> action.execute(this, player, plc));
+        this.getActions().forEach(action -> action.execute(player, plc.build()));
     }
 
     /**
@@ -56,7 +58,7 @@ public class Reward {
      * @param crate  The crate the reward is from
      */
     public void execute(@NotNull Player player, @NotNull Crate crate) {
-        this.execute(player, crate, StringPlaceholders.empty());
+        this.execute(player, crate, StringPlaceholders.builder());
     }
 
     public @NotNull String getId() {

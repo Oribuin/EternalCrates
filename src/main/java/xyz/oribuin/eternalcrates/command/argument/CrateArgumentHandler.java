@@ -19,10 +19,10 @@ public class CrateArgumentHandler extends RoseCommandArgumentHandler<Crate> {
 
     @Override
     protected Crate handleInternal(RoseCommandArgumentInfo argumentInfo, ArgumentParser argumentParser) throws HandledArgumentException {
-        var input = argumentParser.next();
-        var crate = this.rosePlugin.getManager(CrateManager.class).getCrate(input);
+        String input = argumentParser.next();
+        Crate crate = this.rosePlugin.getManager(CrateManager.class).getCrate(input);
         if (crate == null) {
-            throw new HandledArgumentException("argument-handler-crate", StringPlaceholders.single("crate", input));
+            throw new HandledArgumentException("argument-handler-crate", StringPlaceholders.of("crate", input));
         }
 
         return crate;

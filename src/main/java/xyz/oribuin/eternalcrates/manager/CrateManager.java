@@ -1,6 +1,7 @@
 package xyz.oribuin.eternalcrates.manager;
 
 import dev.rosewood.rosegarden.RosePlugin;
+import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
 import dev.rosewood.rosegarden.config.CommentedFileConfiguration;
 import dev.rosewood.rosegarden.manager.Manager;
 import dev.rosewood.rosegarden.utils.HexUtils;
@@ -12,6 +13,8 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
+import org.jetbrains.annotations.NotNull;
+import xyz.oribuin.eternalcrates.action.Action;
 import xyz.oribuin.eternalcrates.action.PluginAction;
 import xyz.oribuin.eternalcrates.animation.Animation;
 import xyz.oribuin.eternalcrates.crate.Crate;
@@ -19,12 +22,11 @@ import xyz.oribuin.eternalcrates.crate.CrateKeys;
 import xyz.oribuin.eternalcrates.crate.CrateType;
 import xyz.oribuin.eternalcrates.crate.Reward;
 import xyz.oribuin.eternalcrates.manager.ConfigurationManager.Setting;
+import xyz.oribuin.eternalcrates.util.CrateUtils;
 import xyz.oribuin.eternalcrates.util.ItemBuilder;
-import xyz.oribuin.eternalcrates.util.PluginUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,7 +34,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -49,11 +51,10 @@ public class CrateManager extends Manager {
 
     @Override
     public void reload() {
-        final var folder = new File(this.rosePlugin.getDataFolder(), "crates");
+        final File folder = new File(this.rosePlugin.getDataFolder(), "crates");
         if (!folder.exists()) {
             folder.mkdir();
-
-            this.createExampleCrate(folder);
+            CrateUtils.createFile(this.rosePlugin, "crates", "example.yml");
         }
 
         this.loadCrates();
@@ -74,22 +75,26 @@ public class CrateManager extends Manager {
     public void loadCrates() {
         this.cachedCrates.clear();
         this.rosePlugin.getLogger().info("Loading all crates from the /EternalCrates/crates folder");
-        final var folder = new File(this.rosePlugin.getDataFolder(), "crates");
-        var files = folder.listFiles();
+        final File folder = new File(this.rosePlugin.getDataFolder(), "crates");
+        File[] files = folder.listFiles();
         if (files == null) {
-            this.createExampleCrate(folder);
+            CrateUtils.createFile(this.rosePlugin, "crates", "example.yml");
+            files = folder.listFiles(); // Try again
         }
+
+        if (files == null)
+            return;
 
         Arrays.stream(files).filter(file -> file.getName().toLowerCase().endsWith(".yml"))
                 .forEach(file -> {
-                    final var config = CommentedFileConfiguration.loadConfiguration(file);
+                    final CommentedFileConfiguration config = CommentedFileConfiguration.loadConfiguration(file);
 
                     if (config.get("crate-settings") == null)
                         return;
 
                     this.rosePlugin.getLogger().info("Attempting to load crate " + file.getName());
 
-                    final var crate = this.createCreate(config);
+                    final Crate crate = this.createCreate(file, config);
                     if (crate == null)
                         return;
 
@@ -98,39 +103,13 @@ public class CrateManager extends Manager {
     }
 
     /**
-     * Create the example crate if it doesn't exist
-     */
-    public void createExampleCrate(File folder) {
-        final var file = new File(folder, "example.yml");
-        try {
-            if (!file.exists()) {
-                file.createNewFile();
-
-                // Add default crate config values.
-                var config = CommentedFileConfiguration.loadConfiguration(file);
-                this.getDefaultCrateValues().forEach((path, object) -> {
-                    if (path.startsWith("#")) {
-                        config.addPathedComments(path, (String) object);
-                    } else {
-                        config.set(path, object);
-                    }
-                });
-
-                config.save();
-
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
      * Get a crate from the id of the crate.
      *
      * @param id The ID of the crate.
      * @return An Optional Crate
      */
-    public @Nullable Crate getCrate(String id) {
+    @Nullable
+    public Crate getCrate(String id) {
         return this.cachedCrates.get(id);
     }
 
@@ -140,7 +119,8 @@ public class CrateManager extends Manager {
      * @param location The location of the crate
      * @return The optional crate.
      */
-    public @Nullable Crate getCrate(Location location) {
+    @Nullable
+    public Crate getCrate(Location location) {
         return this.getCachedCrates().values()
                 .stream()
                 .filter(crate -> crate.getLocations().contains(location))
@@ -154,6 +134,7 @@ public class CrateManager extends Manager {
      * @param type The type of the crate.
      * @return The list of crates.
      */
+    @NotNull
     public List<Crate> getCratesByType(CrateType type) {
         return this.getCachedCrates().values()
                 .stream()
@@ -167,6 +148,7 @@ public class CrateManager extends Manager {
      * @param uuid The uuid of the player.
      * @return The list of crate keys.
      */
+    @NotNull
     public Map<String, Integer> getUserKeys(UUID uuid) {
         return this.rosePlugin.getManager(DataManager.class)
                 .getUser(uuid)
@@ -185,6 +167,12 @@ public class CrateManager extends Manager {
                 .anyMatch(crate -> crate.getLocations().contains(location));
     }
 
+    /**
+     * Set a player's total crate keys. This will overwrite any existing keys.
+     *
+     * @param uuid The uuid of the player.
+     * @param keys The map of crate keys.
+     */
     public void saveUserKeys(UUID uuid, Map<String, Integer> keys) {
         this.rosePlugin.getManager(DataManager.class).saveUser(uuid, new CrateKeys(keys));
     }
@@ -195,18 +183,18 @@ public class CrateManager extends Manager {
      * @param config The config the crate is being created from
      * @return The crate.
      */
-    public Crate createCreate(final CommentedFileConfiguration config) {
-        final var animationManager = this.rosePlugin.getManager(AnimationManager.class);
+    public Crate createCreate(final File file, final CommentedFileConfiguration config) {
+        final AnimationManager animationManager = this.rosePlugin.getManager(AnimationManager.class);
 
         // Get the crate id
-        final var name = config.getString("crate-settings.name");
+        final String name = config.getString("crate-settings.name");
         if (name == null) {
             this.rosePlugin.getLogger().warning("Failed to load crate because it does not have a name.");
             return null;
         }
 
         // Get the crate display name
-        var displayName = config.getString("crate-settings.display-name");
+        String displayName = config.getString("crate-settings.display-name");
         if (displayName == null)
             displayName = name;
 
@@ -225,8 +213,8 @@ public class CrateManager extends Manager {
         }
 
         // Get the crate type
-        var crateTypeName = config.getString("crate-settings.type");
-        var crateType = Arrays.stream(CrateType.values())
+        String crateTypeName = config.getString("crate-settings.type");
+        CrateType crateType = Arrays.stream(CrateType.values())
                 .filter(x -> x.name().equalsIgnoreCase(crateTypeName))
                 .findFirst()
                 .orElse(null);
@@ -245,7 +233,7 @@ public class CrateManager extends Manager {
 
         // Load all the rewards for the crate
         final Map<String, Reward> rewards = new HashMap<>();
-        final var section = config.getConfigurationSection("crate-settings.rewards");
+        final CommentedConfigurationSection section = config.getConfigurationSection("crate-settings.rewards");
         if (section == null) {
             this.rosePlugin.getLogger().warning("Failed to load crate " + name + " because it does not have any rewards.");
             return null;
@@ -255,44 +243,43 @@ public class CrateManager extends Manager {
         section.getKeys(false).forEach(s -> {
 
             // Base itemstack
-            final var item = PluginUtils.getItemStack(section, s);
+            final ItemStack item = CrateUtils.getItemStack(section, s);
             if (item == null)
                 return;
 
             // Get the chance of the reward
-            final var reward = new Reward(s, item, section.getDouble(s + ".chance"));
+            final Reward reward = new Reward(s, item, section.getDouble(s + ".chance"));
 
             // Get the preview item for the reward if it exists
             if (section.get(s + ".preview-item") != null) {
-                var previewItem = PluginUtils.getItemStack(section, section.getCurrentPath() + "." + s + ".preview-item");
+                ItemStack previewItem = CrateUtils.getItemStack(section, section.getCurrentPath() + "." + s + ".preview-item");
                 if (previewItem != null)
                     reward.setPreviewItem(previewItem);
             }
 
             // Get the commands for the reward if it exists
-            final var actionSection = section.getStringList(s + ".actions");
+            final List<String> actionSection = section.getStringList(s + ".actions");
             actionSection.stream().map(PluginAction::parse)
-                    .filter(Optional::isPresent)
-                    .forEach(action -> reward.getActions().add(action.get()));
+                    .filter(Objects::nonNull)
+                    .forEach(action -> reward.getActions().add(action));
 
             // Add the reward to the map
             rewards.put(reward.getId(), reward);
         });
 
         // Get all the crate actions when it's opened by a player.
-        var openActions = config.getStringList("crate-settings.open-actions")
+        List<Action> openActions = config.getStringList("crate-settings.open-actions")
                 .stream()
                 .map(PluginAction::parse)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
-        final var crate = new Crate(name);
-        final var data = this.rosePlugin.getManager(DataManager.class);
+        final Crate crate = new Crate(name);
+        final DataManager data = this.rosePlugin.getManager(DataManager.class);
 
         // Get the physical crate key data
         if (crate.getType() == CrateType.PHYSICAL) {
-            var item = new ItemBuilder(PluginUtils.getItemStack(config, "crate-settings.key"))
+            ItemStack item = new ItemBuilder(CrateUtils.getItemStack(config, "crate-settings.key"))
                     .setNBT(rosePlugin, "crateKey", crate.getId().toLowerCase())
                     .create();
 
@@ -321,7 +308,7 @@ public class CrateManager extends Manager {
         } else {
             animation.getRequiredValues().forEach((path, object) -> {
                 // All other animations have default values, so we need to add them to the config if they don't exist.
-                final var newPath = "crate-settings.animation." + path;
+                final String newPath = "crate-settings.animation." + path;
                 if (config.get(newPath) == null) {
                     config.set(newPath, object);
                 }
@@ -329,21 +316,22 @@ public class CrateManager extends Manager {
         }
 
         finalAnimation.load(config);
+        config.save(file);
 
-        config.save();
         // Set the crate data
         crate.setAnimation(finalAnimation);
         crate.setName(displayName);
         crate.setRewardMap(rewards);
-        crate.setMaxRewards(Math.max(PluginUtils.get(config, "crate-settings.max-rewards", 1), 1));
-        crate.setMinRewards(Math.min(PluginUtils.get(config, "crate-settings.min-rewards", 1), crate.getMaxRewards()));
-        crate.setMultiplier(Math.min(PluginUtils.get(config, "crate-settings.multiplier", 1), 1));
-        crate.setMinGuiSlots(Math.max(PluginUtils.get(config, "crate-settings.min-inv-slots", crate.getMaxRewards()), crate.getMaxRewards()));
+        crate.setMaxRewards(Math.max(config.getInt("crate-settings.max-rewards"), 1));
+        crate.setMaxRewards(Math.max(config.getInt("crate-settings.max-rewards", 1), 1));
+        crate.setMinRewards(Math.min(config.getInt("crate-settings.min-rewards", 1), crate.getMaxRewards()));
+        crate.setMultiplier(Math.min(config.getInt("crate-settings.multiplier", 1), 1));
+        crate.setMinGuiSlots(Math.max(config.getInt("crate-settings.min-inv-slots", crate.getMaxRewards()), crate.getMaxRewards()));
         crate.setConfig(config);
+        crate.setFile(file);
         crate.setOpenActions(openActions);
         crate.setType(crateType);
         data.loadCrateLocation(crate);
-
 
         this.rosePlugin.getLogger().info("Registered Crate: " + crate.getId() + " with " + crate.getRewardMap().size() + " rewards!");
         return crate;
@@ -369,9 +357,9 @@ public class CrateManager extends Manager {
      *
      * @param crate The crate to save
      */
-    public void saveCrate(Crate crate) {
+    public void saveCrate(Crate crate, File file) {
         this.cachedCrates.put(crate.getId().toLowerCase(), crate);
-        final var config = crate.getConfig();
+        final CommentedFileConfiguration config = crate.getConfig();
         if (config == null)
             return;
 
@@ -386,7 +374,7 @@ public class CrateManager extends Manager {
         config.set("crate-settings.animation.name", crate.getAnimation().getName());
         crate.getAnimation().getRequiredValues().forEach((s, o) -> config.set("crate-settings.animation." + s, o));
 
-        config.save();
+        config.save(file);
         this.rosePlugin.getManager(DataManager.class).saveCrateLocations(crate);
     }
 
@@ -398,20 +386,20 @@ public class CrateManager extends Manager {
      * @param amount The amount of keys to give
      */
     public void giveVirtualKey(Player player, Crate crate, int amount) {
-        final var data = this.rosePlugin.getManager(DataManager.class);
-        final var locale = this.rosePlugin.getManager(LocaleManager.class);
-        final var newAmount = Math.max(amount, 1);
-        var usersKeys = data.getUser(player.getUniqueId()).getKeys();
-        var totalKeys = usersKeys.getOrDefault(crate.getId().toLowerCase(), 0);
+        final DataManager data = this.rosePlugin.getManager(DataManager.class);
+        final int newAmount = Math.max(amount, 1);
+
+        Map<String, Integer> usersKeys = data.getUser(player.getUniqueId()).getKeys();
+        Integer totalKeys = usersKeys.getOrDefault(crate.getId().toLowerCase(), 0);
 
         usersKeys.put(crate.getId().toLowerCase(), totalKeys + newAmount);
         data.saveUser(player.getUniqueId(), new CrateKeys(usersKeys));
 
-        final var placeholders = StringPlaceholders.builder("crate", crate.getId())
-                .addPlaceholder("amount", newAmount)
+        final StringPlaceholders placeholders = StringPlaceholders.builder("crate", crate.getId())
+                .add("amount", newAmount)
                 .build();
 
-        locale.sendMessage(player, "command-give-success-other", placeholders);
+        this.rosePlugin.getManager(LocaleManager.class).sendMessage(player, "command-give-success-other", placeholders);
     }
 
     /**
@@ -422,11 +410,11 @@ public class CrateManager extends Manager {
      * @param location The location to use the key on
      */
     public void useVirtualKey(Crate crate, Player player, Location location) {
-        final var data = this.rosePlugin.getManager(DataManager.class);
-        final var locale = this.rosePlugin.getManager(LocaleManager.class);
+        final DataManager data = this.rosePlugin.getManager(DataManager.class);
+        final LocaleManager locale = this.rosePlugin.getManager(LocaleManager.class);
 
-        var usersKeys = data.getUser(player.getUniqueId());
-        var totalKeys = usersKeys.getKeys().getOrDefault(crate.getId().toLowerCase(), 0);
+        Map<String, Integer> usersKeys = data.getUser(player.getUniqueId()).getKeys();
+        Integer totalKeys = usersKeys.getOrDefault(crate.getId().toLowerCase(), 0);
 
         if (totalKeys <= 0) {
             locale.sendMessage(player, "crate-open-no-keys");
@@ -436,8 +424,8 @@ public class CrateManager extends Manager {
 
         // Remove a key from the user
         if (crate.open(player, location)) {
-            usersKeys.getKeys().put(crate.getId().toLowerCase(), totalKeys - 1);
-            data.saveUser(player.getUniqueId(), usersKeys);
+            usersKeys.put(crate.getId().toLowerCase(), totalKeys - 1);
+            data.saveUser(player.getUniqueId(), new CrateKeys(usersKeys));
         }
 
     }
@@ -449,34 +437,76 @@ public class CrateManager extends Manager {
      * @param crate  The crate to give the key to
      */
     public void givePhysicalKey(Player player, Crate crate, int amount) {
+        final LocaleManager locale = this.rosePlugin.getManager(LocaleManager.class);
+        final int newAmount = Math.max(amount, 1);
+        final int maxAmount = crate.getKey().getMaxStackSize();
 
-        final var locale = this.rosePlugin.getManager(LocaleManager.class);
-        final var newAmount = Math.min(Math.max(amount, 1), 64);
+        // TODO: Rework this whole method, it's a mess.
+        ItemStack key = crate.getKey().clone();
 
-        var key = crate.getKey().clone();
-        key.setAmount(newAmount);
-
-        // Add unclaimed key to database if inventory is full
+        // Player has no space in their inventory, send key to unclaimed.
         if (player.getInventory().firstEmpty() == -1) {
-            final var data = this.rosePlugin.getManager(DataManager.class);
+            this.giveVirtualKey(player, crate, newAmount);
 
-            var userData = data.getUser(player.getUniqueId());
-            var keys = userData.getKeys().getOrDefault(crate.getId().toLowerCase(), 0);
+            final StringPlaceholders placeholders = StringPlaceholders.builder("crate", crate.getId())
+                    .add("amount", newAmount)
+                    .build();
 
-            // Add the amount of keys to the users unclaimed keys
-            userData.getKeys().put(crate.getId().toLowerCase(), keys + newAmount);
-            data.saveUser(player.getUniqueId(), userData);
-            this.rosePlugin.getManager(LocaleManager.class).sendMessage(player, "command-give-full-inventory");
+            locale.sendMessage(player, "command-give-full-inventory", placeholders);
             return;
+
         }
 
-        final var placeholders = StringPlaceholders.builder("crate", crate.getId())
-                .addPlaceholder("amount", newAmount)
-                .build();
 
-        // Give actual key to player
-        locale.sendMessage(player, "command-give-success-other", placeholders);
-        player.getInventory().addItem(key);
+//        ItemStack key = crate.getKey().clone();
+//        if (player.getInventory().firstEmpty() != -1) {
+//            key.setAmount(Math.min(newAmount, maxAmount));
+//
+//            player.getInventory().addItem(key);
+//            final StringPlaceholders placeholders = StringPlaceholders.builder("crate", crate.getId())
+//                    .add("amount", newAmount)
+//                    .build();
+//
+//            locale.sendMessage(player, "command-give-success", placeholders);
+//        }
+//
+//        final DataManager data = this.rosePlugin.getManager(DataManager.class);
+//        Map<String, Integer> usersKeys = data.getUser(player.getUniqueId()).getKeys();
+//
+//        // Add the amount of keys to the users unclaimed key
+//        if ((newAmount - maxAmount) > 0 || player.getInventory().firstEmpty() == -1) {
+//            giveVirtualKey(player, crate, newAmount - maxAmount);
+//        }
+//
+//        if (newAmount > maxAmount) {
+//            final StringPlaceholders placeholders = StringPlaceholders.builder("crate", crate.getId())
+//                    .add("amount", newAmount)
+//                    .build();
+//
+//            locale.sendMessage(player, "command-give-full-inventory", placeholders);
+//            return;
+//        }
+//
+//        // Add unclaimed key to database if inventory is full
+//        if (player.getInventory().firstEmpty() == -1) {
+//            // Get their userdata again
+//            final CrateKeys userData = data.getUser(player.getUniqueId());
+//            final int keys = userData.getKeys().getOrDefault(crate.getId().toLowerCase(), 0);
+//
+//            // Add the amount of keys to the users unclaimed keys
+//            usersKeys.put(crate.getId().toLowerCase(), keys + newAmount);
+//            data.saveUser(player.getUniqueId(), userData);
+//            this.rosePlugin.getManager(LocaleManager.class).sendMessage(player, "command-give-full-inventory");
+//            return;
+//        }
+//
+//        final StringPlaceholders placeholders = StringPlaceholders.builder("crate", crate.getId())
+//                .add("amount", newAmount)
+//                .build();
+//
+//        // Give actual key to player
+//        locale.sendMessage(player, "command-give-success-other", placeholders);
+//        player.getInventory().addItem(key);
     }
 
 

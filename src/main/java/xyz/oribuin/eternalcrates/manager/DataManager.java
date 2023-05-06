@@ -7,7 +7,9 @@ import dev.rosewood.rosegarden.manager.AbstractDataManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
+import org.bukkit.World;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.io.BukkitObjectInputStream;
 import xyz.oribuin.eternalcrates.crate.Crate;
@@ -16,6 +18,8 @@ import xyz.oribuin.eternalcrates.database.migration._1_CreateInitialTables;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,13 +46,12 @@ public class DataManager extends AbstractDataManager {
         this.userKeys.put(player, keys);
 
         this.async(() -> this.databaseConnector.connect(connection -> {
-            try (var statement = connection.prepareStatement("REPLACE INTO " + this.getTablePrefix() + "keys (`player`, `items`) VALUES (?, ?)")) {
+            try (PreparedStatement statement = connection.prepareStatement("REPLACE INTO " + this.getTablePrefix() + "keys (`player`, `items`) VALUES (?, ?)")) {
                 statement.setString(1, player.toString());
                 statement.setString(2, this.gson.toJson(keys));
                 statement.executeUpdate();
             }
         }));
-
     }
 
     /*
@@ -57,7 +60,7 @@ public class DataManager extends AbstractDataManager {
      * @param player The player to save the keys for
      */
     public void saveUser(UUID player) {
-        var crateKeys = this.userKeys.get(player);
+        CrateKeys crateKeys = this.userKeys.get(player);
         if (crateKeys == null)
             return;
 
@@ -70,14 +73,13 @@ public class DataManager extends AbstractDataManager {
      * @param player The player to get the keys for
      */
     public CrateKeys getUser(UUID player) {
-        if (this.userKeys.get(player) != null) {
+        if (this.userKeys.get(player) != null)
             return this.userKeys.get(player);
-        }
 
         this.async(() -> this.databaseConnector.connect(connection -> {
-            try (var statement = connection.prepareStatement("SELECT `items` FROM " + this.getTablePrefix() + "keys WHERE `player` = ?")) {
+            try (PreparedStatement statement = connection.prepareStatement("SELECT `items` FROM " + this.getTablePrefix() + "keys WHERE `player` = ?")) {
                 statement.setString(1, player.toString());
-                var resultSet = statement.executeQuery();
+                ResultSet resultSet = statement.executeQuery();
                 if (resultSet.next()) {
                     CrateKeys keys = this.gson.fromJson(resultSet.getString("items"), CrateKeys.class);
                     this.userKeys.put(player, keys);
@@ -95,14 +97,14 @@ public class DataManager extends AbstractDataManager {
      */
     public void loadCrateLocation(Crate crate) {
         this.async(() -> this.databaseConnector.connect(connection -> {
-            try (var statement = connection.prepareStatement("SELECT `x`, `y`, `z`, `world` FROM " + this.getTablePrefix() + "locations WHERE `crateName` = ?")) {
+            try (PreparedStatement statement = connection.prepareStatement("SELECT `x`, `y`, `z`, `world` FROM " + this.getTablePrefix() + "locations WHERE `crateName` = ?")) {
                 statement.setString(1, crate.getId());
-                var resultSet = statement.executeQuery();
+                ResultSet resultSet = statement.executeQuery();
                 while (resultSet.next()) {
-                    var x = resultSet.getDouble("x");
-                    var y = resultSet.getDouble("y");
-                    var z = resultSet.getDouble("z");
-                    var world = Bukkit.getWorld(resultSet.getString("world"));
+                    double x = resultSet.getDouble("x");
+                    double y = resultSet.getDouble("y");
+                    double z = resultSet.getDouble("z");
+                    World world = Bukkit.getWorld(resultSet.getString("world"));
                     if (world == null)
                         continue;
 
@@ -119,13 +121,13 @@ public class DataManager extends AbstractDataManager {
      */
     public void saveCrateLocations(Crate crate) {
         this.async(() -> this.databaseConnector.connect(connection -> {
-            try (var statement = connection.prepareStatement("DELETE FROM " + this.getTablePrefix() + "locations WHERE `crateName` = ?")) {
+            try (PreparedStatement statement = connection.prepareStatement("DELETE FROM " + this.getTablePrefix() + "locations WHERE `crateName` = ?")) {
                 statement.setString(1, crate.getId());
                 statement.executeUpdate();
             }
 
-            for (var loc : crate.getLocations()) {
-                try (var statement = connection.prepareStatement("REPLACE INTO " + this.getTablePrefix() + "locations (`crateName`, `x`, `y`, `z`, `world`) VALUES (?, ?, ?, ?, ?)")) {
+            for (Location loc : crate.getLocations()) {
+                try (PreparedStatement statement = connection.prepareStatement("REPLACE INTO " + this.getTablePrefix() + "locations (`crateName`, `x`, `y`, `z`, `world`) VALUES (?, ?, ?, ?, ?)")) {
                     statement.setString(1, crate.getId());
                     statement.setDouble(2, loc.getX());
                     statement.setDouble(3, loc.getY());
@@ -144,7 +146,7 @@ public class DataManager extends AbstractDataManager {
      */
     public void dropTableMigration() {
         this.async(() -> this.databaseConnector.connect(connection -> {
-            try (var statement = connection.prepareStatement("DROP TABLE " + this.getTablePrefix() + "migrations")) {
+            try (PreparedStatement statement = connection.prepareStatement("DROP TABLE " + this.getTablePrefix() + "migrations")) {
                 statement.executeUpdate();
             }
         }));
@@ -157,11 +159,11 @@ public class DataManager extends AbstractDataManager {
         this.async(() -> this.databaseConnector.connect(connection -> {
             Map<String, Location> locations = new HashMap<>();
 
-            var loadOldLocations = "SELECT `crate`, `x`, `y`, `z`, `world` FROM " + this.getTablePrefix() + "crates";
-            try (var statement = connection.prepareStatement(loadOldLocations)) {
-                var resultSet = statement.executeQuery();
+            String loadOldLocations = "SELECT `crate`, `x`, `y`, `z`, `world` FROM " + this.getTablePrefix() + "crates";
+            try (PreparedStatement statement = connection.prepareStatement(loadOldLocations)) {
+                ResultSet resultSet = statement.executeQuery();
                 while (resultSet.next()) {
-                    var loc = new Location(
+                    Location loc = new Location(
                             Bukkit.getWorld(resultSet.getString("world")),
                             resultSet.getDouble("x"),
                             resultSet.getDouble("y"),
@@ -172,13 +174,13 @@ public class DataManager extends AbstractDataManager {
                 }
             }
 
-            var dropOldLocations = "DROP TABLE " + this.getTablePrefix() + "crates";
-            try (var statement = connection.prepareStatement(dropOldLocations)) {
+            String dropOldLocations = "DROP TABLE " + this.getTablePrefix() + "crates";
+            try (PreparedStatement statement = connection.prepareStatement(dropOldLocations)) {
                 statement.executeUpdate();
             }
 
-            for (var entry : locations.entrySet()) {
-                try (var statement = connection.prepareStatement("INSERT INTO " + this.getTablePrefix() + "locations (`crateName`, `x`, `y`, `z`, `world`) VALUES (?, ?, ?, ?, ?)")) {
+            for (Map.Entry<String, Location> entry : locations.entrySet()) {
+                try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + this.getTablePrefix() + "locations (`crateName`, `x`, `y`, `z`, `world`) VALUES (?, ?, ?, ?, ?)")) {
                     statement.setString(1, entry.getKey());
                     statement.setDouble(2, entry.getValue().getX());
                     statement.setDouble(3, entry.getValue().getY());
@@ -197,55 +199,51 @@ public class DataManager extends AbstractDataManager {
         this.async(() -> this.databaseConnector.connect(connection -> {
             Map<UUID, CrateKeys> keys = new HashMap<>();
 
-            var loadVirtualKeys = "SELECT `player`, `keys` FROM " + this.getTablePrefix() + "virtual";
+            String loadVirtualKeys = "SELECT `player`, `keys` FROM " + this.getTablePrefix() + "virtual";
 
             // Load all the virtual keys
-            try (var statement = connection.prepareStatement(loadVirtualKeys)) {
-                var resultSet = statement.executeQuery();
+            try (PreparedStatement statement = connection.prepareStatement(loadVirtualKeys)) {
+                ResultSet resultSet = statement.executeQuery();
                 while (resultSet.next()) {
-                    var crateKeys = gson.fromJson(resultSet.getString("keys"), CrateKeys.class);
+                    CrateKeys crateKeys = gson.fromJson(resultSet.getString("keys"), CrateKeys.class);
                     keys.put(UUID.fromString(resultSet.getString("player")), crateKeys);
                 }
             }
 
             // Drop the old virtual keys table
-            var dropVirtualKeys = "DROP TABLE " + this.getTablePrefix() + "virtual";
-            try (var statement = connection.prepareStatement(dropVirtualKeys)) {
+            String dropVirtualKeys = "DROP TABLE " + this.getTablePrefix() + "virtual";
+            try (PreparedStatement statement = connection.prepareStatement(dropVirtualKeys)) {
                 statement.executeUpdate();
             }
 
 
             // Load all the unclaimed keys
             Map<UUID, List<ItemStack>> items = new HashMap<>();
-            var loadUnclaimedKeys = "SELECT `player`, `items` FROM " + this.getTablePrefix() + "items";
+            String loadUnclaimedKeys = "SELECT `player`, `items` FROM " + this.getTablePrefix() + "items";
 
-            try (var statement = connection.prepareStatement(loadUnclaimedKeys)) {
-                var resultSet = statement.executeQuery();
+            try (PreparedStatement statement = connection.prepareStatement(loadUnclaimedKeys)) {
+                ResultSet resultSet = statement.executeQuery();
                 while (resultSet.next()) {
-                    var player = UUID.fromString(resultSet.getString("player"));
-                    var itemsStacks = decompressItems(resultSet.getBytes("items"));
+                    UUID player = UUID.fromString(resultSet.getString("player"));
+                    List<ItemStack> itemsStacks = decompressItems(resultSet.getBytes("items"));
                     items.put(player, itemsStacks);
                 }
             }
 
             // Convert itemstacks to crate keys
             // Convert the unclaimed keys to virtual crate keys
-            for (var entry : items.entrySet()) {
+            for (Map.Entry<UUID, List<ItemStack>> entry : items.entrySet()) {
 
-                var newCrateKeys = keys.getOrDefault(entry.getKey(), new CrateKeys());
-                for (var item : entry.getValue()) {
-                    var meta = item.getItemMeta();
-                    if (meta == null) {
-                        continue;
-                    }
+                CrateKeys newCrateKeys = keys.getOrDefault(entry.getKey(), new CrateKeys());
+                for (ItemStack item : entry.getValue()) {
+                    ItemMeta meta = item.getItemMeta();
+                    if (meta == null) continue;
 
-                    var crateId = meta.getPersistentDataContainer().get(new NamespacedKey(this.rosePlugin, "crateKey"), PersistentDataType.STRING);
-                    if (crateId == null) {
-                        continue;
-                    }
+                    String crateId = meta.getPersistentDataContainer().get(new NamespacedKey(this.rosePlugin, "crateKey"), PersistentDataType.STRING);
+                    if (crateId == null) continue;
 
                     // Add the crate key the users virtual keys
-                    var currentCount = newCrateKeys.getKeys().getOrDefault(crateId, 0);
+                    int currentCount = newCrateKeys.getKeys().getOrDefault(crateId, 0);
                     newCrateKeys.getKeys().put(crateId, currentCount + 1);
                 }
 
@@ -253,17 +251,16 @@ public class DataManager extends AbstractDataManager {
             }
 
             // Drop the old table
-            var dropUnclaimedKeys = "DROP TABLE " + this.getTablePrefix() + "items";
-            try (var statement = connection.prepareStatement(dropUnclaimedKeys)) {
+            String dropUnclaimedKeys = "DROP TABLE " + this.getTablePrefix() + "items";
+            try (PreparedStatement statement = connection.prepareStatement(dropUnclaimedKeys)) {
                 statement.executeUpdate();
             }
 
             // Save the new keys
-            for (var entry : keys.entrySet()) {
-
+            for (Map.Entry<UUID, CrateKeys> entry : keys.entrySet()) {
                 this.userKeys.put(entry.getKey(), entry.getValue());
 
-                try (var statement = connection.prepareStatement("REPLACE INTO " + this.getTablePrefix() + "keys (`player`, `items`) VALUES (?, ?)")) {
+                try (PreparedStatement statement = connection.prepareStatement("REPLACE INTO " + this.getTablePrefix() + "keys (`player`, `items`) VALUES (?, ?)")) {
                     statement.setString(2, entry.getKey().toString());
                     statement.setString(1, this.gson.toJson(entry.getValue()));
                     statement.executeUpdate();
@@ -280,12 +277,14 @@ public class DataManager extends AbstractDataManager {
      * @return The list of items.
      */
     public List<ItemStack> decompressItems(byte[] data) {
-        final var items = new ArrayList<ItemStack>();
-        try (var is = new ByteArrayInputStream(data);
-             var ois = new BukkitObjectInputStream(is)) {
+        final List<ItemStack> items = new ArrayList<>();
+        try (
+                ByteArrayInputStream is = new ByteArrayInputStream(data);
+                BukkitObjectInputStream ois = new BukkitObjectInputStream(is)
+        ) {
 
-            var amount = ois.readInt();
-            for (var i = 0; i < amount; i++)
+            int amount = ois.readInt();
+            for (int i = 0; i < amount; i++)
                 items.add((ItemStack) ois.readObject());
 
         } catch (IOException | ClassNotFoundException ignored) {

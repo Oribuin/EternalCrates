@@ -7,20 +7,21 @@ import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.animation.Animation;
 import xyz.oribuin.eternalcrates.animation.AnimationType;
 import xyz.oribuin.eternalcrates.animation.defaults.EmptyAnimation;
-import xyz.oribuin.eternalcrates.animation.defaults.misc.ChickenAnimation;
-import xyz.oribuin.eternalcrates.animation.defaults.misc.FireworkAnimation;
-import xyz.oribuin.eternalcrates.animation.defaults.misc.FountainAnimation;
-import xyz.oribuin.eternalcrates.animation.defaults.misc.MiniMeAnimation;
-import xyz.oribuin.eternalcrates.animation.defaults.misc.SwordsAnimation;
-import xyz.oribuin.eternalcrates.animation.defaults.particle.QuadAnimation;
-import xyz.oribuin.eternalcrates.animation.defaults.particle.RingsAnimation;
-import xyz.oribuin.eternalcrates.animation.defaults.particle.RippleAnimation;
-import xyz.oribuin.eternalcrates.animation.defaults.seasonal.BunnyAnimation;
-import xyz.oribuin.eternalcrates.animation.defaults.seasonal.PumpkinAnimation;
-import xyz.oribuin.eternalcrates.animation.defaults.seasonal.SnowmanAnimation;
+import xyz.oribuin.eternalcrates.animation.defaults.ChickenAnimation;
+import xyz.oribuin.eternalcrates.animation.defaults.FireworkAnimation;
+import xyz.oribuin.eternalcrates.animation.defaults.FountainAnimation;
+import xyz.oribuin.eternalcrates.animation.defaults.MiniMeAnimation;
+import xyz.oribuin.eternalcrates.animation.defaults.SwordsAnimation;
+import xyz.oribuin.eternalcrates.animation.defaults.QuadAnimation;
+import xyz.oribuin.eternalcrates.animation.defaults.RingsAnimation;
+import xyz.oribuin.eternalcrates.animation.defaults.RippleAnimation;
+import xyz.oribuin.eternalcrates.animation.defaults.BunnyAnimation;
+import xyz.oribuin.eternalcrates.animation.defaults.PumpkinAnimation;
+import xyz.oribuin.eternalcrates.animation.defaults.SnowmanAnimation;
 import xyz.oribuin.eternalcrates.crate.Crate;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -34,7 +35,6 @@ public class AnimationManager extends Manager {
     public AnimationManager(RosePlugin plugin) {
         super(plugin);
     }
-
 
     @Override
     public void reload() {
@@ -131,7 +131,8 @@ public class AnimationManager extends Manager {
         new HashSet<>(crateManager.getUnregisteredCrates().entrySet()).forEach(x -> {
             crateManager.getUnregisteredCrates().remove(x.getKey());
 
-            Crate crate = crateManager.createCreate(x.getValue());
+            File file = new File(plugin.getDataFolder() + "/crates/" + x.getKey() + ".yml");
+            Crate crate = crateManager.createCreate(file, x.getValue());
             if (crate != null) {
                 crateManager.getCachedCrates().put(crate.getId(), crate);
             }

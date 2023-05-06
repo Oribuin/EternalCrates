@@ -39,13 +39,15 @@ public class PlayerListeners implements Listener {
         if (!(event.getEntity() instanceof Player player))
             return;
 
-        final var manager = this.plugin.getManager(CrateManager.class);
-        if (!manager.getActiveUsers().contains(player.getUniqueId()))
-            return;
-
+        final CrateManager manager = this.plugin.getManager(CrateManager.class);
         if (!Setting.PICKUP_IN_ANIMATION.getBoolean())
             return;
 
+        if (!manager.getActiveUsers().contains(player.getUniqueId()))
+            return;
+
+
         event.setCancelled(true);
     }
+
 }

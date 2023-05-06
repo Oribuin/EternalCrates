@@ -8,7 +8,7 @@ import dev.rosewood.rosegarden.command.framework.annotation.RoseExecutable;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import xyz.oribuin.eternalcrates.manager.CrateManager;
 import xyz.oribuin.eternalcrates.manager.LocaleManager;
-import xyz.oribuin.eternalcrates.util.PluginUtils;
+import xyz.oribuin.eternalcrates.util.CrateUtils;
 
 public class ListCommand extends RoseCommand {
 
@@ -18,20 +18,20 @@ public class ListCommand extends RoseCommand {
 
     @RoseExecutable
     public void execute(CommandContext context) {
-        final var manager = this.rosePlugin.getManager(CrateManager.class);
-        final var locale = this.rosePlugin.getManager(LocaleManager.class);
+        final CrateManager manager = this.rosePlugin.getManager(CrateManager.class);
+        final LocaleManager locale = this.rosePlugin.getManager(LocaleManager.class);
 
         locale.sendMessage(context.getSender(), "command-list-header");
         manager.getCachedCrates().values().forEach(crate -> {
-            final var placeholders = StringPlaceholders.builder("crate", crate.getName())
-                    .addPlaceholder("type", crate.getType().name())
-                    .addPlaceholder("id", crate.getId())
-                    .addPlaceholder("reward_count", crate.getRewardMap().size())
-                    .addPlaceholder("multiplier", crate.getMultiplier())
-                    .addPlaceholder("min_rewards", crate.getMinRewards())
-                    .addPlaceholder("max_rewards", crate.getMaxRewards())
-                    .addPlaceholder("animation", crate.getAnimation().getName())
-                    .addPlaceholder("locations", PluginUtils.getLocationsFormatted(crate.getLocations()))
+            final StringPlaceholders placeholders = StringPlaceholders.builder("crate", crate.getName())
+                    .add("type", crate.getType().name())
+                    .add("id", crate.getId())
+                    .add("reward_count", crate.getRewardMap().size())
+                    .add("multiplier", crate.getMultiplier())
+                    .add("min_rewards", crate.getMinRewards())
+                    .add("max_rewards", crate.getMaxRewards())
+                    .add("animation", crate.getAnimation().getName())
+                    .add("locations", CrateUtils.getLocationsFormatted(crate.getLocations()))
                     .build();
 
             locale.sendSimpleMessage(context.getSender(), "command-list-format", placeholders);
