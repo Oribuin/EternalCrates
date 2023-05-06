@@ -71,7 +71,7 @@ dependencies {
     }
 
     // Custom Item Plugins
-    implementation project(':ItemHooks')
+    implementation project(':Item-Plugin-Hook')
 }
 
 shadowJar {
