@@ -9,8 +9,8 @@ import org.bukkit.entity.Rabbit;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import xyz.oribuin.eternalcrates.EternalCrates;
+import xyz.oribuin.eternalcrates.animation.Animation;
 import xyz.oribuin.eternalcrates.animation.AnimationType;
-import xyz.oribuin.eternalcrates.animation.MiscAnimation;
 import xyz.oribuin.eternalcrates.crate.Crate;
 
 import java.util.ArrayList;
@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class BunnyAnimation extends MiscAnimation {
+public class BunnyAnimation extends Animation {
 
     private int bunnyCount = 10;
     private int duration = 10;

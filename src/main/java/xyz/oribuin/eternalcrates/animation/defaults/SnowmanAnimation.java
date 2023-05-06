@@ -14,15 +14,15 @@ import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import xyz.oribuin.eternalcrates.EternalCrates;
+import xyz.oribuin.eternalcrates.animation.Animation;
 import xyz.oribuin.eternalcrates.animation.AnimationType;
-import xyz.oribuin.eternalcrates.animation.MiscAnimation;
 import xyz.oribuin.eternalcrates.crate.Crate;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class SnowmanAnimation extends MiscAnimation {
+public class SnowmanAnimation extends Animation {
 
     private int snowballCount = 10;
 

@@ -7,14 +7,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import xyz.oribuin.eternalcrates.EternalCrates;
-import xyz.oribuin.eternalcrates.animation.MiscAnimation;
+import xyz.oribuin.eternalcrates.animation.Animation;
 import xyz.oribuin.eternalcrates.crate.Crate;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class ChickenAnimation extends MiscAnimation {
+public class ChickenAnimation extends Animation {
 
     private int chickenCount;
 

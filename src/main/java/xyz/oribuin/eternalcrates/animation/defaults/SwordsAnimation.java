@@ -15,7 +15,7 @@ import org.bukkit.util.EulerAngle;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import xyz.oribuin.eternalcrates.EternalCrates;
-import xyz.oribuin.eternalcrates.animation.MiscAnimation;
+import xyz.oribuin.eternalcrates.animation.Animation;
 import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.crate.Reward;
 import xyz.oribuin.eternalcrates.particle.ParticleData;
@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class SwordsAnimation extends MiscAnimation {
+public class SwordsAnimation extends Animation {
 
     private double step = 0;
     private int numSteps = 80;
