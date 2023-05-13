@@ -3,6 +3,8 @@ package xyz.oribuin.eternalcrates.action;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import xyz.oribuin.eternalcrates.crate.Reward;
 
 public abstract class Action {
 
@@ -19,7 +21,7 @@ public abstract class Action {
      * @param player       The player
      * @param placeholders Message placeholders
      */
-    public abstract void execute(@NotNull Player player, @NotNull StringPlaceholders placeholders);
+    public abstract void execute(@Nullable Reward reward, @NotNull Player player, @NotNull StringPlaceholders placeholders);
 
     public String getName() {
         return name;

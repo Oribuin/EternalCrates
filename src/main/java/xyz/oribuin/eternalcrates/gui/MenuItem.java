@@ -151,7 +151,7 @@ public class MenuItem {
             if (actions == null)
                 return;
 
-            actions.forEach(action -> action.execute((Player) event.getWhoClicked(), this.placeholders));
+            actions.forEach(action -> action.execute(null,(Player) event.getWhoClicked(), this.placeholders));
         };
     }
 

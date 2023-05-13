@@ -20,6 +20,7 @@ import xyz.oribuin.eternalcrates.util.CrateUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -34,46 +35,46 @@ public class FireworkAnimation extends Animation {
 
     @Override
     public Map<String, Object> getRequiredValues() {
-        return new HashMap<>() {{
+        return new LinkedHashMap<>() {{
 
             // First Firework Effect
-            this.put("1.offset-x", 0.0);
-            this.put("1.offset-y", 1.0);
-            this.put("1.offset-z", 0.0);
-            this.put("1.fire-type", "0");
-            this.put("1.detonation-delay", 0.0);
-            this.put("1.fire-delay", 3.0);
-            this.put("1.power", 0.0);
+            this.put("firework-settings.1.offset-x", 0.0);
+            this.put("firework-settings.1.offset-y", 1.0);
+            this.put("firework-settings.1.offset-z", 0.0);
+            this.put("firework-settings.1.fire-type", "0");
+            this.put("firework-settings.1.detonation-delay", 0.0);
+            this.put("firework-settings.1.fire-delay", 3.0);
+            this.put("firework-settings.1.power", 0.0);
 
             // First Effect
-            this.put("1.effects.1.colors", List.of("#FFFFFF"));
-            this.put("1.effects.1.fade-colors", List.of("#000000"));
-            this.put("1.effects.1.flicker", true);
-            this.put("1.effects.1.trail", true);
-            this.put("1.effects.1.type", "BALL");
+            this.put("firework-settings.1.effects.1.colors", List.of("#FFFFFF"));
+            this.put("firework-settings.1.effects.1.fade-colors", List.of("#000000"));
+            this.put("firework-settings.1.effects.1.flicker", true);
+            this.put("firework-settings.1.effects.1.trail", true);
+            this.put("firework-settings.1.effects.1.type", "BALL");
 
             // Second Firework Effect
-            this.put("2.offset-x", 0.0);
-            this.put("2.offset-y", 0.0);
-            this.put("2.offset-z", 0.0);
-            this.put("2.fire-type", "0");
-            this.put("2.detonation-delay", 3.0);
-            this.put("2.fire-delay", 3.0);
-            this.put("2.power", 0.0);
+            this.put("firework-settings.2.offset-x", 0.0);
+            this.put("firework-settings.2.offset-y", 0.0);
+            this.put("firework-settings.2.offset-z", 0.0);
+            this.put("firework-settings.2.fire-type", "0");
+            this.put("firework-settings.2.detonation-delay", 3.0);
+            this.put("firework-settings.2.fire-delay", 3.0);
+            this.put("firework-settings.2.power", 0.0);
 
             // Second Effect
-            this.put("2.effects.1.colors", List.of("#000000"));
-            this.put("2.effects.1.fade-colors", List.of("#FF0000"));
-            this.put("2.effects.1.flicker", true);
-            this.put("2.effects.1.trail", true);
-            this.put("2.effects.1.type", "BALL_LARGE");
+            this.put("firework-settings.2.effects.1.colors", List.of("#000000"));
+            this.put("firework-settings.2.effects.1.fade-colors", List.of("#FF0000"));
+            this.put("firework-settings.2.effects.1.flicker", true);
+            this.put("firework-settings.2.effects.1.trail", true);
+            this.put("firework-settings.2.effects.1.type", "BALL_LARGE");
         }};
     }
 
     @Override
     public void load(CommentedConfigurationSection config) {
 
-        CommentedConfigurationSection section = config.getConfigurationSection("crate-settings.animation.firework-settings");
+        CommentedConfigurationSection section = config.getConfigurationSection("firework-settings");
         if (section == null)
             return;
 

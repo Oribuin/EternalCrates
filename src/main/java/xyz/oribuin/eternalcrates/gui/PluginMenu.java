@@ -48,7 +48,7 @@ public abstract class PluginMenu {
     protected final @NotNull PaginatedGui createPagedGUI(Player player) {
 
         final int rows = this.config.getInt("gui-settings.rows");
-        final String preTitle = this.config.getString("gui-settings.pre-title", "EternalTags");
+        final String preTitle = this.config.getString("gui-settings.pre-title", "EternalCrates");
 
         return Gui.paginated()
                 .rows(rows == 0 ? 6 : rows)
@@ -65,7 +65,7 @@ public abstract class PluginMenu {
      */
     protected final @NotNull Gui createGUI(Player player) {
         final int rows = this.config.getInt("gui-settings.rows");
-        final String preTitle = this.config.getString("gui-settings.pre-title", "EternalTags");
+        final String preTitle = this.config.getString("gui-settings.pre-title", "EternalCrates");
 
         return Gui.gui()
                 .rows(rows == 0 ? 6 : rows)
@@ -83,7 +83,7 @@ public abstract class PluginMenu {
     protected final @NotNull ScrollingGui createScrollingGui(Player player, ScrollType scrollType) {
 
         final int rows = this.config.getInt("gui-settings.rows");
-        final String preTitle = this.config.getString("gui-settings.pre-title", "EternalTags");
+        final String preTitle = this.config.getString("gui-settings.pre-title", "EternalCrates");
 
         return Gui.scrolling()
                 .scrollType(scrollType)

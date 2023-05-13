@@ -16,6 +16,7 @@ import xyz.oribuin.eternalcrates.util.CrateUtils;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -63,7 +64,7 @@ public abstract class ParticleAnimation extends Animation {
 
     @Override
     public Map<String, Object> getRequiredValues() {
-        return new HashMap<>() {{
+        return new LinkedHashMap<>() {{
             this.put("particle", "REDSTONE");
             this.put("transition", "#ff0000");
             this.put("color", "#FFFFFF");
@@ -78,8 +79,8 @@ public abstract class ParticleAnimation extends Animation {
     @Override
     public void load(CommentedConfigurationSection config) {
 
-        this.speed = config.getInt("speed");
-        this.length = config.getInt("length");
+        this.speed = config.getInt("crate-settings.animation.speed", 2);
+        this.length = config.getInt("crate-settings.animation.length", 60);
 
         Particle particle = Arrays.stream(Particle.values())
                 .filter(x -> x.name().equalsIgnoreCase(config.getString("crate-settings.animation.particle")))

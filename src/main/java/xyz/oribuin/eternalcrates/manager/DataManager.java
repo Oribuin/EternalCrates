@@ -15,6 +15,7 @@ import org.bukkit.util.io.BukkitObjectInputStream;
 import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.crate.CrateKeys;
 import xyz.oribuin.eternalcrates.database.migration._1_CreateInitialTables;
+import xyz.oribuin.eternalcrates.util.SchedulerUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -29,7 +30,6 @@ import java.util.UUID;
 public class DataManager extends AbstractDataManager {
 
     private final Map<UUID, CrateKeys> userKeys = new HashMap<>();
-
     private final Gson gson = new Gson();
 
     public DataManager(RosePlugin plugin) {
@@ -271,6 +271,22 @@ public class DataManager extends AbstractDataManager {
     }
 
     /**
+     * Add keys to the users virtual keys
+     *
+     * @param user   The user to add the keys to
+     * @param crate  The crate key to add
+     * @param amount The amount of keys to add
+     */
+    public void addKeys(UUID user, String crate, int amount) {
+        Map<String, Integer> keys = this.userKeys.getOrDefault(user, new CrateKeys()).getKeys();
+        int current = keys.getOrDefault(crate, 0);
+
+        keys.put(crate, current + amount);
+        this.saveUser(user, new CrateKeys(keys));
+    }
+
+
+    /**
      * Decompress a byte array into a list of ItemStacks
      *
      * @param data The byte array
@@ -299,12 +315,12 @@ public class DataManager extends AbstractDataManager {
     }
 
     /**
-     * Get the user's keys from the database
+     * Execute a runnable async off the main thread
      *
-     * @param runnable
+     * @param runnable The runnable to run async
      */
     public void async(Runnable runnable) {
-        Bukkit.getScheduler().runTaskAsynchronously(this.rosePlugin, runnable);
+        SchedulerUtil.async(runnable);
     }
 
     /**

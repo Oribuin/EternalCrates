@@ -16,6 +16,7 @@ import xyz.oribuin.eternalcrates.crate.Reward;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
@@ -68,13 +69,13 @@ public class FountainAnimation extends Animation {
 
     @Override
     public Map<String, Object> getRequiredValues() {
-        return new HashMap<>() {{
+        return new LinkedHashMap<>() {{
             this.put("item-count", 1);
         }};
     }
 
     @Override
     public void load(CommentedConfigurationSection config) {
-        this.itemCount = config.getInt("crate-settings.animation.item-count", 10);
+        this.itemCount = config.getInt("item-count", 10);
     }
 }

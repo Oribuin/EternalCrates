@@ -43,16 +43,16 @@ public class SetCommand extends RoseCommand {
 
         Crate blockCrate = manager.getCrate(targetBlock.getLocation());
         if (blockCrate != null) {
-            locale.sendMessage(player, "command-set-already-set", StringPlaceholders.single("crate", blockCrate.getId()));
+            locale.sendMessage(player, "command-set-already-set", StringPlaceholders.of("crate", blockCrate.getId()));
             return;
         }
 
         if (!crate.getLocations().contains(targetBlock.getLocation())) {
             crate.getLocations().add(targetBlock.getLocation());
-            this.rosePlugin.getManager(CrateManager.class).saveCrate(crate, crate.getFile());
+            manager.saveCrate(crate, crate.getFile());
         }
 
-        locale.sendMessage(player, "command-set-success", StringPlaceholders.single("crate", crate.getId()));
+        locale.sendMessage(player, "command-set-success", StringPlaceholders.of("crate", crate.getId()));
 
         final ParticleData data = new ParticleData(Particle.REDSTONE);
         data.setDustOptions(Color.LIME);

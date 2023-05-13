@@ -34,8 +34,7 @@ public class ParticleData {
     public void spawn(@Nullable Player player, Location loc, int count, double offsetX, double offsetY, double offsetZ) {
 
         final World world = loc.getWorld();
-        if (world == null)
-            return;
+        if (world == null) return;
 
         AbstractParticleSpawner spawner = (player == null ? new WorldParticleSpawner(world) : new PlayerParticleSpawner(player));
 

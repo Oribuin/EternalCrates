@@ -48,7 +48,7 @@ public class Reward {
             plc.add("reward", meta.hasDisplayName() ? meta.getDisplayName() : CrateUtils.formatEnum(item.getType().name()));
         }
 
-        this.getActions().forEach(action -> action.execute(player, plc.build()));
+        this.getActions().forEach(action -> action.execute(this, player, plc.build()));
     }
 
     /**

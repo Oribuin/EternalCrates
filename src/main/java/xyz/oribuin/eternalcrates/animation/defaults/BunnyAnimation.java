@@ -15,6 +15,7 @@ import xyz.oribuin.eternalcrates.crate.Crate;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -62,7 +63,7 @@ public class BunnyAnimation extends Animation {
 
     @Override
     public Map<String, Object> getRequiredValues() {
-        return new HashMap<>() {{
+        return new LinkedHashMap<>() {{
             this.put("bunny-count", 10);
             this.put("duration", 10);
         }};
@@ -70,8 +71,8 @@ public class BunnyAnimation extends Animation {
 
     @Override
     public void load(CommentedConfigurationSection config) {
-        this.bunnyCount = config.getInt("crate-settings.animation.bunny.count");
-        this.duration = config.getInt("crate-settings.animation.duration");
+        this.bunnyCount = config.getInt("bunny-count");
+        this.duration = config.getInt("duration");
     }
 
 }

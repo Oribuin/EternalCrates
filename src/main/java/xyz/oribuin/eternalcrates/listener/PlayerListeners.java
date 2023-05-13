@@ -15,10 +15,12 @@ import xyz.oribuin.eternalcrates.manager.DataManager;
 public class PlayerListeners implements Listener {
 
     private final EternalCrates plugin;
+    private final CrateManager manager;
     private final DataManager data;
 
     public PlayerListeners(final EternalCrates plugin) {
         this.plugin = plugin;
+        this.manager = this.plugin.getManager(CrateManager.class);
         this.data = this.plugin.getManager(DataManager.class);
     }
 
@@ -39,13 +41,10 @@ public class PlayerListeners implements Listener {
         if (!(event.getEntity() instanceof Player player))
             return;
 
-        final CrateManager manager = this.plugin.getManager(CrateManager.class);
         if (!Setting.PICKUP_IN_ANIMATION.getBoolean())
             return;
 
-        if (!manager.getActiveUsers().contains(player.getUniqueId()))
-            return;
-
+        if (!this.manager.getActiveUsers().contains(player.getUniqueId())) return;
 
         event.setCancelled(true);
     }

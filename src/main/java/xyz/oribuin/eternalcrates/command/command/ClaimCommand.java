@@ -34,15 +34,12 @@ public class ClaimCommand extends RoseCommand {
         int totalClaimed = 0;
         for (Crate crate : crates) {
             Integer amount = keyData.get(crate.getId());
-            if (amount == null || amount == 0)
-                continue;
+            if (amount == null || amount == 0) continue;
 
             ItemStack key = crate.getKey().clone();
             key.setAmount(amount);
 
-            if (player.getInventory().firstEmpty() == -1) {
-                continue;
-            }
+            if (player.getInventory().firstEmpty() == -1) break;
 
             totalClaimed += amount;
 
@@ -56,7 +53,7 @@ public class ClaimCommand extends RoseCommand {
         }
 
         this.rosePlugin.getManager(CrateManager.class).saveUserKeys(player.getUniqueId(), keyData);
-        locale.sendMessage(player, "command-claim-success", StringPlaceholders.single("total", totalClaimed));
+        locale.sendMessage(player, "command-claim-success", StringPlaceholders.of("total", totalClaimed));
     }
 
     @Override

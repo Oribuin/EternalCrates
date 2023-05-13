@@ -1,6 +1,5 @@
 package xyz.oribuin.eternalcrates.action;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -22,6 +21,7 @@ public final class PluginAction {
         registerAction("broadcast", BroadcastAction::new);
         registerAction("close", CloseAction::new);
         registerAction("console", ConsoleAction::new);
+        registerAction("give", GiveAction::new);
         registerAction("message", MessageAction::new);
         registerAction("player", PlayerAction::new);
         registerAction("sound", SoundAction::new);
@@ -73,7 +73,7 @@ public final class PluginAction {
     }
 
     @Nullable
-    public static  String getName(Action action) {
+    public static String getName(Action action) {
         return ACTIONS.entrySet().stream().filter(entry -> entry.getKey().equalsIgnoreCase(action.getName()))
                 .findFirst()
                 .map(Map.Entry::getKey)

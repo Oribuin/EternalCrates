@@ -75,7 +75,7 @@ public class Crate {
                 .add("add", this.getName())
                 .build();
 
-        this.openActions.forEach(action -> action.execute(player, plc));
+        this.openActions.forEach(action -> action.execute(null, player, plc));
 
         EternalCrates.getInstance().getManager(CrateManager.class).getActiveUsers().add(player.getUniqueId());
 
@@ -117,34 +117,29 @@ public class Crate {
      * @return The list of rewards.
      */
     public List<Reward> createRewards() {
-        final List<Reward> rewards = new ArrayList<>();
-
-        // Select a random amount of rewards from the min and max reward count and times by the multiplier.
-        final int rewardCount = ThreadLocalRandom.current().nextInt(this.getMinRewards(), this.getMaxRewards() + 1) * this.getMultiplier();
-        for (int i = 0; i < rewardCount; i++)
-            rewards.add(this.selectReward());
-
-        return rewards;
+        return this.selectReward(ThreadLocalRandom.current().nextInt(this.getMinRewards(), this.getMaxRewards() + 1) * this.getMultiplier());
     }
 
-    public Reward selectReward() {
+    public List<Reward> selectReward(int amount) {
 
         // Select a reward.
         // https://stackoverflow.com/a/28711505
         Map<Reward, Double> chanceMap = new HashMap<>();
         this.rewardMap.forEach((integer, reward) -> chanceMap.put(reward, reward.getChance()));
-        double sumOfPercentages = chanceMap.values().stream().reduce(0.0, Double::sum);
-        int current = 0;
-        double randomNumber = ThreadLocalRandom.current().nextDouble(sumOfPercentages);
-        for (Map.Entry<Reward, Double> entry : chanceMap.entrySet()) {
-            current += entry.getValue();
-            if (randomNumber > current)
-                continue;
+        List<Reward> results = new ArrayList<>();
 
-            return entry.getKey();
+        for (int i = 0; i < amount; i++) {
+            double sumOfPercentages = chanceMap.values().stream().reduce(0.0, Double::sum);
+            int current = 0;
+            double randomNumber = ThreadLocalRandom.current().nextDouble(sumOfPercentages);
+            for (Map.Entry<Reward, Double> entry : chanceMap.entrySet()) {
+                current += entry.getValue();
+                if (randomNumber > current) continue;
+                results.add(entry.getKey());
+            }
         }
 
-        return null;
+        return results;
     }
 
     public String getId() {

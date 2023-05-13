@@ -62,7 +62,6 @@ public abstract class Animation {
      */
     public abstract void load(CommentedConfigurationSection config);
 
-
     /**
      * Play an animation at a location
      *

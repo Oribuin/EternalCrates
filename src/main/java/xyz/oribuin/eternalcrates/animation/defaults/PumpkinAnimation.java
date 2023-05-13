@@ -21,6 +21,7 @@ import xyz.oribuin.eternalcrates.crate.Crate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
@@ -117,7 +118,7 @@ public class PumpkinAnimation extends Animation {
 
     @Override
     public Map<String, Object> getRequiredValues() {
-        return new HashMap<>() {{
+        return new LinkedHashMap<>() {{
             this.put("pumpkin-count", 10);
             this.put("smoke-count", 10);
         }};
@@ -125,7 +126,7 @@ public class PumpkinAnimation extends Animation {
 
     @Override
     public void load(CommentedConfigurationSection config) {
-        this.pumpkinCount = config.getInt("crate-settings.animation.pumpkin-count");
-        this.smokeCount = config.getInt("crate-settings.animation.smoke-count");
+        this.pumpkinCount = config.getInt("pumpkin-count");
+        this.smokeCount = config.getInt("smoke-count");
     }
 }

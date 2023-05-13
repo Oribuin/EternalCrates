@@ -20,6 +20,7 @@ import xyz.oribuin.eternalcrates.util.ItemBuilder;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -135,7 +136,7 @@ public class MiniMeAnimation extends Animation {
 
     @Override
     public Map<String, Object> getRequiredValues() {
-        return new HashMap<>() {{
+        return new LinkedHashMap<>() {{
             this.put("rotation-speed", 3L);
             this.put("texture", "DEFAULT");
         }};
@@ -143,7 +144,7 @@ public class MiniMeAnimation extends Animation {
 
     @Override
     public void load(CommentedConfigurationSection config) {
-        this.rotationSpeed = config.getLong("crate-settings.animation.rotation-speed");
-        this.texture = config.getString("crate-settings.animation.texture");
+        this.rotationSpeed = config.getLong("rotation-speed");
+        this.texture = config.getString("texture");
     }
 }

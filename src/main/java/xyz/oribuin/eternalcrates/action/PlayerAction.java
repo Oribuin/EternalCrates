@@ -5,6 +5,8 @@ import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import xyz.oribuin.eternalcrates.crate.Reward;
 
 public class PlayerAction extends Action {
 
@@ -13,7 +15,7 @@ public class PlayerAction extends Action {
     }
 
     @Override
-    public void execute(@NotNull Player player, @NotNull StringPlaceholders placeholders) {
+    public void execute(@Nullable Reward reward, @NotNull Player player, @NotNull StringPlaceholders placeholders) {
         if (this.getMessage().length() == 0)
             return;
 

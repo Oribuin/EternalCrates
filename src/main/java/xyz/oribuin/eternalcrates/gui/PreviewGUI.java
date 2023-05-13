@@ -54,7 +54,7 @@ public class PreviewGUI extends PluginMenu {
                 .player(player)
                 .placeholders(cratePlaceholders)
                 .action(event -> gui.next())
-                .condition(menuItem -> gui.getNextPageNum() > gui.getCurrentPageNum())
+//                .condition(menuItem -> gui.getNextPageNum() > gui.getCurrentPageNum())
                 .place(gui);
 
         MenuItem.create(this.config)
@@ -62,7 +62,7 @@ public class PreviewGUI extends PluginMenu {
                 .player(player)
                 .placeholders(cratePlaceholders)
                 .action(event -> gui.previous())
-                .condition(menuItem -> gui.getPrevPageNum() < gui.getCurrentPageNum())
+//                .condition(menuItem -> gui.getPrevPageNum() < gui.getCurrentPageNum())
                 .place(gui);
 
         crate.getRewardMap().forEach((slot, reward) -> gui.addItem(new GuiItem(reward.getPreviewItem())));

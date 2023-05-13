@@ -1,0 +1,83 @@
+# Crate Settings - General settings for this crate
+# name - The io of the crate
+# display-name - The display name of the crate
+# type - The type of crate [PHYSICAL, VIRTUAL]
+# min-rewards - The minimum amount of rewards to give [Used to generate a random number of rewards]
+# max-rewards - The maximum amount of rewards to give [Must be greater or equal to min-rewards]
+# multiplier - The multiplier for the rewards [Used to multiply the chance of each reward]
+# min-inv-slots - The minimum amount of inventory slots required to open the crate
+#
+# Animation Settings - Unique settings for each animation will be loaded once name is set
+# name - The name of the animation
+#
+# Key Settings - Change the physical crate key item [Uses general ItemStack Settings]
+# material - The material of the key
+# name - The name of the key
+# lore - The lore of the key
+
+# Rewards - The rewards to give when opening the crate [Uses general ItemStack Settings]
+# [1] - The reward number
+# chance - The chance to get the reward (As a percentage)
+# actions - The actions to run when the reward is given
+# preview-item - The item to show when previewing the crate
+
+# General ItemStack Settings
+# plugin-item [Plugin:Item Name] - An item from a supported custom item plugin [eco, executableitems, itembridge, itemedit, itemsadder, knokkocustomitems, mmoitems, oraxen, slimefun, uberitems]
+# material [Material Name] - The material of the  item [https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html]
+# name: [String] - The name of the item
+# lore [String List] - The lore of the item
+# glow [True/False] - Whether the item should glow or not
+# amount [Integer] - The amount of the item
+# flags [ItemFlag List] - The item flags for the item [https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/inventory/ItemFlag.html]
+# enchantments [Enchantment: Level] - The enchantments of the item [https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/enchantments/Enchantment.html]
+# texture [String] - Base64 Encoded Texture / HeadDatabase ID [hdb:ID] [https://minecraft-heads.com]
+# owner [String] - The name of the player who owns the head [Has to be an online player, Can use %player_name% placeholder]
+# potion-color [Color] - The color of the potion [https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Color.html]
+# model-data [Integer] - The model data of the item
+
+# Actions - The actions to run when the reward is given
+# [GIVE] - Give the reward to the player [Only works in the action section for crate rewards]
+# [BROADCAST] message - Broadcast a message to the server
+# [CLOSE] - Close the crate menu
+# [CONSOLE] command - Run a command as the console
+# [MESSAGE] message - Send a message to the player
+# [PLAYER] command - Run a command as the player
+
+
+crate-settings:
+  name: example
+  display-name: 'Example Crate'
+  type: PHYSICAL
+  min-rewards: 1
+  max-rewards: 1
+  multiplier: 1
+  min-inv-slots: 1
+  open-actions:
+    - '[MESSAGE] #00B4DB&lYou have opened the #00B4DBExample Crate!'
+
+  animation:
+    name: Rings
+  key:
+    material: TRIPWIRE_HOOK
+    name: '#00B4DB&lCrate Key &7» &fExample'
+    lore:
+      - ' '
+      - ' &7| &fA key to open the #00B4DBExample Crate.'
+      - ' &7| &f'
+      - ' &7| &fRight click to the #00B4DBexample crate'
+      - ' &7| &fto open it.'
+    glow: true
+  rewards:
+    '1':
+      material: STONE
+      name: <r:0.7>&lSpecial Stone
+      amount: 1
+      lore:
+        - '&7This is a &lSpecial Stone'
+      enchants:
+        SILK_TOUCH: 1
+      chance: 100.0
+      actions:
+        - '[GIVE]'
+        - '[CONSOLE] eco give %player% 100'
+        - '[MESSAGE] #00B4DB&l&lExample &7» &fYou have been given 100 coins & special stone!'

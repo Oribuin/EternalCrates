@@ -299,30 +299,25 @@ public class CrateManager extends Manager {
         }
 
         // Add crate animation settings to plugin config.
+
         Animation finalAnimation = animation;
+        CommentedConfigurationSection animationSection = config.getConfigurationSection("crate-settings.animation");
+        if (animationSection == null) return null;
 
-        // Fireworks have default values, so we don't need to add them to the config if they don't exist.
-        if (finalAnimation.getName().equalsIgnoreCase("fireworks")) {
-            if (config.get("crate-settings.animation.firework-settings") == null)
-                animation.getRequiredValues().forEach((path, object) -> config.set("crate-settings.animation.firework-settings." + path, object));
-        } else {
-            animation.getRequiredValues().forEach((path, object) -> {
-                // All other animations have default values, so we need to add them to the config if they don't exist.
-                final String newPath = "crate-settings.animation." + path;
-                if (config.get(newPath) == null) {
-                    config.set(newPath, object);
-                }
-            });
-        }
+        finalAnimation.getRequiredValues().forEach((path, object) -> {
+            // All other animations have default values, so we need to add them to the config if they don't exist.
+            if (animationSection.get(path) == null) {
+                animationSection.set(path, object);
+            }
+        });
 
-        finalAnimation.load(config);
+        finalAnimation.load(animationSection);
         config.save(file);
 
         // Set the crate data
         crate.setAnimation(finalAnimation);
         crate.setName(displayName);
         crate.setRewardMap(rewards);
-        crate.setMaxRewards(Math.max(config.getInt("crate-settings.max-rewards"), 1));
         crate.setMaxRewards(Math.max(config.getInt("crate-settings.max-rewards", 1), 1));
         crate.setMinRewards(Math.min(config.getInt("crate-settings.min-rewards", 1), crate.getMaxRewards()));
         crate.setMultiplier(Math.min(config.getInt("crate-settings.multiplier", 1), 1));
@@ -389,11 +384,7 @@ public class CrateManager extends Manager {
         final DataManager data = this.rosePlugin.getManager(DataManager.class);
         final int newAmount = Math.max(amount, 1);
 
-        Map<String, Integer> usersKeys = data.getUser(player.getUniqueId()).getKeys();
-        Integer totalKeys = usersKeys.getOrDefault(crate.getId().toLowerCase(), 0);
-
-        usersKeys.put(crate.getId().toLowerCase(), totalKeys + newAmount);
-        data.saveUser(player.getUniqueId(), new CrateKeys(usersKeys));
+        data.addKeys(player.getUniqueId(), crate.getId().toLowerCase(), newAmount);
 
         final StringPlaceholders placeholders = StringPlaceholders.builder("crate", crate.getId())
                 .add("amount", newAmount)
@@ -452,63 +443,21 @@ public class CrateManager extends Manager {
                     .add("amount", newAmount)
                     .build();
 
+            this.rosePlugin.getManager(DataManager.class).addKeys(player.getUniqueId(), crate.getId().toLowerCase(), newAmount);
             locale.sendMessage(player, "command-give-full-inventory", placeholders);
             return;
-
         }
 
+        // Player has space in their inventory, give them the key.
+        key.setAmount(Math.min(newAmount, maxAmount));
+        player.getInventory().addItem(key);
 
-//        ItemStack key = crate.getKey().clone();
-//        if (player.getInventory().firstEmpty() != -1) {
-//            key.setAmount(Math.min(newAmount, maxAmount));
-//
-//            player.getInventory().addItem(key);
-//            final StringPlaceholders placeholders = StringPlaceholders.builder("crate", crate.getId())
-//                    .add("amount", newAmount)
-//                    .build();
-//
-//            locale.sendMessage(player, "command-give-success", placeholders);
-//        }
-//
-//        final DataManager data = this.rosePlugin.getManager(DataManager.class);
-//        Map<String, Integer> usersKeys = data.getUser(player.getUniqueId()).getKeys();
-//
-//        // Add the amount of keys to the users unclaimed key
-//        if ((newAmount - maxAmount) > 0 || player.getInventory().firstEmpty() == -1) {
-//            giveVirtualKey(player, crate, newAmount - maxAmount);
-//        }
-//
-//        if (newAmount > maxAmount) {
-//            final StringPlaceholders placeholders = StringPlaceholders.builder("crate", crate.getId())
-//                    .add("amount", newAmount)
-//                    .build();
-//
-//            locale.sendMessage(player, "command-give-full-inventory", placeholders);
-//            return;
-//        }
-//
-//        // Add unclaimed key to database if inventory is full
-//        if (player.getInventory().firstEmpty() == -1) {
-//            // Get their userdata again
-//            final CrateKeys userData = data.getUser(player.getUniqueId());
-//            final int keys = userData.getKeys().getOrDefault(crate.getId().toLowerCase(), 0);
-//
-//            // Add the amount of keys to the users unclaimed keys
-//            usersKeys.put(crate.getId().toLowerCase(), keys + newAmount);
-//            data.saveUser(player.getUniqueId(), userData);
-//            this.rosePlugin.getManager(LocaleManager.class).sendMessage(player, "command-give-full-inventory");
-//            return;
-//        }
-//
-//        final StringPlaceholders placeholders = StringPlaceholders.builder("crate", crate.getId())
-//                .add("amount", newAmount)
-//                .build();
-//
-//        // Give actual key to player
-//        locale.sendMessage(player, "command-give-success-other", placeholders);
-//        player.getInventory().addItem(key);
+        final StringPlaceholders placeholders = StringPlaceholders.builder("crate", crate.getId())
+                .add("amount", newAmount)
+                .build();
+
+        locale.sendMessage(player, "command-give-success", placeholders);
     }
-
 
     /**
      * Use a physical crate key on a crate

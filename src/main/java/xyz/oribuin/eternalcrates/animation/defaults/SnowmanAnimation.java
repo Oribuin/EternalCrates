@@ -19,6 +19,7 @@ import xyz.oribuin.eternalcrates.animation.AnimationType;
 import xyz.oribuin.eternalcrates.crate.Crate;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -73,14 +74,14 @@ public class SnowmanAnimation extends Animation {
 
     @Override
     public Map<String, Object> getRequiredValues() {
-        return new HashMap<>() {{
+        return new LinkedHashMap<>() {{
             this.put("snowball-count", 10);
         }};
     }
 
     @Override
     public void load(CommentedConfigurationSection config) {
-        this.snowballCount = config.getInt("crate-settings.animation.snowball-count");
+        this.snowballCount = config.getInt("snowball-count");
 
     }
 }

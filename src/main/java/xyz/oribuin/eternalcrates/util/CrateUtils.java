@@ -19,6 +19,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import xyz.oribuin.eternalcrates.hook.CustomItemPlugin;
 import xyz.oribuin.eternalcrates.hook.PAPI;
 
 import java.io.File;
@@ -151,6 +152,8 @@ public final class CrateUtils {
 
     @Nullable
     public static ItemStack getItemStack(@NotNull CommentedConfigurationSection config, @NotNull String path, @Nullable Player player, @Nullable StringPlaceholders placeholders) {
+        ItemStack customItem = CustomItemPlugin.parse(config.getString(path + ".plugin-item", ""), player);
+        if (customItem != null) return customItem;
 
         Material material = Material.getMaterial(PlaceholderAPI.setPlaceholders(player, config.getString(path + ".material", "")));
         if (material == null)

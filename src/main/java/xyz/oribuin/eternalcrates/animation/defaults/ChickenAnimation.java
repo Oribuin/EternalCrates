@@ -11,6 +11,7 @@ import xyz.oribuin.eternalcrates.animation.Animation;
 import xyz.oribuin.eternalcrates.crate.Crate;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -50,14 +51,14 @@ public class ChickenAnimation extends Animation {
 
     @Override
     public Map<String, Object> getRequiredValues() {
-        return new HashMap<>() {{
+        return new LinkedHashMap<>() {{
             this.put("chicken-count", 10);
         }};
     }
 
     @Override
     public void load(CommentedConfigurationSection config) {
-        this.chickenCount = config.getInt("crate-settings.animation.chicken-count", 10);
+        this.chickenCount = config.getInt("chicken-count", 10);
     }
 
 }

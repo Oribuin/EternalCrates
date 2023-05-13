@@ -23,6 +23,7 @@ import xyz.oribuin.eternalcrates.particle.ParticleData;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,8 +32,9 @@ public class SwordsAnimation extends Animation {
     private double step = 0;
     private int numSteps = 80;
     private int swordRotation = 260;
-    private int radius = 1;
+    private double radius = 1;
     private int swordCount = 3;
+    private double yOffset = -0.3;
 
     public SwordsAnimation() {
         super("Swords", "Oribuin");
@@ -46,6 +48,7 @@ public class SwordsAnimation extends Animation {
             return;
 
         final Location startPoint = location.clone().subtract(0, 0.5, 0);
+        startPoint.setY(startPoint.getY() + this.yOffset);
 
         for (int i = 0; i < this.swordCount; i++) {
             ArmorStand armorStand = location.getWorld().spawn(startPoint, ArmorStand.class, stand -> {
@@ -133,20 +136,22 @@ public class SwordsAnimation extends Animation {
 
     @Override
     public Map<String, Object> getRequiredValues() {
-        return new HashMap<>() {{
+        return new LinkedHashMap<>() {{
             this.put("num-steps", 80);
             this.put("sword-rotation", 260);
-            this.put("radius", 1);
+            this.put("radius", 1.0);
             this.put("sword-count", 3);
+            this.put("y-offset", -0.3);
         }};
     }
 
     @Override
     public void load(CommentedConfigurationSection config) {
-        this.numSteps = config.getInt("crate-settings.animation.num-steps");
-        this.swordRotation = config.getInt("crate-settings.animation.sword-rotation");
-        this.radius = config.getInt("crate-settings.animation.radius");
-        this.swordCount = config.getInt("crate-settings.animation.sword-count");
+        this.numSteps = config.getInt("num-steps");
+        this.swordRotation = config.getInt("sword-rotation");
+        this.radius = config.getDouble("radius");
+        this.swordCount = config.getInt("sword-count");
+        this.yOffset = config.getDouble("y-offset");
     }
 
     @Override
