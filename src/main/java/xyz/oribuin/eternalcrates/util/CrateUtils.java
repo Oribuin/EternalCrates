@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -120,11 +121,7 @@ public final class CrateUtils {
      * @return The amount of empty slots.
      */
     public static int getSpareSlots(Player player) {
-        final List<Integer> slots = new ArrayList<>();
-        for (int i = 0; i < 36; i++)
-            slots.add(i);
-
-        return (int) slots.stream().map(integer -> player.getInventory().getItem(integer))
+        return (int) Arrays.stream(player.getInventory().getContents())
                 .filter(itemStack -> itemStack == null || itemStack.getType() == Material.AIR)
                 .count();
     }
