@@ -4,6 +4,10 @@ version: '@version@'
 api-version: '1.13'
 author: Oribuin
 description: A new crate plugin focused on functionality, performance and animation.
+libraries:
+  - "net.kyori:adventure-api:4.11.0"
+  - "net.kyori:adventure-text-serializer-legacy:4.11.0"
+  - "net.kyori:adventure-text-serializer-gson:4.11.0"
 softdepend:
   - PlaceholderAPI
   - eco
