@@ -15,7 +15,6 @@ import org.bukkit.util.io.BukkitObjectInputStream;
 import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.crate.CrateKeys;
 import xyz.oribuin.eternalcrates.database.migration._1_CreateInitialTables;
-import xyz.oribuin.eternalcrates.util.SchedulerUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -320,7 +319,7 @@ public class DataManager extends AbstractDataManager {
      * @param runnable The runnable to run async
      */
     public void async(Runnable runnable) {
-        SchedulerUtil.async(runnable);
+        Bukkit.getScheduler().runTaskAsynchronously(this.rosePlugin, runnable);
     }
 
     /**

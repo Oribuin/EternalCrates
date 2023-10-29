@@ -1,57 +1,54 @@
 import org.apache.tools.ant.filters.ReplaceTokens
+
 plugins {
-    id "com.github.johnrengelman.shadow" version "7.1.0" apply false
+    id "java-library"
+    id "com.github.johnrengelman.shadow" version "7.1.0"
     id "maven-publish"
 }
 
-allprojects {
-    apply plugin: 'java-library'
-    apply plugin: 'com.github.johnrengelman.shadow'
-    group = 'xyz.oribuin.eternalcrates'
-    version = '1.0.5-pre1'
+group = 'xyz.oribuin.eternalcrates'
+version = '1.0.5-pre1'
 
-    java {
-        toolchain {
-            languageVersion = JavaLanguageVersion.of(17)
-        }
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
     }
+}
 
-    compileJava {
-        options.compilerArgs += ['-parameters']
-        options.fork = true
-        options.encoding = 'UTF-8'
-    }
+compileJava {
+    options.compilerArgs += ['-parameters']
+    options.fork = true
+    options.encoding = 'UTF-8'
+}
 
 
-    repositories {
-        mavenCentral()
-        mavenLocal()
+repositories {
+    mavenCentral()
+    mavenLocal()
 
-        maven { url 'https://libraries.minecraft.net' }
-        maven { url "https://hub.spigotmc.org/nexus/content/repositories/snapshots/" }
-        maven { url "https://repo.rosewooddev.io/repository/public/" }
-        maven { url "https://repo.extendedclip.com/content/repositories/placeholderapi/" }
-        maven { url "https://repo.codemc.org/repository/maven-public/" }
-        maven { url 'https://jitpack.io' }
-        maven { url 'https://erethon.de/repo/' }
-        maven { url 'https://mvn.lumine.io/repository/maven-public/' }
+    maven { url 'https://libraries.minecraft.net' }
+    maven { url "https://hub.spigotmc.org/nexus/content/repositories/snapshots/" }
+    maven { url "https://repo.rosewooddev.io/repository/public/" }
+    maven { url "https://repo.extendedclip.com/content/repositories/placeholderapi/" }
+    maven { url "https://repo.codemc.org/repository/maven-public/" }
+    maven { url 'https://jitpack.io' }
+    maven { url 'https://erethon.de/repo/' }
+    maven { url 'https://mvn.lumine.io/repository/maven-public/' }
 
-        maven {
-            url = 'https://repo.rosewooddev.io/repository/maven-public'
-            credentials {
-                username project.mavenUser
-                password project.mavenPassword
-                authentication {
-                    basic(BasicAuthentication)
-                }
+    maven {
+        url = 'https://repo.rosewooddev.io/repository/maven-public'
+        credentials {
+            username project.mavenUser
+            password project.mavenPassword
+            authentication {
+                basic(BasicAuthentication)
             }
         }
     }
+}
 
-    dependencies {
-        compileOnly 'org.jetbrains:annotations:23.1.0'
-    }
-
+dependencies {
+    compileOnly 'org.jetbrains:annotations:23.1.0'
 }
 
 dependencies {

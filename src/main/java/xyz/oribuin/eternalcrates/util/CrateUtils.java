@@ -14,11 +14,15 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.hook.CustomItemPlugin;
 import xyz.oribuin.eternalcrates.hook.PAPI;
 
@@ -39,14 +43,14 @@ public final class CrateUtils {
     }
 
     /**
-     * Format a string list into a single string.
-     *
-     * @param list      The strings being converted
-     * @param delimiter The delimiter between each string
-     * @return the converted string.
+     * Remove all EternalCrates animation entities from the server.
      */
-    public static String formatList(List<String> list, String delimiter) {
-        return String.join(delimiter, list);
+    public static void clearEntities() {
+        for (final World world : Bukkit.getWorlds()) {
+            world.getEntities().stream()
+                    .filter(entity -> entity.getPersistentDataContainer().has(EternalCrates.getEntityKey()))
+                    .forEach(Entity::remove);
+        }
     }
 
     /**
@@ -126,16 +130,6 @@ public final class CrateUtils {
                 .count();
     }
 
-    /**
-     * Gets a location as a string key
-     *
-     * @param location The location
-     * @return the location as a string key
-     * @author Esophose
-     */
-    public static String locationAsKey(Location location) {
-        return String.format("%s-%.2f-%.2f-%.2f", location.getWorld().getName(), location.getX(), location.getY(), location.getZ());
-    }
 
     /**
      * Format an enum name to be more readable.

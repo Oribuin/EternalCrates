@@ -1,7 +1,7 @@
 package xyz.oribuin.eternalcrates.listener;
 
-import com.google.common.util.concurrent.Futures;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
+import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -24,11 +24,8 @@ import xyz.oribuin.eternalcrates.manager.LocaleManager;
 import xyz.oribuin.eternalcrates.manager.MenuManager;
 import xyz.oribuin.eternalcrates.particle.ParticleData;
 import xyz.oribuin.eternalcrates.util.CrateUtils;
-import xyz.oribuin.eternalcrates.util.SchedulerUtil;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -71,9 +68,8 @@ public class CrateListeners implements Listener {
         final List<Location> cube = CrateUtils.getCube(block.getLocation().clone(), block.getLocation().clone().add(1, 1, 1), 0.5);
 
         // Spawn particles in the cube and then remove them after 1.5s (35 ticks)
-        ScheduledFuture<?> future = SchedulerUtil.repeatingTask(() -> cube.forEach(loc -> data.spawn(player, loc, 1)), 0, 300, TimeUnit.MILLISECONDS);
-        SchedulerUtil.delayedTask(() -> future.cancel(true), 35 * 50);
-
+        BukkitTask particleTask = Bukkit.getScheduler().runTaskTimerAsynchronously(this.plugin, () -> cube.forEach(loc -> data.spawn(player, loc, 1)), 0, 5);
+        Bukkit.getScheduler().runTaskLater(this.plugin, particleTask::cancel, 35);
     }
 
     @EventHandler(priority = EventPriority.HIGH)
