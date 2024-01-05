@@ -282,7 +282,6 @@ public final class CrateUtils {
      * @param list The list to parse
      * @return The parsed list
      */
-    @SuppressWarnings("unchecked")
     public static List<Integer> parseList(List<String> list) {
         List<Integer> newList = new ArrayList<>();
         for (String s : list) {

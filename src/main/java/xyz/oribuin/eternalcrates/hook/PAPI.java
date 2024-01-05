@@ -54,17 +54,17 @@ public class PAPI extends PlaceholderExpansion {
 
     @Override
     public @NotNull String getIdentifier() {
-        return this.plugin.getDescription().getName();
+        return "eternalcrates";
     }
 
     @Override
     public @NotNull String getAuthor() {
-        return this.plugin.getDescription().getAuthors().get(0);
+        return "oribuin";
     }
 
     @Override
     public @NotNull String getVersion() {
-        return this.plugin.getDescription().getVersion();
+        return "1.0.0";
     }
 
     @Override

@@ -125,16 +125,17 @@ public class DataManager extends AbstractDataManager {
                 statement.executeUpdate();
             }
 
-            for (Location loc : crate.getLocations()) {
-                try (PreparedStatement statement = connection.prepareStatement("REPLACE INTO " + this.getTablePrefix() + "locations (`crateName`, `x`, `y`, `z`, `world`) VALUES (?, ?, ?, ?, ?)")) {
+            try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + this.getTablePrefix() + "locations (`crateName`, `x`, `y`, `z`, `world`) VALUES (?, ?, ?, ?, ?)")) {
+                for (Location loc : crate.getLocations()) {
                     statement.setString(1, crate.getId());
                     statement.setDouble(2, loc.getX());
                     statement.setDouble(3, loc.getY());
                     statement.setDouble(4, loc.getZ());
                     statement.setString(5, loc.getWorld().getName());
-                    statement.executeUpdate();
-
+                    statement.addBatch();
                 }
+
+                statement.executeBatch();
             }
         }));
     }
@@ -214,7 +215,6 @@ public class DataManager extends AbstractDataManager {
             try (PreparedStatement statement = connection.prepareStatement(dropVirtualKeys)) {
                 statement.executeUpdate();
             }
-
 
             // Load all the unclaimed keys
             Map<UUID, List<ItemStack>> items = new HashMap<>();
