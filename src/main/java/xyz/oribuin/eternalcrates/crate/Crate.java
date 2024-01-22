@@ -1,5 +1,6 @@
 package xyz.oribuin.eternalcrates.crate;
 
+import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
 import dev.rosewood.rosegarden.config.CommentedFileConfiguration;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import org.bukkit.Bukkit;
@@ -8,7 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.action.Action;
-import xyz.oribuin.eternalcrates.animation.Animation;
+import xyz.oribuin.eternalcrates.oldanimations.Animation;
 import xyz.oribuin.eternalcrates.event.AnimationEndEvent;
 import xyz.oribuin.eternalcrates.event.AnimationStartEvent;
 import xyz.oribuin.eternalcrates.event.CrateOpenEvent;
@@ -24,31 +25,25 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class Crate {
 
+    private CommentedConfigurationSection config; // The config where the crate is stored.
+    private File file; // The file where the crate is stored.
+
     private final String id; // The id of the crate.
     private String name; // The name of the crate.
-    private Map<String, Reward> rewardMap; // The rewards for the crate.
+    private RewardSettings settings; // The settings for the crate rewards;
+    private Map<String, Reward> rewards; // The rewards for the crate.
     private Animation animation; // The animation to play when a crate is opened.
     private List<Location> locations; // The locations of the crate.
     private ItemStack key; // The key to open the crate.
-    private int maxRewards; // The maximum amount of rewards to give.
-    private int minRewards;  // The minimum amount of rewards to give.
-    private int minGuiSlots; // The minimum amount of slots in the GUI.
-    private int multiplier; // The multiplier for the rewards.
-    private CommentedFileConfiguration config; // The config where the crate is stored.
     private List<Action> openActions; // The actions to run when a crate is opened.
     private CrateType type; // The type of crate.
-    private File file; // The file where the crate is stored.
 
     public Crate(final String id) {
         this.id = id;
         this.name = id;
-        this.rewardMap = new HashMap<>();
+        this.rewards = new HashMap<>();
         this.animation = null;
         this.locations = new ArrayList<>();
-        this.multiplier = 1;
-        this.maxRewards = 1;
-        this.minRewards = 1;
-        this.minGuiSlots = this.maxRewards;
         this.file = null;
         this.config = null;
         this.openActions = new ArrayList<>();
@@ -125,7 +120,7 @@ public class Crate {
         // Select a reward.
         // https://stackoverflow.com/a/28711505
         Map<Reward, Double> chanceMap = new HashMap<>();
-        this.rewardMap.forEach((integer, reward) -> chanceMap.put(reward, reward.getChance()));
+        this.rewards.forEach((integer, reward) -> chanceMap.put(reward, reward.getChance()));
         List<Reward> results = new ArrayList<>();
 
         for (int i = 0; i < amount; i++) {
@@ -202,11 +197,11 @@ public class Crate {
         this.minRewards = minRewards;
     }
 
-    public CommentedFileConfiguration getConfig() {
+    public CommentedConfigurationSection getConfig() {
         return config;
     }
 
-    public void setConfig(CommentedFileConfiguration config) {
+    public void setConfig(CommentedConfigurationSection config) {
         this.config = config;
     }
 
@@ -219,11 +214,11 @@ public class Crate {
     }
 
     public Map<String, Reward> getRewardMap() {
-        return rewardMap;
+        return rewards;
     }
 
     public void setRewardMap(Map<String, Reward> rewardMap) {
-        this.rewardMap = rewardMap;
+        this.rewards = rewardMap;
     }
 
     public List<Action> getOpenActions() {

@@ -15,11 +15,9 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.persistence.PersistentDataContainer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xyz.oribuin.eternalcrates.EternalCrates;
@@ -345,15 +343,27 @@ public final class CrateUtils {
      * @return The enum
      */
     public static <T extends Enum<T>> T getEnum(Class<T> enumClass, String name) {
-        if (name == null)
-            return null;
+        return getEnum(enumClass, name, null);
+    }
+
+    /**
+     * Get an enum from a string value
+     *
+     * @param enumClass The enum class
+     * @param name      The name of the enum
+     * @param def       The default value
+     * @param <T>       The enum type
+     * @return The enum
+     */
+    public static <T extends Enum<T>> T getEnum(Class<T> enumClass, String name, T def) {
+        if (name == null) return def;
 
         try {
             return Enum.valueOf(enumClass, name.toUpperCase());
         } catch (IllegalArgumentException ignored) {
         }
 
-        return null;
+        return def;
     }
 
     /**

@@ -5,7 +5,7 @@ import dev.rosewood.rosegarden.command.framework.ArgumentParser;
 import dev.rosewood.rosegarden.command.framework.RoseCommandArgumentHandler;
 import dev.rosewood.rosegarden.command.framework.RoseCommandArgumentInfo;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
-import xyz.oribuin.eternalcrates.animation.AnimationType;
+import xyz.oribuin.eternalcrates.oldanimations.AnimationType;
 
 import java.util.Arrays;
 import java.util.List;

@@ -35,7 +35,7 @@ public class PAPI extends PlaceholderExpansion {
             if (args.length < 2)
                 return "Unknown Crate";
 
-            final Map<String, Integer> keys = this.data.getUser(player.getUniqueId()).getKeys();
+            final Map<String, Integer> keys = this.data.user(player.getUniqueId()).getKeys();
             return String.valueOf(keys.getOrDefault(args[1], 0));
         }
         return params;

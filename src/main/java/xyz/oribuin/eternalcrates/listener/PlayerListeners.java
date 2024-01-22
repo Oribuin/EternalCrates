@@ -27,7 +27,7 @@ public class PlayerListeners implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onJoin(PlayerJoinEvent event) {
         // Get a user's cached items when they join.
-        this.data.getUser(event.getPlayer().getUniqueId());
+        this.data.user(event.getPlayer().getUniqueId());
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)

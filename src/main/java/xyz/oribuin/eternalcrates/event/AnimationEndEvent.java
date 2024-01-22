@@ -3,7 +3,7 @@ package xyz.oribuin.eternalcrates.event;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
-import xyz.oribuin.eternalcrates.animation.Animation;
+import xyz.oribuin.eternalcrates.oldanimations.Animation;
 
 public class AnimationEndEvent extends Event {
 
