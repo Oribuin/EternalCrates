@@ -140,6 +140,7 @@ public class CrateManager extends Manager {
         }
 
         crate.setRewards(rewards);
+        crate.setAnimation(animation);
         this.cachedCrates.put(id, crate);
     }
 
