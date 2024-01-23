@@ -1,9 +1,10 @@
 package xyz.oribuin.eternalcrates.event;
 
+import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
-import xyz.oribuin.eternalcrates.oldanimations.Animation;
+import xyz.oribuin.eternalcrates.animation.Animation;
 
 public class AnimationEndEvent extends Event {
 
@@ -11,6 +12,7 @@ public class AnimationEndEvent extends Event {
     private final Animation animation;
 
     public AnimationEndEvent(Animation animation) {
+        super(!Bukkit.isPrimaryThread());
         this.animation = animation;
     }
 

@@ -1,39 +1,22 @@
 package xyz.oribuin.eternalcrates.action;
 
-import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.crate.Reward;
 
-public abstract class Action {
+import java.util.List;
 
-    private final @NotNull String name;
-    private String message = "";
-
-    protected Action(@NotNull String name) {
-        this.name = name;
-    }
+public interface Action {
 
     /**
-     * Execute the action function
+     * The functionality this action provides when its ran
      *
-     * @param player       The player
-     * @param placeholders Message placeholders
+     * @param crate The crate that was opened or used
+     * @param player The player that opened or used the crate
+     * @param reward The reward that was given to the player
+     * @param input The content provided by the user
      */
-    public abstract void execute(@Nullable Reward reward, @NotNull Player player, @NotNull StringPlaceholders placeholders);
-
-    public String getName() {
-        return name;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public Action setMessage(String message) {
-        this.message = message;
-        return this;
-    }
+    void run(Crate crate, Player player,  Reward reward, String input);
 
 }

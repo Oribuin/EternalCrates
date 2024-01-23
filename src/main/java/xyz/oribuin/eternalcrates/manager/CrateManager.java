@@ -4,8 +4,13 @@ import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
 import dev.rosewood.rosegarden.config.CommentedFileConfiguration;
 import dev.rosewood.rosegarden.manager.Manager;
+import org.bukkit.inventory.ItemStack;
+import xyz.oribuin.eternalcrates.animation.Animation;
+import xyz.oribuin.eternalcrates.animation.factory.AnimationFactory;
 import xyz.oribuin.eternalcrates.crate.Crate;
-import xyz.oribuin.eternalcrates.crate.CrateType;
+import xyz.oribuin.eternalcrates.crate.KeyType;
+import xyz.oribuin.eternalcrates.crate.Reward;
+import xyz.oribuin.eternalcrates.crate.RewardSettings;
 import xyz.oribuin.eternalcrates.util.CrateUtils;
 
 import java.io.File;
@@ -25,7 +30,7 @@ public class CrateManager extends Manager {
 
     private final List<UUID> activeUsers = new ArrayList<>();
     private final Map<String, Crate> cachedCrates = new HashMap<>();
-    private final Map<String, CommentedFileConfiguration> unregisteredCrates = new HashMap<>();
+    private final Map<File, String> unregisteredCrates = new HashMap<>();
 
     public CrateManager(RosePlugin plugin) {
         super(plugin);
@@ -80,13 +85,59 @@ public class CrateManager extends Manager {
 
         Crate crate = new Crate(id);
         crate.setConfig(config);
+        crate.setFile(file);
         crate.setName(crateSettings.getString("display-name", id));
-        crate.setType(CrateUtils.getEnum(CrateType.class, crateSettings.getString("type"), CrateType.PHYSICAL));
-        crate.setMinRewards(Math.min(crateSettings.getInt("min-rewards", 1), 1));
-        crate.setMaxRewards(Math.max(crateSettings.getInt("max-rewards", 1), 1));
-        crate.setMultiplier(Math.max(crateSettings.getInt("multiplier"), 1));
-        crate.setMinGuiSlots(Math.max(crateSettings.getInt("min-inv-slots"), 1));
+        crate.setType(CrateUtils.getEnum(KeyType.class, crateSettings.getString("type"), KeyType.PHYSICAL));
+        crate.setSettings(new RewardSettings(
+                crateSettings.getInt("min-rewards", 1),
+                crateSettings.getInt("max-rewards", 1),
+                crateSettings.getInt("multiplier", 1),
+                crateSettings.getInt("min-inv-slots", 1)
+        ));
 
+        // Load the crate animation
+        String animationName = crateSettings.getString("animation.name");
+        Animation animation = AnimationFactory.get().find(animationName);
+
+        // Make sure the crate doesn't require blocks if it's a virtual crate
+        if (crate.getType() == KeyType.VIRTUAL && animation != null && !animation.getRequiredBlocks().isEmpty()) {
+            LOGGER.warning("Cannot load crate " + id + ", Animation does not support virtual crates, Switching animation to the default.");
+            animation = AnimationFactory.get().find("default");
+        }
+
+        // Make sure the animation is actually loaded
+        if (animation == null) {
+            if (animationName != null)
+                this.unregisteredCrates.put(file, animationName);
+            return null;
+        }
+
+        // Load the crate key
+        if (crate.getType() == KeyType.PHYSICAL) {
+            crate.setKey(CrateUtils.deserialize(crateSettings, "key"));
+        }
+
+        // Load the crate rewards
+        CommentedConfigurationSection rewardsSection = crateSettings.getConfigurationSection("rewards");
+        if (rewardsSection == null) {
+            LOGGER.warning("Failed to load crate " + id + " because it does not have any rewards.");
+            return null;
+        }
+
+        Map<String, Reward> rewards = new HashMap<>();
+        for (String key : rewardsSection.getKeys(false)) {
+            double chance = rewardsSection.getDouble(key + ".chance");
+            ItemStack item = CrateUtils.deserialize(rewardsSection, key);
+            ItemStack previewItem = CrateUtils.deserialize(rewardsSection, key + ".preview-item");
+            if (chance <= 0 || item == null) continue;
+
+            Reward reward = new Reward(key, item, chance);
+            reward.setPreviewItem(previewItem != null ? previewItem : item);
+            reward.setActions(rewardsSection.getStringList(key + ".actions"));
+            rewards.put(key, reward);
+        }
+
+        crate.setRewards(rewards);
         return crate;
     }
 

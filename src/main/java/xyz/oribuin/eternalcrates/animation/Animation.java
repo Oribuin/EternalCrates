@@ -52,7 +52,6 @@ public abstract class Animation {
      * @param location The location of the crate
      */
     public void start(Crate crate, Player player, Location location) {
-
     }
 
     /**
@@ -76,7 +75,7 @@ public abstract class Animation {
      * @param location The location of the crate
      */
     public void stop(Crate crate, Player player, Location location) {
-        crate.finish(player, location);
+        crate.reward(player);
     }
 
     /**

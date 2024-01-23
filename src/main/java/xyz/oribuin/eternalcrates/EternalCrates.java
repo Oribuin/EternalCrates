@@ -6,7 +6,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.persistence.PersistentDataType;
-import xyz.oribuin.eternalcrates.hook.PAPI;
+import xyz.oribuin.eternalcrates.hook.CratePlaceholders;
 import xyz.oribuin.eternalcrates.listener.AnimationListeners;
 import xyz.oribuin.eternalcrates.listener.CrateListeners;
 import xyz.oribuin.eternalcrates.listener.PlayerListeners;
@@ -41,8 +41,8 @@ public class EternalCrates extends RosePlugin {
         this.getServer().getPluginManager().registerEvents(new PlayerListeners(this), this);
 
         // Register PlaceholderAPI
-        if (PAPI.isEnabled()) {
-            new PAPI(this).register();
+        if (CratePlaceholders.isEnabled()) {
+            new CratePlaceholders(this).register();
         }
     }
 
@@ -68,7 +68,7 @@ public class EternalCrates extends RosePlugin {
         );
     }
 
-    public static EternalCrates getInstance() {
+    public static EternalCrates get() {
         return instance;
     }
 

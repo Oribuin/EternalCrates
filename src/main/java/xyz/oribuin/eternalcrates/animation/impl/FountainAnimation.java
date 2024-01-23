@@ -47,7 +47,7 @@ public class FountainAnimation extends Animation {
         Location spawnLocation = location.clone().add(0, 1, 0);
         ThreadLocalRandom random = ThreadLocalRandom.current();
 
-        List<Reward> rewards = crate.createRewards();
+        List<Reward> rewards = crate.generate();
         for (int i = 0; i <= this.itemCount; i++) {
             Reward reward = rewards.get(random.nextInt(rewards.size()));
 

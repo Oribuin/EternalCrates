@@ -13,6 +13,7 @@ import xyz.oribuin.eternalcrates.hook.provider.MMOItemProvider;
 import xyz.oribuin.eternalcrates.hook.provider.OraxenItemProvider;
 import xyz.oribuin.eternalcrates.hook.provider.SlimefunItemProvider;
 import xyz.oribuin.eternalcrates.hook.provider.UberItemProvider;
+import xyz.oribuin.eternalcrates.util.CrateUtils;
 
 /**
  * @author Esophose
@@ -50,27 +51,11 @@ public enum CustomItemPlugin {
         if (split.length != 2) return null;
 
         // get plugin
-        CustomItemPlugin plugin = CustomItemPlugin.fromString(split[0]);
+        CustomItemPlugin plugin = CrateUtils.getEnum(CustomItemPlugin.class, split[0]);
         if (plugin == null) return null;
 
         // get item
         return plugin.provider.getItem(split[1], player);
-    }
-
-    /**
-     * Get the provider
-     *
-     * @param name The name of the provider
-     * @return The provider
-     */
-    public static CustomItemPlugin fromString(String name) {
-        if (name == null) return null;
-
-        try {
-            return CustomItemPlugin.valueOf(name.toUpperCase());
-        } catch (IllegalArgumentException ignored) {
-            return null;
-        }
     }
 
 }

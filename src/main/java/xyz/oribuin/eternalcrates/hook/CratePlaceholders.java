@@ -1,6 +1,5 @@
 package xyz.oribuin.eternalcrates.hook;
 
-import me.clip.placeholderapi.PlaceholderAPI;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -10,14 +9,13 @@ import xyz.oribuin.eternalcrates.manager.DataManager;
 
 import java.util.Map;
 
-// oh yes
-public class PAPI extends PlaceholderExpansion {
+public class CratePlaceholders extends PlaceholderExpansion {
 
     private final EternalCrates plugin;
     private final DataManager data;
     private static boolean enabled = false;
 
-    public PAPI(final EternalCrates plugin) {
+    public CratePlaceholders(final EternalCrates plugin) {
         this.plugin = plugin;
         this.data = plugin.getManager(DataManager.class);
 
@@ -39,17 +37,6 @@ public class PAPI extends PlaceholderExpansion {
             return String.valueOf(keys.getOrDefault(args[1], 0));
         }
         return params;
-    }
-
-    /**
-     * Apply PAPI placeholders to a string
-     *
-     * @param player The player to apply the placeholders to
-     * @param text   The text to apply the placeholders to
-     * @return The text with the placeholders applied
-     */
-    public static String apply(OfflinePlayer player, String text) {
-        return enabled ? PlaceholderAPI.setPlaceholders(player, text) : text;
     }
 
     @Override

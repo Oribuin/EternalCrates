@@ -2,17 +2,20 @@ package xyz.oribuin.eternalcrates.util;
 
 import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
+import dev.rosewood.rosegarden.hook.PlaceholderAPIHook;
 import dev.rosewood.rosegarden.utils.HexUtils;
 import dev.rosewood.rosegarden.utils.NMSUtil;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
-import me.clip.placeholderapi.PlaceholderAPI;
 import org.apache.commons.lang3.text.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
+import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -21,8 +24,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xyz.oribuin.eternalcrates.EternalCrates;
-import xyz.oribuin.eternalcrates.hook.CustomItemPlugin;
-import xyz.oribuin.eternalcrates.hook.PAPI;
+import xyz.oribuin.eternalcrates.manager.LocaleManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,24 +33,15 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public final class CrateUtils {
 
     private CrateUtils() {
         throw new IllegalStateException("Utility class");
-    }
-
-    /**
-     * Remove all EternalCrates animation entities from the server.
-     */
-    public static void clearEntities() {
-        for (final World world : Bukkit.getWorlds()) {
-            world.getEntities().stream()
-                    .filter(entity -> entity.getPersistentDataContainer().has(EternalCrates.getEntityKey()))
-                    .forEach(Entity::remove);
-        }
     }
 
     /**
@@ -97,26 +90,6 @@ public final class CrateUtils {
     }
 
     /**
-     * Get a bukkit color from a hex code
-     *
-     * @param hex The hex code
-     * @return The bukkit color
-     */
-    public static Color fromHex(String hex) {
-        if (hex == null)
-            return Color.BLACK;
-
-        java.awt.Color awtColor;
-        try {
-            awtColor = java.awt.Color.decode(hex);
-        } catch (NumberFormatException e) {
-            return Color.BLACK;
-        }
-
-        return Color.fromRGB(awtColor.getRed(), awtColor.getGreen(), awtColor.getBlue());
-    }
-
-    /**
      * Get the total number of spare slots in a player's inventory
      *
      * @param player The player
@@ -139,83 +112,128 @@ public final class CrateUtils {
         return WordUtils.capitalizeFully(enumName.toLowerCase().replace("_", " "));
     }
 
+
+    /**
+     * Get a bukkit color from a hex code
+     *
+     * @param hex The hex code
+     * @return The bukkit color
+     */
+    public static Color fromHex(String hex) {
+        if (hex == null) return Color.BLACK;
+
+        try {
+            java.awt.Color decoded = java.awt.Color.decode(hex);
+            return Color.fromRGB(decoded.getRed(), decoded.getGreen(), decoded.getBlue());
+        } catch (NumberFormatException e) {
+            return Color.BLACK;
+        }
+
+    }
+
+
+    /**
+     * Deserialize an ItemStack from a CommentedConfigurationSection with placeholders
+     *
+     * @param section      The section to deserialize from
+     * @param sender       The CommandSender to apply placeholders from
+     * @param key          The key to deserialize from
+     * @param placeholders The placeholders to apply
+     * @return The deserialized ItemStack
+     */
     @Nullable
-    public static ItemStack getItemStack(@NotNull CommentedConfigurationSection config, @NotNull String path, @Nullable Player player, @Nullable StringPlaceholders placeholders) {
-        ItemStack customItem = CustomItemPlugin.parse(config.getString(path + ".plugin-item", ""), player);
-        if (customItem != null) return customItem;
+    public static ItemStack deserialize(
+            @NotNull CommentedConfigurationSection section,
+            @Nullable CommandSender sender,
+            @NotNull String key,
+            @NotNull StringPlaceholders placeholders
+    ) {
+        final LocaleManager locale = EternalCrates.get().getManager(LocaleManager.class);
+        final Material material = Material.getMaterial(locale.format(sender, section.getString(key + ".material"), placeholders), false);
+        if (material == null) return null;
 
-        Material material = Material.getMaterial(PlaceholderAPI.setPlaceholders(player, config.getString(path + ".material", "")));
-        if (material == null)
-            return null;
+        // Load enchantments
+        final Map<Enchantment, Integer> enchantments = new HashMap<>();
+        final ConfigurationSection enchantmentSection = section.getConfigurationSection(key + ".enchantments");
+        if (enchantmentSection != null) {
+            for (String enchantmentKey : enchantmentSection.getKeys(false)) {
+                final Enchantment enchantment = Enchantment.getByKey(NamespacedKey.minecraft(enchantmentKey.toLowerCase()));
+                if (enchantment == null) continue;
 
-        if (placeholders == null)
-            placeholders = StringPlaceholders.empty();
-
-        // Format the item lore
-        StringPlaceholders finalPlaceholders = placeholders;
-        List<String> lore = new ArrayList<>(config.getStringList(path + ".lore"))
-                .stream()
-                .map(s -> format(player, s, finalPlaceholders))
-                .toList();
-
-        // Get item flags
-        ItemFlag[] flags = config.getStringList(path + ".flags")
-                .stream()
-                .map(String::toUpperCase)
-                .map(ItemFlag::valueOf)
-                .toArray(ItemFlag[]::new);
-
-        // Build the item stack
-        ItemBuilder builder = new ItemBuilder(material)
-                .setName(format(player, config.getString(path + ".name"), placeholders))
-                .setLore(lore)
-                .setAmount(config.getInt(path + ".amount", 1))
-                .setFlags(flags)
-                .setTexture(config.getString(path + ".texture"))
-                .glow(Boolean.parseBoolean(format(player, config.getString(path + ".glow", "false"), placeholders)))
-                .setPotionColor(fromHex(config.getString(path + ".potion-color", null)))
-                .setModel(parseInteger(format(player, config.getString(path + ".model-data", "-1"), placeholders)));
-
-        // Get item owner
-        String owner = config.getString(path + ".owner", null);
-        if (owner != null) {
-            if (owner.equalsIgnoreCase("self")) {
-                builder.setOwner(player);
-            } else {
-                if (NMSUtil.isPaper() && Bukkit.getOfflinePlayerIfCached(owner) != null)
-                    builder.setOwner(Bukkit.getOfflinePlayerIfCached(owner));
-                else
-                    builder.setOwner(Bukkit.getOfflinePlayer(owner));
+                enchantments.put(enchantment, enchantmentSection.getInt(enchantmentKey, 1));
             }
         }
 
-        CommentedConfigurationSection enchants = config.getConfigurationSection(path + ".enchants");
-        if (enchants != null) {
-            enchants.getKeys(false).forEach(key -> {
-                Enchantment enchantment = Enchantment.getByKey(NamespacedKey.minecraft(key.toLowerCase()));
-                if (enchantment == null)
-                    return;
+        // Load potion item flags
+        final ItemFlag[] flags = section.getStringList(key + ".flags").stream()
+                .map(ItemFlag::valueOf)
+                .toArray(ItemFlag[]::new);
 
-                builder.addEnchant(enchantment, enchants.getInt(key));
-            });
+        // Load offline player texture
+        final String owner = section.getString(key + ".owner");
+        OfflinePlayer offlinePlayer = null;
+        if (owner != null) {
+            if (owner.equalsIgnoreCase("self") && sender instanceof Player player) {
+                offlinePlayer = player;
+            } else {
+                offlinePlayer = NMSUtil.isPaper()
+                        ? Bukkit.getOfflinePlayerIfCached(owner)
+                        : Bukkit.getOfflinePlayer(owner);
+            }
         }
 
-        return builder.create();
+        return new ItemBuilder(material)
+                .name(locale.format(sender, section.getString(key + ".name"), placeholders))
+                .amount(Math.min(1, section.getInt(key + ".amount", 1)))
+                .lore(locale.format(sender, section.getStringList(key + ".lore"), placeholders))
+                .flags(flags)
+                .glow(section.getBoolean(key + ".glow", false))
+                .unbreakable(section.getBoolean(key + ".unbreakable", false))
+                .model(toInt(locale.format(sender, section.getString(key + ".model-data", "0"), placeholders)))
+                .enchant(enchantments)
+                .texture(locale.format(sender, section.getString(key + ".texture"), placeholders))
+                .color(fromHex(locale.format(sender, section.getString(key + ".potion-color"), placeholders)))
+                .owner(offlinePlayer)
+                .build();
     }
 
     /**
-     * Get ItemStack from CommentedFileSection path
+     * Deserialize an ItemStack from a CommentedConfigurationSection
      *
-     * @param config The CommentedFileSection
-     * @param path   The path to the item
-     * @return The itemstack
+     * @param section The section to deserialize from
+     * @param key     The key to deserialize from
+     * @return The deserialized ItemStack
      */
-    public static ItemStack getItemStack(CommentedConfigurationSection config, String path) {
-        return getItemStack(config, path, null, StringPlaceholders.empty());
+    @Nullable
+    public static ItemStack deserialize(@NotNull CommentedConfigurationSection section, @NotNull String key) {
+        return deserialize(section, null, key, StringPlaceholders.empty());
     }
 
-    public static ItemStack getItemStack(CommentedConfigurationSection config, String path, Player player) {
-        return getItemStack(config, path, player, StringPlaceholders.empty());
+    /**
+     * Deserialize an ItemStack from a CommentedConfigurationSection with placeholders
+     *
+     * @param section The section to deserialize from
+     * @param sender  The CommandSender to apply placeholders from
+     * @param key     The key to deserialize from
+     * @return The deserialized ItemStack
+     */
+    @Nullable
+    public static ItemStack deserialize(@NotNull CommentedConfigurationSection section, @Nullable CommandSender sender, @NotNull String key) {
+        return deserialize(section, sender, key, StringPlaceholders.empty());
+    }
+
+    /**
+     * Parse an integer from an object safely
+     *
+     * @param object The object
+     * @return The integer
+     */
+    private static int toInt(String object) {
+        try {
+            return Integer.parseInt(object);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     /**
@@ -241,7 +259,7 @@ public final class CrateUtils {
         if (text == null)
             return null;
 
-        return HexUtils.colorify(PAPI.apply(player, placeholders.apply(text)));
+        return HexUtils.colorify(PlaceholderAPIHook.applyPlaceholders(player, placeholders.apply(text)));
     }
 
     /**
@@ -327,11 +345,6 @@ public final class CrateUtils {
         } catch (NumberFormatException e) {
             return 0;
         }
-    }
-
-
-    public static String getLocationsFormatted(List<Location> locations) {
-        return locations.stream().map(CrateUtils::formatLocation).collect(Collectors.joining(", "));
     }
 
     /**

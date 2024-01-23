@@ -1,5 +1,6 @@
 package xyz.oribuin.eternalcrates.event;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
@@ -14,7 +15,7 @@ public class CrateDestroyEvent extends PlayerEvent implements Cancellable {
     private boolean cancelled = false;
 
     public CrateDestroyEvent(Crate crate, Player player) {
-        super(player);
+        super(player, !Bukkit.isPrimaryThread());
         this.crate = crate;
     }
 

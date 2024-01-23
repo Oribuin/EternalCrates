@@ -56,7 +56,7 @@ public final class AnimationFactory {
      * @param id The id of the animation
      * @return The animation instance
      */
-    public Animation get(String id) {
+    public Animation find(String id) {
         if (!ANIMATION_TYPES.containsKey(id)) {
             return null;
         }
@@ -71,16 +71,26 @@ public final class AnimationFactory {
     }
 
     /**
+     * Get all the animation id keys
+     *
+     * @return The animation ids
+     */
+    public Set<String> keys() {
+        return ANIMATION_TYPES.keySet();
+    }
+
+    /**
      * Get the animation factory instance or create a new one
      *
      * @return The animation factory instance
      */
-    public AnimationFactory get() {
+    public static AnimationFactory get() {
         if (instance == null) {
             instance = new AnimationFactory();
         }
 
         return instance;
     }
+
 
 }

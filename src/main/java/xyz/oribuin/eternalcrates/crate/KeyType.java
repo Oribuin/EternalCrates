@@ -1,5 +1,5 @@
 package xyz.oribuin.eternalcrates.crate;
 
-public enum CrateType {
+public enum KeyType {
     PHYSICAL, VIRTUAL
 }

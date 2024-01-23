@@ -50,7 +50,7 @@ public class ConfigurationManager extends AbstractConfigurationManager {
 
         @Override
         public CommentedFileConfiguration getBaseConfig() {
-            return EternalCrates.getInstance().getManager(ConfigurationManager.class).getConfig();
+            return EternalCrates.get().getManager(ConfigurationManager.class).getConfig();
         }
     }
 

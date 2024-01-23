@@ -11,7 +11,6 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.action.Action;
-import xyz.oribuin.eternalcrates.action.PluginAction;
 import xyz.oribuin.eternalcrates.util.CrateUtils;
 
 import java.util.ArrayList;
@@ -44,7 +43,8 @@ public class MenuItem {
         this.itemPath = null;
         this.placeholders = StringPlaceholders.empty();
         this.player = null;
-        this.action = inventoryClickEvent -> {}; // Do nothing
+        this.action = inventoryClickEvent -> {
+        }; // Do nothing
         this.slots = new ArrayList<>();
         this.condition = menuItem -> true;
         this.customActions = new HashMap<>();
@@ -102,10 +102,10 @@ public class MenuItem {
 
         ItemStack item = this.customItem != null
                 ? this.customItem
-                : CrateUtils.getItemStack(this.config, this.itemPath, this.player, this.placeholders);
+                : CrateUtils.deserialize(this.config, this.player, this.itemPath, this.placeholders);
 
         if (item == null) {
-            EternalCrates.getInstance().getLogger().warning("Item [" + this.itemPath + "] in the [" + this.config.getName() + "] menu is invalid.");
+            EternalCrates.get().getLogger().warning("Item [" + this.itemPath + "] in the [" + this.config.getName() + "] menu is invalid.");
             return;
         }
 
@@ -129,7 +129,7 @@ public class MenuItem {
         for (String key : customActions.getKeys(false)) {
             ClickType clickType = CrateUtils.getEnum(ClickType.class, key.toUpperCase());
             if (clickType == null) {
-                EternalCrates.getInstance().getLogger().warning("Invalid click type [" + key + "] in the " + this.itemPath + ".commands section of the [" + this.config.getName() + "] menu.");
+                EternalCrates.get().getLogger().warning("Invalid click type [" + key + "] in the " + this.itemPath + ".commands section of the [" + this.config.getName() + "] menu.");
                 continue;
             }
 
@@ -151,7 +151,7 @@ public class MenuItem {
             if (actions == null)
                 return;
 
-            actions.forEach(action -> action.execute(null,(Player) event.getWhoClicked(), this.placeholders));
+            actions.forEach(action -> action.execute(null, (Player) event.getWhoClicked(), this.placeholders));
         };
     }
 
@@ -218,7 +218,7 @@ public class MenuItem {
     public final MenuItem slots(List<Integer> slots) {
         this.slots = slots;
         return this;
-    } 
+    }
 
     public final MenuItem slot(int slot) {
         this.slots = List.of(slot);
@@ -246,7 +246,6 @@ public class MenuItem {
     public Map<ClickType, List<Action>> getCustomActions() {
         return customActions;
     }
-
 
 
 }
