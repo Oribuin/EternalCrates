@@ -43,8 +43,6 @@ public abstract class ParticleAnimation extends Animation {
         List<Location> locations = this.getLocations(player, location);
         ParticleData particle = new ParticleData(Particle.FLAME);
 
-        System.out.println("Locations: " + locations.toString());
-
         for (Location loc : locations) {
             particle.spawn(null, loc, 1);
         }

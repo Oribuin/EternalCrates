@@ -56,6 +56,8 @@ public class QuadAnimation extends ParticleAnimation {
      */
     @Override
     public void tick(Crate crate, Player player, Location location) {
+        super.tick(crate, player, location);
+
         this.step = (this.step + 3) % MAX_STEPS;
         this.radius += 0.02;
         this.height += 0.02;

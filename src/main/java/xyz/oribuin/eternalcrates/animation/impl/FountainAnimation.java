@@ -51,7 +51,7 @@ public class FountainAnimation extends Animation {
         for (int i = 0; i <= this.itemCount; i++) {
             Reward reward = rewards.get(random.nextInt(rewards.size()));
 
-            Item item = world.dropItem(location.clone(), reward.getPreviewItem(), x -> {
+            Item item = world.dropItem(spawnLocation, reward.getPreviewItem(), x -> {
                 x.setPickupDelay(Integer.MAX_VALUE);
                 x.setInvulnerable(true);
                 x.setCustomNameVisible(true);

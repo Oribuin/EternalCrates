@@ -91,12 +91,9 @@ public class Crate {
         }
 
         // Tick the animation every 3 ticks
-        BukkitTask tickTask = Bukkit.getScheduler().runTaskTimerAsynchronously(EternalCrates.get(), () ->
-                this.animation.tick(
-                        this,
-                        player,
-                        block
-                ), 0L, 3L);
+        BukkitTask tickTask = Bukkit.getScheduler().runTaskTimerAsynchronously(
+                EternalCrates.get(), () -> this.animation.tick(this, player, CrateUtils.center(block)), 0L, 3L
+        );
 
         // Stop the animation after the duration
         Bukkit.getScheduler().runTaskLater(EternalCrates.get(), () -> {

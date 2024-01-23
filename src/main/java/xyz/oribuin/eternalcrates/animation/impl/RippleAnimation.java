@@ -46,6 +46,8 @@ public class RippleAnimation extends ParticleAnimation {
 
     @Override
     public void tick(Crate crate, Player player, Location location) {
+        super.tick(crate, player, location);
+
         this.step = (this.step + Math.PI * 2 / MAX_STEPS) % MAX_STEPS;
         if (CURRENT_RING >= this.maxRadius)
             CURRENT_RING = 0;
