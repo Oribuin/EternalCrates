@@ -6,11 +6,11 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.persistence.PersistentDataType;
+import xyz.oribuin.eternalcrates.animation.factory.AnimationFactory;
 import xyz.oribuin.eternalcrates.hook.CratePlaceholders;
 import xyz.oribuin.eternalcrates.listener.AnimationListeners;
 import xyz.oribuin.eternalcrates.listener.CrateListeners;
 import xyz.oribuin.eternalcrates.listener.PlayerListeners;
-import xyz.oribuin.eternalcrates.manager.AnimationManager;
 import xyz.oribuin.eternalcrates.manager.CommandManager;
 import xyz.oribuin.eternalcrates.manager.ConfigurationManager;
 import xyz.oribuin.eternalcrates.manager.CrateManager;
@@ -44,6 +44,8 @@ public class EternalCrates extends RosePlugin {
         if (CratePlaceholders.isEnabled()) {
             new CratePlaceholders(this).register();
         }
+
+        AnimationFactory.register("xyz.oribuin.eternalcrates.animation.impl");
     }
 
     @Override
@@ -62,7 +64,6 @@ public class EternalCrates extends RosePlugin {
     @Override
     protected List<Class<? extends Manager>> getManagerLoadPriority() {
         return Arrays.asList(
-                AnimationManager.class,
                 MenuManager.class,
                 CrateManager.class
         );
