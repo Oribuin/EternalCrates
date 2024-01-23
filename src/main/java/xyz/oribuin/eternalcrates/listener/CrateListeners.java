@@ -95,6 +95,8 @@ public class CrateListeners implements Listener {
             return;
         }
 
+        event.setCancelled(true);
+
         // Player is trying to open the crate
         // Make sure the player has enough slots for the items
         if (CrateUtils.getSpareSlots(player) < crate.getSettings().requiredSlots()) {
