@@ -15,12 +15,13 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
+
       - name: Set up JDK 17
         uses: actions/setup-java@v2.5.0
         with:
           distribution: 'temurin'
           java-version: 17
-          
+
       - name: Cache
         uses: actions/cache@v2
         with:
@@ -30,16 +31,19 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
-          
+
       - name: Change wrapper permissions
         run: chmod +x ./gradlew
+
+      - name: Create Gradle directory
+        run: mkdir -p ~/.gradle
 
       - name: Configure Maven credentials
         run: echo "mavenUser=${{ secrets.MAVEN_USER }}" > ~/.gradle/gradle.properties && echo "mavenPassword=${{ secrets.MAVEN_PASSWORD }}" >> ~/.gradle/gradle.properties
 
       - name: Build artifacts
         run: ./gradlew build
-          
+
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v2.3.1
         with:
