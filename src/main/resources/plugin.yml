@@ -8,7 +8,6 @@ libraries:
   - "net.kyori:adventure-api:4.11.0"
   - "net.kyori:adventure-text-serializer-legacy:4.11.0"
   - "net.kyori:adventure-text-serializer-gson:4.11.0"
-  - "org.reflections:reflections:0.10.2"
 softdepend:
   - PlaceholderAPI
   - eco

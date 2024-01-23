@@ -44,8 +44,6 @@ public class EternalCrates extends RosePlugin {
         if (CratePlaceholders.isEnabled()) {
             new CratePlaceholders(this).register();
         }
-
-        AnimationFactory.register("xyz.oribuin.eternalcrates.animation.impl");
     }
 
     @Override

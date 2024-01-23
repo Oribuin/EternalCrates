@@ -4,6 +4,7 @@ import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
 import dev.rosewood.rosegarden.config.CommentedFileConfiguration;
 import dev.rosewood.rosegarden.manager.Manager;
+import gs.mclo.java.Log;
 import org.bukkit.Location;
 import org.bukkit.inventory.ItemStack;
 import xyz.oribuin.eternalcrates.animation.Animation;
@@ -66,8 +67,6 @@ public class CrateManager extends Manager {
      */
     public void create(File file) {
         CommentedConfigurationSection config = CommentedFileConfiguration.loadConfiguration(file);
-        if (config.get("crate-settings") == null) return;
-
         CommentedConfigurationSection crateSettings = config.getConfigurationSection("crate-settings");
         if (crateSettings == null) {
             LOGGER.severe("Failed to load crate because it does not have a crate-settings section.");
@@ -104,8 +103,14 @@ public class CrateManager extends Manager {
 
         // Make sure the animation is actually loaded
         if (animation == null) {
-            if (animationName != null)
+            if (animationName != null) {
                 this.unregisteredCrates.put(file, animationName);
+
+                LOGGER.warning("Failed to load crate " + id + " because the animation " + animationName + " is not loaded, It will be loaded if the animation it requires is loaded.");
+                return;
+            }
+
+            LOGGER.warning("Failed to load crate " + id + " because it does not have an animation set");
             return;
         }
 

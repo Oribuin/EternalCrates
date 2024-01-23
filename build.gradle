@@ -59,8 +59,6 @@ dependencies {
 
     // Frameworks & MySQL APIs
     compileOnly "org.jetbrains:annotations:23.1.0"
-    compileOnly "org.reflections:reflections:0.10.2"
-    api "io.github.bananapuncher714:nbteditor:7.18.2"
     api "dev.rosewood:rosegarden:1.2.5"
     api("dev.triumphteam:triumph-gui:3.1.4") {  // https://mf.mattstudios.me/triumph-gui/introduction
         exclude group: "com.google.code.gson", module: "gson" // Remove GSON, Already included in spigot api
