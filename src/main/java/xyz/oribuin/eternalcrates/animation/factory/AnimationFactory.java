@@ -54,33 +54,6 @@ public final class AnimationFactory {
     }
 
     /**
-     * Check if this animation is part of the crates that were not registered
-     * due to having an invalid animation
-     */
-    private static void checkUnregisteredCrates(String animationId) {
-        CrateManager manager = EternalCrates.get().getManager(CrateManager.class);
-        manager.getUnregisteredCrates().forEach((file, string) -> {
-            if (string.equalsIgnoreCase(animationId)) {
-                manager.create(file);
-            }
-        });
-
-    }
-
-    /**
-     * Get the animation factory instance or create a new one
-     *
-     * @return The animation factory instance
-     */
-    public static AnimationFactory get() {
-        if (instance == null) {
-            instance = new AnimationFactory();
-        }
-
-        return instance;
-    }
-
-    /**
      * Create a new instance of the animation from the id
      *
      * @param id The id of the animation
@@ -101,12 +74,39 @@ public final class AnimationFactory {
     }
 
     /**
+     * Check if this animation is part of the crates that were not registered
+     * due to having an invalid animation
+     */
+    private static void checkUnregisteredCrates(String animationId) {
+        CrateManager manager = EternalCrates.get().getManager(CrateManager.class);
+        manager.getUnregisteredCrates().forEach((file, string) -> {
+            if (string.equalsIgnoreCase(animationId)) {
+                manager.create(file);
+            }
+        });
+
+    }
+
+    /**
      * Get all the animation id keys
      *
      * @return The animation ids
      */
     public Set<String> keys() {
         return ANIMATION_TYPES.keySet();
+    }
+
+    /**
+     * Get the animation factory instance or create a new one
+     *
+     * @return The animation factory instance
+     */
+    public static AnimationFactory get() {
+        if (instance == null) {
+            instance = new AnimationFactory();
+        }
+
+        return instance;
     }
 
 
