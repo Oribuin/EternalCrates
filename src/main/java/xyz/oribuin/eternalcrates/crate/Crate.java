@@ -197,7 +197,8 @@ public class Crate {
         rewards.forEach(reward -> ActionType.run(
                 this,
                 player,
-                reward.getActions()
+                reward.getActions(),
+                reward
         ));
     }
 

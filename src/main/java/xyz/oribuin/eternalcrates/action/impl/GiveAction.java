@@ -5,6 +5,8 @@ import xyz.oribuin.eternalcrates.action.Action;
 import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.crate.Reward;
 
+import java.util.Objects;
+
 public class GiveAction implements Action {
 
     /**
@@ -17,6 +19,8 @@ public class GiveAction implements Action {
      */
     @Override
     public void run(Crate crate, Player player, Reward reward, String input) {
+        Objects.requireNonNull(reward, "Reward cannot be null");
+
         reward.give(player);
     }
 

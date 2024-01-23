@@ -19,7 +19,7 @@ public enum ActionType {
     BROADCAST(new BroadcastAction()),
     CLOSE(new CloseAction()),
     CONSOLE(new ConsoleAction()),
-    GIVEN(new GiveAction()),
+    GIVE(new GiveAction()),
     MESSAGE(new MessageAction()),
     MINIMESSAGE(new MiniMessageAction()),
     PLAYER(new PlayerAction()),
@@ -49,7 +49,8 @@ public enum ActionType {
                 throw new IllegalArgumentException("Invalid action type: " + command);
             }
 
-            String content = PlaceholderAPIHook.applyPlaceholders(player, command.substring(command.indexOf("]") + 2)); // remove "[action] ", todo: make removing the whitespace optional
+
+            String content = PlaceholderAPIHook.applyPlaceholders(player, command.substring(command.indexOf("]") + 1)); // remove "[action] ", todo: make removing the whitespace optional
             type.get().run(crate, player, reward, content);
         }
     }
