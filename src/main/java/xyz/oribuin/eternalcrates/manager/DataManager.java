@@ -93,7 +93,7 @@ public class DataManager extends AbstractDataManager {
                 clearLocations.executeUpdate();
             }
 
-            try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + this.getTablePrefix() + "locations (`crateName`, `x`, `y`, `z`, `world`) VALUES (?, ?, ?, ?, ?, ?)")) {
+            try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + this.getTablePrefix() + "locations (`crateName`, `x`, `y`, `z`, `world`) VALUES (?, ?, ?, ?, ?)")) {
                 for (Location location : crate.getLocations()) {
                     statement.setString(1, crate.getId());
                     statement.setInt(2, location.getBlockX());
