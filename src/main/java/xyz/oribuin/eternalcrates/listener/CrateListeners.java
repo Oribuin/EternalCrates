@@ -2,7 +2,6 @@ package xyz.oribuin.eternalcrates.listener;
 
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import org.bukkit.Color;
-import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -115,7 +114,8 @@ public class CrateListeners implements Listener {
         }
 
         // GIve the player a crate key
-        crate.use(player);
+        crate.take(player);
+        crate.open(player, block.getLocation());
     }
 
 }

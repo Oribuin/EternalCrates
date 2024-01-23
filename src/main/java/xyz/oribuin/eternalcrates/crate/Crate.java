@@ -167,7 +167,7 @@ public class Crate {
      *
      * @param player The player whos opening the crate
      */
-    public void use(Player player) {
+    public void take(Player player) {
         DataManager data = EternalCrates.get().getManager(DataManager.class);
 
         // Check if the user has the crate key in their inventory
