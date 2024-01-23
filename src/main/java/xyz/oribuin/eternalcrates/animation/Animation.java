@@ -55,7 +55,7 @@ public abstract class Animation {
     }
 
     /**
-     * Tick the animation for the player. This is called every 3 ticks.
+     * Tick the animation for the player. This is called every 3 ticks asynchronously.
      * This method is called while the crate is being opened
      *
      * @param crate    The crate being opened
@@ -68,7 +68,8 @@ public abstract class Animation {
     /**
      * Stop the animation for the player. This is called when the animation is finished.
      * Use this method to clean up any blocks or entities created by the animation.
-     * This method will be called when the crate is opened
+     * This method will be called when the crate is finished the animation automatically
+     * and will be called synchronously.
      *
      * @param crate    The crate being opened
      * @param player   The player opening the crate

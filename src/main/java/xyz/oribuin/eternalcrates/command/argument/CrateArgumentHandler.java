@@ -9,7 +9,6 @@ import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.manager.CrateManager;
 
 import java.util.List;
-import java.util.Set;
 
 public class CrateArgumentHandler extends RoseCommandArgumentHandler<Crate> {
 
@@ -20,7 +19,7 @@ public class CrateArgumentHandler extends RoseCommandArgumentHandler<Crate> {
     @Override
     protected Crate handleInternal(RoseCommandArgumentInfo argumentInfo, ArgumentParser argumentParser) throws HandledArgumentException {
         String input = argumentParser.next();
-        Crate crate = this.rosePlugin.getManager(CrateManager.class).getCrate(input);
+        Crate crate = this.rosePlugin.getManager(CrateManager.class).get(input);
         if (crate == null) {
             throw new HandledArgumentException("argument-handler-crate", StringPlaceholders.of("crate", input));
         }
@@ -32,7 +31,11 @@ public class CrateArgumentHandler extends RoseCommandArgumentHandler<Crate> {
     protected List<String> suggestInternal(RoseCommandArgumentInfo argumentInfo, ArgumentParser argumentParser) {
         argumentParser.next();
 
-        Set<String> crates = this.rosePlugin.getManager(CrateManager.class).getCachedCrates().keySet();
+        List<String> crates = this.rosePlugin.getManager(CrateManager.class).all()
+                .stream()
+                .map(Crate::getId)
+                .toList();
+
         if (crates.isEmpty()) {
             return List.of("<no loaded crates>");
         }

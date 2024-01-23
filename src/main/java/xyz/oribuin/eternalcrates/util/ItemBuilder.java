@@ -13,7 +13,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.Nullable;
-import xyz.oribuin.vouchers.util.nms.SkullUtils;
+import xyz.oribuin.eternalcrates.util.nms.SkullUtils;
 
 import java.util.Arrays;
 import java.util.List;

@@ -25,7 +25,7 @@ public class RippleAnimation extends ParticleAnimation {
     /**
      * This is where you should do the math for getting particle locations
      * This method will be called on {@link Animation#tick(Crate, Player, Location)}
-     * The order when this method is called will be Animation#tick -> ParticleAnimation#getLocations 
+     * The order when this method is called will be Animation#tick -> ParticleAnimation#getLocations
      *
      * @param player The player opening the crate
      * @param crate  The crate being opened

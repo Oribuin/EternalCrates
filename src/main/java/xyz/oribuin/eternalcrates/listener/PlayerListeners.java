@@ -24,29 +24,27 @@ public class PlayerListeners implements Listener {
         this.data = this.plugin.getManager(DataManager.class);
     }
 
+    /**
+     * Load the player's userdata when they join the server.
+     *
+     * @param event The PlayerJoinEvent
+     */
     @EventHandler(ignoreCancelled = true)
     public void onJoin(PlayerJoinEvent event) {
-        // Get a user's cached items when they join.
         this.data.user(event.getPlayer().getUniqueId());
     }
 
+    /**
+     * Save the player's userdata when they leave the server.
+     *
+     * @param event The PlayerQuitEvent
+     */
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onLeave(PlayerQuitEvent event) {
-        // Save a users unclaimed keys and virtual keys when they leave
-        this.data.saveUser(event.getPlayer().getUniqueId());
-    }
-
-    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
-    public void onPickup(EntityPickupItemEvent event) {
-        if (!(event.getEntity() instanceof Player player))
-            return;
-
-        if (!Setting.PICKUP_IN_ANIMATION.getBoolean())
-            return;
-
-        if (!this.manager.getActiveUsers().contains(player.getUniqueId())) return;
-
-        event.setCancelled(true);
+        this.data.user(event.getPlayer().getUniqueId()).thenAccept(data -> {
+            if (data == null) return;
+            this.data.save(event.getPlayer().getUniqueId(), data);
+        });
     }
 
 }

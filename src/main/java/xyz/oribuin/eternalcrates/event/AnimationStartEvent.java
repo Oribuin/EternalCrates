@@ -7,8 +7,6 @@ import org.jetbrains.annotations.NotNull;
 import xyz.oribuin.eternalcrates.animation.Animation;
 import xyz.oribuin.eternalcrates.crate.Crate;
 
-import java.nio.Buffer;
-
 public class AnimationStartEvent extends Event {
 
     private static final HandlerList list = new HandlerList();

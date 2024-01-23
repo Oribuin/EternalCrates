@@ -3,7 +3,6 @@ package xyz.oribuin.eternalcrates.action.impl;
 import dev.rosewood.rosegarden.hook.PlaceholderAPIHook;
 import dev.rosewood.rosegarden.utils.HexUtils;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
-import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.entity.Player;
 import xyz.oribuin.eternalcrates.action.Action;
 import xyz.oribuin.eternalcrates.crate.Crate;

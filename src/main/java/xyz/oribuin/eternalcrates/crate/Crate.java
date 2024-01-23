@@ -3,13 +3,15 @@ package xyz.oribuin.eternalcrates.crate;
 import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.action.ActionType;
 import xyz.oribuin.eternalcrates.animation.Animation;
+import xyz.oribuin.eternalcrates.manager.CrateManager;
+import xyz.oribuin.eternalcrates.manager.DataManager;
+import xyz.oribuin.eternalcrates.util.CrateUtils;
 
 import java.io.File;
 import java.time.Duration;
@@ -39,18 +41,21 @@ public class Crate {
     private File file;
 
     // Animation Settings
-    private boolean active;
+    private List<Location> activeLocations;
 
     public Crate(final String id) {
         this.id = id;
         this.name = id;
-        this.rewards = new HashMap<>();
+        this.type = KeyType.PHYSICAL;
         this.animation = null;
+        this.key = null;
+        this.settings = RewardSettings.getDefault();
+        this.rewards = new HashMap<>();
         this.locations = new ArrayList<>();
+        this.openActions = new ArrayList<>();
         this.file = null;
         this.config = null;
-        this.openActions = new ArrayList<>();
-        this.type = KeyType.PHYSICAL;
+        this.activeLocations = new ArrayList<>();
     }
 
     /**
@@ -65,19 +70,23 @@ public class Crate {
             return;
         }
 
-        if (this.active) return;
+        Location center = CrateUtils.center(block);
+        if (this.activeLocations.contains(center)) return;
 
-        this.active = true;
+        this.activeLocations.add(center);
         this.animation.load(this.getAnimationSettings());
         this.animation.start(this, player, block);
 
         // Run the open commands for the crate
         ActionType.run(this, player, this.openActions);
+        this.update();
 
         // Immediately stop the animation if the duration is 0
         if (this.animation.getDuration() == Duration.ZERO) {
-            this.active = false;
+            this.activeLocations.remove(center);
             this.animation.stop(this, player, block);
+
+            this.update();
             return;
         }
 
@@ -91,10 +100,91 @@ public class Crate {
 
         // Stop the animation after the duration
         Bukkit.getScheduler().runTaskLater(EternalCrates.get(), () -> {
-            this.active = false;
+            this.activeLocations.remove(center);
             this.animation.stop(this, player, block);
             tickTask.cancel();
+
+            this.update();
         }, this.animation.getDuration().toSeconds() * 20);
+    }
+
+    /**
+     * Give the user a crate key for the crate
+     *
+     * @param player The player to give the crate key to
+     * @param amount The amount of crate keys to give
+     */
+    public void give(Player player, int amount) {
+        DataManager data = EternalCrates.get().getManager(DataManager.class);
+
+        // Check if the crate is physical and they can hold the crate key, Add it to the unclaimed keys
+        if (this.type == KeyType.PHYSICAL && CrateUtils.getSpareSlots(player) > 0) {
+            ItemStack key = this.key.clone();
+            key.setAmount(amount);
+
+            player.getInventory().addItem(key);
+            return;
+        }
+
+        // Give the player the crate keys if it's virtual, or they can't hold the crate key
+        data.user(player.getUniqueId()).thenAccept(keys -> {
+            if (keys == null) return;
+
+            keys.add(this.id, amount);
+            data.save(player.getUniqueId(), keys);
+        });
+    }
+
+    /**
+     * Check if a user has a crate key
+     *
+     * @param player The player to check
+     * @return If the player has a crate key
+     */
+    public boolean hasKey(Player player) {
+        DataManager data = EternalCrates.get().getManager(DataManager.class);
+
+        // Check if the user has the crate key in their inventory
+        if (this.type == KeyType.PHYSICAL) {
+            ItemStack[] contents = player.getInventory().getContents();
+            for (ItemStack content : contents) {
+                if (content == null || content.getType().isAir()) continue;
+                if (content.isSimilar(this.key)) return true;
+            }
+
+            return false;
+        }
+
+        // Check if the user has the crate key in their unclaimed keys
+        return data.user(player.getUniqueId()).thenApply(keys -> {
+            if (keys == null) return false;
+            return keys.getContent().getOrDefault(this.id, 0) > 0;
+        }).getNow(false);
+    }
+
+    /**
+     * Allow a player to use a crate key
+     *
+     * @param player The player whos opening the crate
+     */
+    public void use(Player player) {
+        DataManager data = EternalCrates.get().getManager(DataManager.class);
+
+        // Check if the user has the crate key in their inventory
+        if (this.type == KeyType.PHYSICAL) {
+            ItemStack item = this.key.clone();
+            item.setAmount(1);
+
+            player.getInventory().removeItem(item);
+            return;
+        }
+
+        // Check if the user has the crate key in their unclaimed keys
+        data.user(player.getUniqueId()).thenAccept(keys -> {
+            if (keys == null) return;
+            keys.remove(this.id, 1);
+            data.save(player.getUniqueId(), keys);
+        });
     }
 
     /**
@@ -118,6 +208,15 @@ public class Crate {
      */
     public void reward(Player player) {
         this.reward(player, this.generate());
+    }
+
+    /**
+     * Update this crate into the cache
+     */
+    public void update() {
+        EternalCrates.get()
+                .getManager(CrateManager.class)
+                .update(this);
     }
 
     /**
@@ -175,6 +274,16 @@ public class Crate {
                 (int) (minRewards * multiplier),
                 (int) (maxRewards * multiplier)
         ));
+    }
+
+    /**
+     * Check if the crate is active at the location
+     *
+     * @param location The location to check
+     * @return If the crate is active
+     */
+    public boolean isActive(Location location) {
+        return this.activeLocations.contains(CrateUtils.center(location));
     }
 
     public String getId() {
@@ -259,6 +368,14 @@ public class Crate {
 
     public void setFile(File file) {
         this.file = file;
+    }
+
+    public List<Location> getActiveLocations() {
+        return activeLocations;
+    }
+
+    public void setActiveLocations(List<Location> activeLocations) {
+        this.activeLocations = activeLocations;
     }
 
 }

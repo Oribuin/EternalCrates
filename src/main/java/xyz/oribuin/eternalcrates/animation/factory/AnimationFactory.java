@@ -2,7 +2,9 @@ package xyz.oribuin.eternalcrates.animation.factory;
 
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
+import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.animation.Animation;
+import xyz.oribuin.eternalcrates.manager.CrateManager;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -34,6 +36,7 @@ public final class AnimationFactory {
             }
 
             ANIMATION_TYPES.put(animation.getId(), animationClass);
+            checkUnregisteredCrates(animation.getId());
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
             LOGGER.severe("Failed to register animation " + animationClass.getSimpleName() + ". Error: " + e.getMessage());
         }
@@ -48,6 +51,33 @@ public final class AnimationFactory {
         Reflections reflections = new Reflections(packageName, Scanners.SubTypes);
         Set<Class<? extends Animation>> subTypes = new HashSet<>(reflections.getSubTypesOf(Animation.class));
         subTypes.forEach(AnimationFactory::register);
+    }
+
+    /**
+     * Check if this animation is part of the crates that were not registered
+     * due to having an invalid animation
+     */
+    private static void checkUnregisteredCrates(String animationId) {
+        CrateManager manager = EternalCrates.get().getManager(CrateManager.class);
+        manager.getUnregisteredCrates().forEach((file, string) -> {
+            if (string.equalsIgnoreCase(animationId)) {
+                manager.create(file);
+            }
+        });
+
+    }
+
+    /**
+     * Get the animation factory instance or create a new one
+     *
+     * @return The animation factory instance
+     */
+    public static AnimationFactory get() {
+        if (instance == null) {
+            instance = new AnimationFactory();
+        }
+
+        return instance;
     }
 
     /**
@@ -77,19 +107,6 @@ public final class AnimationFactory {
      */
     public Set<String> keys() {
         return ANIMATION_TYPES.keySet();
-    }
-
-    /**
-     * Get the animation factory instance or create a new one
-     *
-     * @return The animation factory instance
-     */
-    public static AnimationFactory get() {
-        if (instance == null) {
-            instance = new AnimationFactory();
-        }
-
-        return instance;
     }
 
 

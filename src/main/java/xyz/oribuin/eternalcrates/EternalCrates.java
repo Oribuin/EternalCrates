@@ -31,6 +31,14 @@ public class EternalCrates extends RosePlugin {
         instance = this;
     }
 
+    public static EternalCrates get() {
+        return instance;
+    }
+
+    public static NamespacedKey getEntityKey() {
+        return entityKey;
+    }
+
     @Override
     public void enable() {
         entityKey = new NamespacedKey(this, "entity");
@@ -66,14 +74,6 @@ public class EternalCrates extends RosePlugin {
                 MenuManager.class,
                 CrateManager.class
         );
-    }
-
-    public static EternalCrates get() {
-        return instance;
-    }
-
-    public static NamespacedKey getEntityKey() {
-        return entityKey;
     }
 
 }

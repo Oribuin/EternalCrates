@@ -14,17 +14,20 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xyz.oribuin.eternalcrates.EternalCrates;
 import xyz.oribuin.eternalcrates.manager.LocaleManager;
+import xyz.oribuin.eternalcrates.particle.ParticleData;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,7 +39,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public final class CrateUtils {
 
@@ -77,7 +79,7 @@ public final class CrateUtils {
      * @param location The location to be centered.
      * @return The centered location.
      */
-    public static Location centerLocation(Location location) {
+    public static Location center(Location location) {
         if (NMSUtil.isPaper())
             return location.clone().toCenterLocation();
 
@@ -263,6 +265,32 @@ public final class CrateUtils {
     }
 
     /**
+     * Create an outline on a block using particles
+     *
+     * @param data   The particle to spawn
+     * @param block  The block to outline
+     * @param player The player to spawn the particles for
+     */
+    public static void outline(ParticleData data, Block block, Player player) {
+        // Get the outline of the cube
+        List<Location> cube = getCube(
+                block.getLocation(),
+                block.getLocation().clone().add(1, 1, 1),
+                0.5
+        );
+
+        // Spawn all the particles within the cube
+        BukkitTask particleTask = Bukkit.getScheduler().runTaskTimerAsynchronously(EternalCrates.get(), () -> {
+            for (Location loc : cube) {
+                data.spawn(player, loc, 1);
+            }
+        }, 0, 2);
+
+        // Cancel the outline 1.5s later
+        Bukkit.getScheduler().runTaskLater(EternalCrates.get(), particleTask::cancel, 35);
+    }
+
+    /**
      * Create a 3d hollow cube from 2 org.bukkit.Location objects with distance between them
      *
      * @param corner1          The first corner of the cube
@@ -377,34 +405,6 @@ public final class CrateUtils {
         }
 
         return def;
-    }
-
-    /**
-     * Create a file from the plugin's resources
-     *
-     * @param rosePlugin The plugin
-     * @param fileName   The file name
-     * @return The file
-     */
-    @NotNull
-    public static File createFile(@NotNull RosePlugin rosePlugin, @NotNull String fileName) {
-        File file = new File(rosePlugin.getDataFolder(), fileName); // Create the file
-
-        if (file.exists())
-            return file;
-
-        try (InputStream inStream = rosePlugin.getResource(fileName)) {
-            if (inStream == null) {
-                file.createNewFile();
-                return file;
-            }
-
-            Files.copy(inStream, Paths.get(file.getAbsolutePath()));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return file;
     }
 
     /**
