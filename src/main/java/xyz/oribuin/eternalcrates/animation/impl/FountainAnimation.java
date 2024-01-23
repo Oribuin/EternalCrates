@@ -88,12 +88,10 @@ public class FountainAnimation extends Animation {
     /**
      * This method is called when an animation is saved to the config for the first time
      * This is used to create default values for the animation
-     *
-     * @param configValues The values to save
      */
     @Override
-    public void save(Map<String, Object> configValues) {
-        configValues.put("item-count", 15);
+    public Map<String, Object> settings() {
+        return Map.of("item-count", 15);
     }
 
     /**

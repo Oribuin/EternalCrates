@@ -106,14 +106,15 @@ public class ChickenAnimation extends Animation {
     /**
      * This method is called when an animation is saved to the config for the first time
      * This is used to create default values for the animation
-     *
-     * @param configValues The values to save
      */
     @Override
-    public void save(Map<String, Object> configValues) {
-        configValues.put("chicken-count", 25);
-        configValues.put("use-blood", true);
+    public Map<String, Object> settings() {
+        return Map.of(
+                "chicken-count", 25,
+                "use-blood", true
+        );
     }
+
 
     /**
      * This method is called when an animation is loaded from the config.

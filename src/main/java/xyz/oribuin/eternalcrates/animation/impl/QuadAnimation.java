@@ -64,15 +64,16 @@ public class QuadAnimation extends ParticleAnimation {
     /**
      * This method is called when an animation is saved to the config for the first time
      * This is used to create default values for the animation
-     *
-     * @param configValues The values to save
      */
     @Override
-    public void save(Map<String, Object> configValues) {
-        configValues.put("orbs", 4);
-        configValues.put("radius", 1.0);
-        configValues.put("height", 0.0);
+    public Map<String, Object> settings() {
+        return Map.of(
+                "orbs", 4,
+                "radius", 1.0,
+                "height", 0.0
+        );
     }
+
 
     /**
      * This method is called when an animation is loaded from the config.

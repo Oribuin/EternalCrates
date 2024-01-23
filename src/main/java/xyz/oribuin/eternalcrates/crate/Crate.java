@@ -227,7 +227,7 @@ public class Crate {
     private Map<String, Object> getAnimationSettings() {
         Map<String, Object> settings = new HashMap<>();
 
-        CommentedConfigurationSection animationSection = this.config.getConfigurationSection("animation");
+        CommentedConfigurationSection animationSection = this.config.getConfigurationSection("crate-settings.animation");
         if (animationSection == null) return settings;
 
         animationSection.getKeys(false).forEach(key -> settings.put(key, animationSection.get(key)));

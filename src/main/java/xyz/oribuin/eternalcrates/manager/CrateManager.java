@@ -4,7 +4,6 @@ import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
 import dev.rosewood.rosegarden.config.CommentedFileConfiguration;
 import dev.rosewood.rosegarden.manager.Manager;
-import gs.mclo.java.Log;
 import org.bukkit.Location;
 import org.bukkit.inventory.ItemStack;
 import xyz.oribuin.eternalcrates.animation.Animation;
@@ -66,7 +65,7 @@ public class CrateManager extends Manager {
      * @param file The file to load
      */
     public void create(File file) {
-        CommentedConfigurationSection config = CommentedFileConfiguration.loadConfiguration(file);
+        CommentedFileConfiguration config = CommentedFileConfiguration.loadConfiguration(file);
         CommentedConfigurationSection crateSettings = config.getConfigurationSection("crate-settings");
         if (crateSettings == null) {
             LOGGER.severe("Failed to load crate because it does not have a crate-settings section.");
@@ -80,8 +79,6 @@ public class CrateManager extends Manager {
         }
 
         Crate crate = new Crate(id);
-        crate.setConfig(config);
-        crate.setFile(file);
         crate.setName(crateSettings.getString("display-name", id));
         crate.setType(CrateUtils.getEnum(KeyType.class, crateSettings.getString("type"), KeyType.PHYSICAL));
         crate.setSettings(new RewardSettings(
@@ -103,16 +100,17 @@ public class CrateManager extends Manager {
 
         // Make sure the animation is actually loaded
         if (animation == null) {
-            if (animationName != null) {
-                this.unregisteredCrates.put(file, animationName);
-
-                LOGGER.warning("Failed to load crate " + id + " because the animation " + animationName + " is not loaded, It will be loaded if the animation it requires is loaded.");
-                return;
-            }
-
-            LOGGER.warning("Failed to load crate " + id + " because it does not have an animation set");
+            this.unregisteredCrates.put(file, animationName);
+            LOGGER.warning("Failed to load crate " + id + " because the animation " + animationName + " is not loaded, It will be loaded if the animation it requires is loaded.");
             return;
         }
+
+        // Load the animation settings
+        animation.settings().forEach((string, o) -> config.set("crate-settings.animation." + string, o));
+        config.save(file);
+
+        crate.setConfig(config);
+        crate.setFile(file);
 
         // Load the crate key
         if (crate.getType() == KeyType.PHYSICAL) {

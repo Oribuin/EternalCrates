@@ -11,6 +11,7 @@ import xyz.oribuin.eternalcrates.crate.Crate;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -82,10 +83,9 @@ public abstract class Animation {
     /**
      * This method is called when an animation is saved to the config for the first time
      * This is used to create default values for the animation
-     *
-     * @param configValues The values to save
      */
-    public void save(Map<String, Object> configValues) {
+    public Map<String, Object> settings() {
+        return new HashMap<>();
     }
 
     /**

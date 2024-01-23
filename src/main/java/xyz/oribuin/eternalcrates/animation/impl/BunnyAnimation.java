@@ -11,6 +11,7 @@ import xyz.oribuin.eternalcrates.crate.Crate;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
@@ -92,12 +93,10 @@ public class BunnyAnimation extends Animation {
     /**
      * This method is called when an animation is saved to the config for the first time
      * This is used to create default values for the animation
-     *
-     * @param configValues The values to save
      */
     @Override
-    public void save(Map<String, Object> configValues) {
-        configValues.put("bunny-count", 10);
+    public Map<String, Object> settings() {
+        return Map.of("bunny-count", 10);
     }
 
     /**

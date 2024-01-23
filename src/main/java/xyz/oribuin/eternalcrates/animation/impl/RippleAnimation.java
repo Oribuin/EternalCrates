@@ -56,12 +56,10 @@ public class RippleAnimation extends ParticleAnimation {
     /**
      * This method is called when an animation is saved to the config for the first time
      * This is used to create default values for the animation
-     *
-     * @param configValues The values to save
      */
     @Override
-    public void save(Map<String, Object> configValues) {
-        configValues.put("max-radius", 3);
+    public Map<String, Object> settings() {
+        return Map.of("max-radius", 3);
     }
 
     /**
