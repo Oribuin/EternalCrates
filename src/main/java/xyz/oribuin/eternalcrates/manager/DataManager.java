@@ -113,7 +113,7 @@ public class DataManager extends AbstractDataManager {
      *
      * @param crate The crate to get the locations for
      */
-    public CompletableFuture<List<Location>> getLocations(Crate crate) {
+    public CompletableFuture<List<Location>> locations(Crate crate) {
         return CompletableFuture.supplyAsync(() -> {
             List<Location> locations = new ArrayList<>();
 

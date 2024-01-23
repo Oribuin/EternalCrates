@@ -108,9 +108,14 @@ public class CrateManager extends Manager {
         // Load the animation settings
         animation.settings().forEach((string, o) -> config.set("crate-settings.animation." + string, o));
         config.save(file);
-
         crate.setConfig(config);
         crate.setFile(file);
+
+        // Load the crate locations
+        this.rosePlugin.getManager(DataManager.class)
+                .locations(crate)
+                .thenAccept(crate::setLocations);
+
 
         // Load the crate key
         if (crate.getType() == KeyType.PHYSICAL) {
