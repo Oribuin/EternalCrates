@@ -1,10 +1,11 @@
-package xyz.oribuin.eternalcrates.action;
+package xyz.oribuin.eternalcrates.action.impl;
 
 import org.bukkit.entity.Player;
+import xyz.oribuin.eternalcrates.action.Action;
 import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.crate.Reward;
 
-public interface Action {
+public class CloseAction implements Action {
 
     /**
      * The functionality this action provides when its ran
@@ -14,6 +15,9 @@ public interface Action {
      * @param reward The reward that was given to the player
      * @param input  The content provided by the user
      */
-    void run(Crate crate, Player player, Reward reward, String input);
+    @Override
+    public void run(Crate crate, Player player, Reward reward, String input) {
+        player.closeInventory();
+    }
 
 }

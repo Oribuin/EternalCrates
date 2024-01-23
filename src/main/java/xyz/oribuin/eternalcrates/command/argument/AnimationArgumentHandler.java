@@ -6,8 +6,7 @@ import dev.rosewood.rosegarden.command.framework.RoseCommandArgumentHandler;
 import dev.rosewood.rosegarden.command.framework.RoseCommandArgumentInfo;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import xyz.oribuin.eternalcrates.animation.Animation;
-import xyz.oribuin.eternalcrates.animation.AnimationType;
-import xyz.oribuin.eternalcrates.manager.AnimationManager;
+import xyz.oribuin.eternalcrates.animation.factory.AnimationFactory;
 
 import java.util.List;
 import java.util.Set;
@@ -21,7 +20,7 @@ public class AnimationArgumentHandler extends RoseCommandArgumentHandler<Animati
     @Override
     protected Animation handleInternal(RoseCommandArgumentInfo argumentInfo, ArgumentParser argumentParser) throws HandledArgumentException {
         final String input = argumentParser.next();
-        final Animation animation = this.rosePlugin.getManager(AnimationManager.class).getAnimation(input);
+        final Animation animation = AnimationFactory.get().find(input);
 
         if (animation == null) {
             throw new HandledArgumentException("argument-handler-animation", StringPlaceholders.of("animation", input));
@@ -34,7 +33,7 @@ public class AnimationArgumentHandler extends RoseCommandArgumentHandler<Animati
     protected List<String> suggestInternal(RoseCommandArgumentInfo argumentInfo, ArgumentParser argumentParser) {
         argumentParser.next();
 
-        Set<String> animations = this.rosePlugin.getManager(AnimationManager.class).getCachedAnimations().keySet();
+        Set<String> animations = AnimationFactory.get().keys();
         if (animations.isEmpty()) {
             return List.of("<no loaded animations>");
         }

@@ -95,19 +95,19 @@ public class ParticleData {
         return dustTransition;
     }
 
-    public ParticleData setDustTransition(final Color color1, final Color color2) {
-        if (color1 == null || color2 == null)
-            return this;
-
-        this.dustTransition = new DustTransition(color1, color2, 1f);
-        return this;
-    }
-
     public ParticleData setDustTransition(final DustTransition dustTransition) {
         if (dustTransition == null)
             return this;
 
         this.dustTransition = dustTransition;
+        return this;
+    }
+
+    public ParticleData setDustTransition(final Color color1, final Color color2) {
+        if (color1 == null || color2 == null)
+            return this;
+
+        this.dustTransition = new DustTransition(color1, color2, 1f);
         return this;
     }
 

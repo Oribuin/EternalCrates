@@ -6,11 +6,7 @@ import dev.rosewood.rosegarden.database.DataMigration;
 import dev.rosewood.rosegarden.manager.AbstractDataManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.NamespacedKey;
-import org.bukkit.World;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.io.BukkitObjectInputStream;
 import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.crate.CrateKeys;
@@ -20,11 +16,13 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public class DataManager extends AbstractDataManager {
 
@@ -41,97 +39,67 @@ public class DataManager extends AbstractDataManager {
      * @param player The player to save
      * @param keys   The keys to save
      */
-    public void saveUser(UUID player, CrateKeys keys) {
-        this.userKeys.put(player, keys);
+    public CompletableFuture<Void> save(UUID player, CrateKeys keys) {
+        return CompletableFuture.runAsync(() -> {
+            this.userKeys.put(player, keys);
 
-        this.async(() -> this.databaseConnector.connect(connection -> {
-            try (PreparedStatement statement = connection.prepareStatement("REPLACE INTO " + this.getTablePrefix() + "keys (`player`, `items`) VALUES (?, ?)")) {
-                statement.setString(1, player.toString());
-                statement.setString(2, this.gson.toJson(keys));
-                statement.executeUpdate();
-            }
-        }));
+            this.databaseConnector.connect(connection -> {
+                try (PreparedStatement statement = connection.prepareStatement("REPLACE INTO " + this.getTablePrefix() + "keys (`player`, `items`) VALUES (?, ?)")) {
+                    statement.setString(1, player.toString());
+                    statement.setString(2, this.gson.toJson(keys));
+                    statement.executeUpdate();
+                }
+            });
+        });
     }
 
-    /*
-     * Save the user's keys to the database
-     *
-     * @param player The player to save the keys for
-     */
-    public void saveUser(UUID player) {
-        CrateKeys crateKeys = this.userKeys.get(player);
-        if (crateKeys == null)
-            return;
-
-        this.saveUser(player, crateKeys);
-    }
 
     /**
      * Get the user's keys from the database
      *
      * @param player The player to get the keys for
      */
-    public CrateKeys getUser(UUID player) {
-        if (this.userKeys.get(player) != null)
-            return this.userKeys.get(player);
+    public CompletableFuture<CrateKeys> user(UUID player) {
+        return CompletableFuture.supplyAsync(() -> {
+            // Check if the user's keys are cached
+            CrateKeys keys = this.userKeys.getOrDefault(player, new CrateKeys());
+            if (!keys.getContent().isEmpty()) return keys;
 
-        this.async(() -> this.databaseConnector.connect(connection -> {
-            try (PreparedStatement statement = connection.prepareStatement("SELECT `items` FROM " + this.getTablePrefix() + "keys WHERE `player` = ?")) {
-                statement.setString(1, player.toString());
-                ResultSet resultSet = statement.executeQuery();
-                if (resultSet.next()) {
-                    CrateKeys keys = this.gson.fromJson(resultSet.getString("items"), CrateKeys.class);
-                    this.userKeys.put(player, keys);
+            // Get the user's keys from the database
+            this.databaseConnector.connect(connection -> {
+                try (PreparedStatement statement = connection.prepareStatement("SELECT `items` FROM " + this.getTablePrefix() + "keys WHERE `player` = ?")) {
+                    statement.setString(1, player.toString());
+                    ResultSet resultSet = statement.executeQuery();
+                    if (resultSet.next()) {
+                        keys.set(this.gson.fromJson(resultSet.getString("items"), CrateKeys.class));
+                        this.userKeys.put(player, keys);
+                    }
                 }
-            }
-        }));
+            });
 
-        return this.userKeys.getOrDefault(player, new CrateKeys());
+            return keys;
+        });
     }
 
     /**
-     * Load the crate locations from the database
+     * Save all the locations of a crate
      *
-     * @param crate The crate to load the locations for
+     * @param crate The crate to save
      */
-    public void loadCrateLocation(Crate crate) {
+    public void save(Crate crate) {
         this.async(() -> this.databaseConnector.connect(connection -> {
-            try (PreparedStatement statement = connection.prepareStatement("SELECT `x`, `y`, `z`, `world` FROM " + this.getTablePrefix() + "locations WHERE `crateName` = ?")) {
-                statement.setString(1, crate.getId());
-                ResultSet resultSet = statement.executeQuery();
-                while (resultSet.next()) {
-                    double x = resultSet.getDouble("x");
-                    double y = resultSet.getDouble("y");
-                    double z = resultSet.getDouble("z");
-                    World world = Bukkit.getWorld(resultSet.getString("world"));
-                    if (world == null)
-                        continue;
-
-                    crate.getLocations().add(new Location(world, x, y, z));
-                }
-            }
-        }));
-    }
-
-    /**
-     * Save the crate locations to the database
-     *
-     * @param crate The crate to save the locations for
-     */
-    public void saveCrateLocations(Crate crate) {
-        this.async(() -> this.databaseConnector.connect(connection -> {
-            try (PreparedStatement statement = connection.prepareStatement("DELETE FROM " + this.getTablePrefix() + "locations WHERE `crateName` = ?")) {
-                statement.setString(1, crate.getId());
-                statement.executeUpdate();
+            try (PreparedStatement clearLocations = connection.prepareStatement("DELETE FROM " + this.getTablePrefix() + "locations WHERE `crateName` = ?")) {
+                clearLocations.setString(1, crate.getId());
+                clearLocations.executeUpdate();
             }
 
             try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + this.getTablePrefix() + "locations (`crateName`, `x`, `y`, `z`, `world`) VALUES (?, ?, ?, ?, ?)")) {
-                for (Location loc : crate.getLocations()) {
+                for (Location location : crate.getLocations()) {
                     statement.setString(1, crate.getId());
-                    statement.setDouble(2, loc.getX());
-                    statement.setDouble(3, loc.getY());
-                    statement.setDouble(4, loc.getZ());
-                    statement.setString(5, loc.getWorld().getName());
+                    statement.setInt(2, location.getBlockX());
+                    statement.setInt(3, location.getBlockY());
+                    statement.setInt(4, location.getBlockZ());
+                    statement.setString(5, location.getWorld().getName());
                     statement.addBatch();
                 }
 
@@ -141,149 +109,38 @@ public class DataManager extends AbstractDataManager {
     }
 
     /**
-     * Drop the data migration table to reset the database migrations
-     * We don't want to have to create the old tables again just to drop them
-     */
-    public void dropTableMigration() {
-        this.async(() -> this.databaseConnector.connect(connection -> {
-            try (PreparedStatement statement = connection.prepareStatement("DROP TABLE " + this.getTablePrefix() + "migrations")) {
-                statement.executeUpdate();
-            }
-        }));
-    }
-
-    /**
-     * Recreate all the location data for the crates
-     */
-    public void recreateLocations() {
-        this.async(() -> this.databaseConnector.connect(connection -> {
-            Map<String, Location> locations = new HashMap<>();
-
-            String loadOldLocations = "SELECT `crate`, `x`, `y`, `z`, `world` FROM " + this.getTablePrefix() + "crates";
-            try (PreparedStatement statement = connection.prepareStatement(loadOldLocations)) {
-                ResultSet resultSet = statement.executeQuery();
-                while (resultSet.next()) {
-                    Location loc = new Location(
-                            Bukkit.getWorld(resultSet.getString("world")),
-                            resultSet.getDouble("x"),
-                            resultSet.getDouble("y"),
-                            resultSet.getDouble("z")
-                    );
-
-                    locations.put(resultSet.getString("crate"), loc);
-                }
-            }
-
-            String dropOldLocations = "DROP TABLE " + this.getTablePrefix() + "crates";
-            try (PreparedStatement statement = connection.prepareStatement(dropOldLocations)) {
-                statement.executeUpdate();
-            }
-
-            for (Map.Entry<String, Location> entry : locations.entrySet()) {
-                try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + this.getTablePrefix() + "locations (`crateName`, `x`, `y`, `z`, `world`) VALUES (?, ?, ?, ?, ?)")) {
-                    statement.setString(1, entry.getKey());
-                    statement.setDouble(2, entry.getValue().getX());
-                    statement.setDouble(3, entry.getValue().getY());
-                    statement.setDouble(4, entry.getValue().getZ());
-                    statement.setString(5, entry.getValue().getWorld().getName());
-                    statement.executeUpdate();
-                }
-            }
-        }));
-    }
-
-    /**
-     * Recreate all the key data for the users
-     */
-    public void recreateKeys() {
-        this.async(() -> this.databaseConnector.connect(connection -> {
-            Map<UUID, CrateKeys> keys = new HashMap<>();
-
-            String loadVirtualKeys = "SELECT `player`, `keys` FROM " + this.getTablePrefix() + "virtual";
-
-            // Load all the virtual keys
-            try (PreparedStatement statement = connection.prepareStatement(loadVirtualKeys)) {
-                ResultSet resultSet = statement.executeQuery();
-                while (resultSet.next()) {
-                    CrateKeys crateKeys = gson.fromJson(resultSet.getString("keys"), CrateKeys.class);
-                    keys.put(UUID.fromString(resultSet.getString("player")), crateKeys);
-                }
-            }
-
-            // Drop the old virtual keys table
-            String dropVirtualKeys = "DROP TABLE " + this.getTablePrefix() + "virtual";
-            try (PreparedStatement statement = connection.prepareStatement(dropVirtualKeys)) {
-                statement.executeUpdate();
-            }
-
-            // Load all the unclaimed keys
-            Map<UUID, List<ItemStack>> items = new HashMap<>();
-            String loadUnclaimedKeys = "SELECT `player`, `items` FROM " + this.getTablePrefix() + "items";
-
-            try (PreparedStatement statement = connection.prepareStatement(loadUnclaimedKeys)) {
-                ResultSet resultSet = statement.executeQuery();
-                while (resultSet.next()) {
-                    UUID player = UUID.fromString(resultSet.getString("player"));
-                    List<ItemStack> itemsStacks = decompressItems(resultSet.getBytes("items"));
-                    items.put(player, itemsStacks);
-                }
-            }
-
-            // Convert itemstacks to crate keys
-            // Convert the unclaimed keys to virtual crate keys
-            for (Map.Entry<UUID, List<ItemStack>> entry : items.entrySet()) {
-
-                CrateKeys newCrateKeys = keys.getOrDefault(entry.getKey(), new CrateKeys());
-                for (ItemStack item : entry.getValue()) {
-                    ItemMeta meta = item.getItemMeta();
-                    if (meta == null) continue;
-
-                    String crateId = meta.getPersistentDataContainer().get(new NamespacedKey(this.rosePlugin, "crateKey"), PersistentDataType.STRING);
-                    if (crateId == null) continue;
-
-                    // Add the crate key the users virtual keys
-                    int currentCount = newCrateKeys.getKeys().getOrDefault(crateId, 0);
-                    newCrateKeys.getKeys().put(crateId, currentCount + 1);
-                }
-
-                keys.put(entry.getKey(), newCrateKeys);
-            }
-
-            // Drop the old table
-            String dropUnclaimedKeys = "DROP TABLE " + this.getTablePrefix() + "items";
-            try (PreparedStatement statement = connection.prepareStatement(dropUnclaimedKeys)) {
-                statement.executeUpdate();
-            }
-
-            // Save the new keys
-            for (Map.Entry<UUID, CrateKeys> entry : keys.entrySet()) {
-                this.userKeys.put(entry.getKey(), entry.getValue());
-
-                try (PreparedStatement statement = connection.prepareStatement("REPLACE INTO " + this.getTablePrefix() + "keys (`player`, `items`) VALUES (?, ?)")) {
-                    statement.setString(2, entry.getKey().toString());
-                    statement.setString(1, this.gson.toJson(entry.getValue()));
-                    statement.executeUpdate();
-                }
-            }
-        }));
-
-    }
-
-    /**
-     * Add keys to the users virtual keys
+     * Get all the locations of a crate
      *
-     * @param user   The user to add the keys to
-     * @param crate  The crate key to add
-     * @param amount The amount of keys to add
+     * @param crate The crate to get the locations for
      */
-    public void addKeys(UUID user, String crate, int amount) {
-        Map<String, Integer> keys = this.userKeys.getOrDefault(user, new CrateKeys()).getKeys();
-        int current = keys.getOrDefault(crate, 0);
+    public CompletableFuture<List<Location>> locations(Crate crate) {
+        return CompletableFuture.supplyAsync(() -> {
+            List<Location> locations = new ArrayList<>();
 
-        keys.put(crate, current + amount);
-        this.saveUser(user, new CrateKeys(keys));
+            this.databaseConnector.connect(connection -> {
+                try (PreparedStatement statement = connection.prepareStatement("SELECT `x`, `y`, `z`, `world` FROM " + this.getTablePrefix() + "locations WHERE `crateName` = ?")) {
+                    statement.setString(1, crate.getId());
+                    locations.addAll(this.construct(statement.executeQuery()));
+                }
+            });
+
+            return locations;
+        });
     }
 
+    private List<Location> construct(ResultSet resultSet) throws SQLException {
+        List<Location> result = new ArrayList<>();
+        while (resultSet.next()) {
+            int x = resultSet.getInt("x");
+            int y = resultSet.getInt("y");
+            int z = resultSet.getInt("z");
+            String world = resultSet.getString("world");
+
+            result.add(new Location(Bukkit.getWorld(world), x, y, z));
+        }
+
+        return result;
+    }
 
     /**
      * Decompress a byte array into a list of ItemStacks

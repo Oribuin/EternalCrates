@@ -17,7 +17,7 @@ public interface ItemProvider {
     /**
      * Get the item stack for the given key
      *
-     * @param key The key
+     * @param key    The key
      * @param player The player
      * @return The item stack
      */

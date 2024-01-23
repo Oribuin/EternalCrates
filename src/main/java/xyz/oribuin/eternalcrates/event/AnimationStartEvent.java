@@ -1,5 +1,6 @@
 package xyz.oribuin.eternalcrates.event;
 
+import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
@@ -13,6 +14,7 @@ public class AnimationStartEvent extends Event {
     private final Animation animation;
 
     public AnimationStartEvent(Crate crate, Animation animation) {
+        super(!Bukkit.isPrimaryThread());
         this.crate = crate;
         this.animation = animation;
     }

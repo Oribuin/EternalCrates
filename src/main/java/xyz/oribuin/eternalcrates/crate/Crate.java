@@ -1,21 +1,20 @@
 package xyz.oribuin.eternalcrates.crate;
 
-import dev.rosewood.rosegarden.config.CommentedFileConfiguration;
-import dev.rosewood.rosegarden.utils.StringPlaceholders;
+import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitTask;
 import xyz.oribuin.eternalcrates.EternalCrates;
-import xyz.oribuin.eternalcrates.action.Action;
+import xyz.oribuin.eternalcrates.action.ActionType;
 import xyz.oribuin.eternalcrates.animation.Animation;
-import xyz.oribuin.eternalcrates.event.AnimationEndEvent;
-import xyz.oribuin.eternalcrates.event.AnimationStartEvent;
-import xyz.oribuin.eternalcrates.event.CrateOpenEvent;
 import xyz.oribuin.eternalcrates.manager.CrateManager;
+import xyz.oribuin.eternalcrates.manager.DataManager;
 import xyz.oribuin.eternalcrates.util.CrateUtils;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,114 +23,231 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class Crate {
 
-    private final String id; // The id of the crate.
-    private String name; // The name of the crate.
-    private Map<String, Reward> rewardMap; // The rewards for the crate.
-    private Animation animation; // The animation to play when a crate is opened.
-    private List<Location> locations; // The locations of the crate.
-    private ItemStack key; // The key to open the crate.
-    private int maxRewards; // The maximum amount of rewards to give.
-    private int minRewards;  // The minimum amount of rewards to give.
-    private int minGuiSlots; // The minimum amount of slots in the GUI.
-    private int multiplier; // The multiplier for the rewards.
-    private CommentedFileConfiguration config; // The config where the crate is stored.
-    private List<Action> openActions; // The actions to run when a crate is opened.
-    private CrateType type; // The type of crate.
-    private File file; // The file where the crate is stored.
+    private static final ThreadLocalRandom RANDOM = ThreadLocalRandom.current();
+
+    // Basic Crate Settings
+    private final String id;
+    private String name;
+    private KeyType type;
+    private Animation animation;
+    private ItemStack key;
+    private RewardSettings settings;
+    private Map<String, Reward> rewards;
+    private List<Location> locations;
+    private List<String> openActions;
+
+    // Config Loading
+    private CommentedConfigurationSection config;
+    private File file;
+
+    // Animation Settings
+    private List<Location> activeLocations;
 
     public Crate(final String id) {
         this.id = id;
         this.name = id;
-        this.rewardMap = new HashMap<>();
+        this.type = KeyType.PHYSICAL;
         this.animation = null;
+        this.key = null;
+        this.settings = RewardSettings.getDefault();
+        this.rewards = new HashMap<>();
         this.locations = new ArrayList<>();
-        this.multiplier = 1;
-        this.maxRewards = 1;
-        this.minRewards = 1;
-        this.minGuiSlots = this.maxRewards;
+        this.openActions = new ArrayList<>();
         this.file = null;
         this.config = null;
-        this.openActions = new ArrayList<>();
-        this.type = CrateType.PHYSICAL;
+        this.activeLocations = new ArrayList<>();
     }
 
     /**
-     * Open a crate for the player.
+     * Open the crate for the player
      *
-     * @param player The player who is opening the crate
+     * @param player The player who opened the crate
+     * @param block  The location of the crate
      */
-    public boolean open(Player player, Location location) {
+    public void open(Player player, Location block) {
+        if (this.animation == null) {
+            Bukkit.getLogger().severe("The animation for the crate " + this.id + " is null. Please report this to the developer.");
+            return;
+        }
 
-        if (this.getAnimation().isBlockRequired(location))
+        Location center = CrateUtils.center(block);
+        if (this.activeLocations.contains(center)) return;
+
+        this.activeLocations.add(center);
+        this.animation.load(this.getAnimationSettings());
+        this.animation.start(this, player, block);
+
+        // Run the open commands for the crate
+        ActionType.run(this, player, this.openActions);
+        this.update();
+
+        // Immediately stop the animation if the duration is 0
+        if (this.animation.getDuration() == Duration.ZERO) {
+            this.activeLocations.remove(center);
+            this.animation.stop(this, player, block);
+
+            this.update();
+            return;
+        }
+
+        // Tick the animation every 3 ticks
+        BukkitTask tickTask = Bukkit.getScheduler().runTaskTimerAsynchronously(
+                EternalCrates.get(), () -> this.animation.tick(this, player, CrateUtils.center(block)), 0L, 3L
+        );
+
+        // Stop the animation after the duration
+        Bukkit.getScheduler().runTaskLater(EternalCrates.get(), () -> {
+            this.activeLocations.remove(center);
+            this.animation.stop(this, player, block);
+            tickTask.cancel();
+
+            this.update();
+        }, this.animation.getDuration().toSeconds() * 20);
+    }
+
+    /**
+     * Give the user a crate key for the crate
+     *
+     * @param player The player to give the crate key to
+     * @param amount The amount of crate keys to give
+     */
+    public void give(Player player, int amount) {
+        DataManager data = EternalCrates.get().getManager(DataManager.class);
+
+        // Check if the crate is physical and they can hold the crate key, Add it to the unclaimed keys
+        if (this.type == KeyType.PHYSICAL && CrateUtils.getSpareSlots(player) > 0) {
+            ItemStack key = this.key.clone();
+            key.setAmount(amount);
+
+            player.getInventory().addItem(key);
+            return;
+        }
+
+        // Give the player the crate keys if it's virtual, or they can't hold the crate key
+        data.user(player.getUniqueId()).thenAccept(keys -> {
+            if (keys == null) return;
+
+            keys.add(this.id, amount);
+            data.save(player.getUniqueId(), keys);
+        });
+    }
+
+    /**
+     * Check if a user has a crate key
+     *
+     * @param player The player to check
+     * @return If the player has a crate key
+     */
+    public boolean hasKey(Player player) {
+        DataManager data = EternalCrates.get().getManager(DataManager.class);
+
+        // Check if the user has the crate key in their inventory
+        if (this.type == KeyType.PHYSICAL) {
+            ItemStack[] contents = player.getInventory().getContents();
+            for (ItemStack content : contents) {
+                if (content == null || content.getType().isAir()) continue;
+                if (content.isSimilar(this.key)) return true;
+            }
+
             return false;
+        }
 
-        final CrateOpenEvent event = new CrateOpenEvent(this, player);
-        Bukkit.getPluginManager().callEvent(event);
-        if (event.isCancelled())
-            return false;
-
-        final StringPlaceholders plc = StringPlaceholders.builder()
-                .add("player", player.getName())
-                .add("add", this.getName())
-                .build();
-
-        this.openActions.forEach(action -> action.execute(null, player, plc));
-
-        EternalCrates.getInstance().getManager(CrateManager.class).getActiveUsers().add(player.getUniqueId());
-
-        // The crate location or the player location.
-        final Location spawnLocation = location != null ? CrateUtils.centerLocation(location) : player.getLocation();
-
-        Bukkit.getPluginManager().callEvent(new AnimationStartEvent(this, this.getAnimation()));
-        animation.play(spawnLocation, player, this);
-        return true;
+        // Check if the user has the crate key in their unclaimed keys
+        return data.user(player.getUniqueId()).thenApply(keys -> {
+            if (keys == null) return false;
+            return keys.getContent().getOrDefault(this.id, 0) > 0;
+        }).getNow(false);
     }
 
     /**
-     * Finish the crate animation and give the player the rewards.
+     * Allow a player to use a crate key
      *
-     * @param player  The player who is getting the rewards
-     * @param rewards The rewards the player is getting.
+     * @param player The player whos opening the crate
      */
-    public void finish(Player player, List<Reward> rewards, Location location) {
-        this.animation.finish(player, this, location);
-        Bukkit.getPluginManager().callEvent(new AnimationEndEvent(this.getAnimation()));
+    public void take(Player player) {
+        DataManager data = EternalCrates.get().getManager(DataManager.class);
 
-        this.getAnimation().setActive(false);
-        EternalCrates.getInstance().getManager(CrateManager.class).getActiveUsers().remove(player.getUniqueId());
-        rewards.forEach(reward -> reward.execute(player, this));
+        // Check if the user has the crate key in their inventory
+        if (this.type == KeyType.PHYSICAL) {
+            ItemStack item = this.key.clone();
+            item.setAmount(1);
+
+            player.getInventory().removeItem(item);
+            return;
+        }
+
+        // Check if the user has the crate key in their unclaimed keys
+        data.user(player.getUniqueId()).thenAccept(keys -> {
+            if (keys == null) return;
+            keys.remove(this.id, 1);
+            data.save(player.getUniqueId(), keys);
+        });
     }
 
     /**
-     * Finish the crate animation and give the player the rewards.
+     * Hand out the rewards to the player who opened the crate
      *
-     * @param player The player who is getting the rewards
+     * @param player  The player who opened the crate
+     * @param rewards The rewards to give out
      */
-    public void finish(Player player, Location location) {
-        this.finish(player, this.createRewards(), location);
+    public void reward(Player player, List<Reward> rewards) {
+        rewards.forEach(reward -> ActionType.run(
+                this,
+                player,
+                reward.getActions(),
+                reward
+        ));
     }
 
     /**
-     * Select a list of rewards won from the max reward count
+     * Hand out the rewards to the player who opened the crate
      *
-     * @return The list of rewards.
+     * @param player The player who opened the crate
      */
-    public List<Reward> createRewards() {
-        return this.selectReward(ThreadLocalRandom.current().nextInt(this.getMinRewards(), this.getMaxRewards() + 1) * this.getMultiplier());
+    public void reward(Player player) {
+        this.reward(player, this.generate());
     }
 
-    public List<Reward> selectReward(int amount) {
+    /**
+     * Update this crate into the cache
+     */
+    public void update() {
+        EternalCrates.get()
+                .getManager(CrateManager.class)
+                .update(this);
+    }
 
-        // Select a reward.
-        // https://stackoverflow.com/a/28711505
+    /**
+     * Load all the animation settings from the crate.
+     *
+     * @return The map of settings
+     */
+    private Map<String, Object> getAnimationSettings() {
+        Map<String, Object> settings = new HashMap<>();
+
+        CommentedConfigurationSection animationSection = this.config.getConfigurationSection("crate-settings.animation");
+        if (animationSection == null) return settings;
+
+        animationSection.getKeys(false).forEach(key -> settings.put(key, animationSection.get(key)));
+        return settings;
+    }
+
+    /**
+     * Generate a list of rewards from the crate
+     *
+     * @param amount The amount of rewards to generate
+     * @return The list of rewards
+     */
+    public List<Reward> generate(int amount) {
+        // Ref: https://stackoverflow.com/a/28711505
         Map<Reward, Double> chanceMap = new HashMap<>();
-        this.rewardMap.forEach((integer, reward) -> chanceMap.put(reward, reward.getChance()));
         List<Reward> results = new ArrayList<>();
+        this.rewards.values().forEach(reward -> chanceMap.put(reward, reward.getChance()));
 
         for (int i = 0; i < amount; i++) {
             double sumOfPercentages = chanceMap.values().stream().reduce(0.0, Double::sum);
             int current = 0;
-            double randomNumber = ThreadLocalRandom.current().nextDouble(sumOfPercentages);
+            double randomNumber = RANDOM.nextDouble(sumOfPercentages);
             for (Map.Entry<Reward, Double> entry : chanceMap.entrySet()) {
                 current += entry.getValue();
                 if (randomNumber > current) continue;
@@ -140,6 +256,32 @@ public class Crate {
         }
 
         return results;
+    }
+
+    /**
+     * Generate the defined amount of rewards
+     *
+     * @return The list of rewards
+     */
+    public List<Reward> generate() {
+        int minRewards = this.settings.minRewards();
+        int maxRewards = this.settings.maxRewards() + 1;
+        double multiplier = this.settings.multiplier();
+
+        return this.generate(RANDOM.nextInt(
+                (int) (minRewards * multiplier),
+                (int) (maxRewards * multiplier)
+        ));
+    }
+
+    /**
+     * Check if the crate is active at the location
+     *
+     * @param location The location to check
+     * @return If the crate is active
+     */
+    public boolean isActive(Location location) {
+        return this.activeLocations.contains(CrateUtils.center(location));
     }
 
     public String getId() {
@@ -154,20 +296,20 @@ public class Crate {
         this.name = name;
     }
 
+    public KeyType getType() {
+        return type;
+    }
+
+    public void setType(KeyType type) {
+        this.type = type;
+    }
+
     public Animation getAnimation() {
         return animation;
     }
 
     public void setAnimation(Animation animation) {
         this.animation = animation;
-    }
-
-    public List<Location> getLocations() {
-        return locations;
-    }
-
-    public void setLocations(List<Location> locations) {
-        this.locations = locations;
     }
 
     public ItemStack getKey() {
@@ -178,76 +320,60 @@ public class Crate {
         this.key = key;
     }
 
-    public int getMultiplier() {
-        return multiplier;
+    public RewardSettings getSettings() {
+        return settings;
     }
 
-    public void setMultiplier(int multiplier) {
-        this.multiplier = multiplier;
+    public void setSettings(RewardSettings settings) {
+        this.settings = settings;
     }
 
-    public int getMaxRewards() {
-        return maxRewards;
+    public Map<String, Reward> getRewards() {
+        return rewards;
     }
 
-    public void setMaxRewards(int maxRewards) {
-        this.maxRewards = maxRewards;
+    public void setRewards(Map<String, Reward> rewards) {
+        this.rewards = rewards;
     }
 
-    public int getMinRewards() {
-        return minRewards;
+    public List<Location> getLocations() {
+        return locations;
     }
 
-    public void setMinRewards(int minRewards) {
-        this.minRewards = minRewards;
+    public void setLocations(List<Location> locations) {
+        this.locations = locations;
     }
 
-    public CommentedFileConfiguration getConfig() {
-        return config;
-    }
-
-    public void setConfig(CommentedFileConfiguration config) {
-        this.config = config;
-    }
-
-    public int getMinGuiSlots() {
-        return minGuiSlots;
-    }
-
-    public void setMinGuiSlots(int minGuiSlots) {
-        this.minGuiSlots = minGuiSlots;
-    }
-
-    public Map<String, Reward> getRewardMap() {
-        return rewardMap;
-    }
-
-    public void setRewardMap(Map<String, Reward> rewardMap) {
-        this.rewardMap = rewardMap;
-    }
-
-    public List<Action> getOpenActions() {
+    public List<String> getOpenActions() {
         return openActions;
     }
 
-    public void setOpenActions(List<Action> openActions) {
+    public void setOpenActions(List<String> openActions) {
         this.openActions = openActions;
     }
 
-    public CrateType getType() {
-        return type;
+    public CommentedConfigurationSection getConfig() {
+        return config;
     }
 
-    public void setType(CrateType type) {
-        this.type = type;
+    public void setConfig(CommentedConfigurationSection config) {
+        this.config = config;
     }
 
     public File getFile() {
         return file;
     }
 
-    public void setFile(final File file) {
+    public void setFile(File file) {
         this.file = file;
+    }
+
+    public List<Location> getActiveLocations() {
+        return activeLocations;
+    }
+
+    public void setActiveLocations(List<Location> activeLocations) {
+        this.activeLocations = activeLocations;
     }
 
 }

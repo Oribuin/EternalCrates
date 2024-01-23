@@ -1,14 +1,11 @@
 package xyz.oribuin.eternalcrates.hook.provider;
 
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
-import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xyz.oribuin.eternalcrates.hook.ItemProvider;
-
-import java.util.Map;
 
 public class SlimefunItemProvider implements ItemProvider {
 

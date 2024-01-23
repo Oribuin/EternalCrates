@@ -10,10 +10,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.bukkit.entity.Player;
 import xyz.oribuin.eternalcrates.crate.Crate;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
 public class PreviewGUI extends PluginMenu {
 
     public PreviewGUI(RosePlugin rosePlugin) {
@@ -31,11 +27,11 @@ public class PreviewGUI extends PluginMenu {
 
         final StringPlaceholders cratePlaceholders = StringPlaceholders.builder("crate_id", crate.getId())
                 .add("crate", crate.getName())
-                .add("crate_rewards", String.valueOf(crate.getRewardMap().size()))
+                .add("crate_rewards", String.valueOf(crate.getRewards().size()))
                 .add("crate_type", StringUtils.capitalize(crate.getType().name().toLowerCase()))
-                .add("crate_min", crate.getMinRewards())
-                .add("crate_max", crate.getMaxRewards())
-                .add("crate_multiplier", crate.getMultiplier())
+                .add("crate_min", crate.getSettings().minRewards())
+                .add("crate_max", crate.getSettings().maxRewards())
+                .add("crate_multiplier", crate.getSettings().minRewards())
                 .build();
 
         final CommentedConfigurationSection extraItems = this.config.getConfigurationSection("extra-items");
@@ -65,7 +61,7 @@ public class PreviewGUI extends PluginMenu {
 //                .condition(menuItem -> gui.getPrevPageNum() < gui.getCurrentPageNum())
                 .place(gui);
 
-        crate.getRewardMap().forEach((slot, reward) -> gui.addItem(new GuiItem(reward.getPreviewItem())));
+        crate.getRewards().forEach((slot, reward) -> gui.addItem(new GuiItem(reward.getPreviewItem())));
         gui.open(player);
     }
 

@@ -4,11 +4,11 @@ import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.command.framework.CommandContext;
 import dev.rosewood.rosegarden.command.framework.RoseCommand;
 import dev.rosewood.rosegarden.command.framework.RoseCommandWrapper;
+import dev.rosewood.rosegarden.command.framework.annotation.Optional;
 import dev.rosewood.rosegarden.command.framework.annotation.RoseExecutable;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import org.bukkit.entity.Player;
 import xyz.oribuin.eternalcrates.crate.Crate;
-import xyz.oribuin.eternalcrates.manager.CrateManager;
 import xyz.oribuin.eternalcrates.manager.LocaleManager;
 
 public class GiveCommand extends RoseCommand {
@@ -18,20 +18,30 @@ public class GiveCommand extends RoseCommand {
     }
 
     @RoseExecutable
-    public void execute(CommandContext context, Crate crate, Player player, int amount) {
-        final CrateManager manager = this.rosePlugin.getManager(CrateManager.class);
+    public void execute(CommandContext context, Crate crate, @Optional Integer amount, @Optional Player target) {
+        LocaleManager locale = this.rosePlugin.getManager(LocaleManager.class);
 
-        switch (crate.getType()) {
-            case PHYSICAL -> manager.givePhysicalKey(player, crate, amount);
-            case VIRTUAL -> manager.giveVirtualKey(player, crate, amount);
+        // Make sure console isnt trying to give themselves a crate
+        if (target == null && !(context.getSender() instanceof Player)) {
+            locale.sendMessage(context.getSender(), "only-player");
+            return;
         }
 
-        final StringPlaceholders placeholders = StringPlaceholders.builder("crate", crate.getName())
-                .add("amount", amount)
-                .add("player", player.getName())
-                .build();
+        // Make sure the amount is valid
+        int newAmount = amount == null ? 1 : amount;
+        if (newAmount <= 0) {
+            locale.sendMessage(context.getSender(), "invalid-amount");
+            return;
+        }
 
-        this.rosePlugin.getManager(LocaleManager.class).sendMessage(context.getSender(), "command-give-success", placeholders);
+        // Give the player the crate
+        crate.give(target != null ? target : (Player) context.getSender(), newAmount);
+        locale.sendMessage(context.getSender(), "command-give-success", StringPlaceholders.of(
+                        "amount", newAmount,
+                        "crate", crate.getName(),
+                        "player", target != null ? target.getName() : context.getSender().getName()
+                )
+        );
     }
 
     @Override
@@ -46,7 +56,7 @@ public class GiveCommand extends RoseCommand {
 
     @Override
     public String getRequiredPermission() {
-        return "eternalcrates.command.give";
+        return "eternalcrates.give";
     }
 
 }

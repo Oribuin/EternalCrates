@@ -1,24 +1,17 @@
 package xyz.oribuin.eternalcrates.gui;
 
-import dev.rosewood.rosegarden.config.CommentedConfigurationSection;
 import dev.rosewood.rosegarden.config.CommentedFileConfiguration;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import dev.triumphteam.gui.guis.BaseGui;
 import dev.triumphteam.gui.guis.GuiItem;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import xyz.oribuin.eternalcrates.EternalCrates;
-import xyz.oribuin.eternalcrates.action.Action;
-import xyz.oribuin.eternalcrates.action.PluginAction;
 import xyz.oribuin.eternalcrates.util.CrateUtils;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -32,7 +25,6 @@ public class MenuItem {
     private Consumer<InventoryClickEvent> action; // The action to be performed when the item is clicked
     private List<Integer> slots; // The slots the item should be placed in
     private Predicate<MenuItem> condition; // The condition for the item to be displayed
-    private final Map<ClickType, List<Action>> customActions; // The actions to be performed when the item is clicked
 
     public MenuItem() {
         throw new UnsupportedOperationException("This class cannot be instantiated, Use MenuItem.create() instead.");
@@ -44,10 +36,10 @@ public class MenuItem {
         this.itemPath = null;
         this.placeholders = StringPlaceholders.empty();
         this.player = null;
-        this.action = inventoryClickEvent -> {}; // Do nothing
+        this.action = inventoryClickEvent -> {
+        }; // Do nothing
         this.slots = new ArrayList<>();
         this.condition = menuItem -> true;
-        this.customActions = new HashMap<>();
     }
 
     /**
@@ -102,57 +94,16 @@ public class MenuItem {
 
         ItemStack item = this.customItem != null
                 ? this.customItem
-                : CrateUtils.getItemStack(this.config, this.itemPath, this.player, this.placeholders);
+                : CrateUtils.deserialize(this.config, this.player, this.itemPath, this.placeholders);
 
         if (item == null) {
-            EternalCrates.getInstance().getLogger().warning("Item [" + this.itemPath + "] in the [" + this.config.getName() + "] menu is invalid.");
+            EternalCrates.get().getLogger().warning("Item [" + this.itemPath + "] in the [" + this.config.getName() + "] menu is invalid.");
             return;
         }
 
-        this.addActions();
         this.slots.forEach(slot -> gui.setItem(slot, new GuiItem(item, this.action::accept)));
         gui.update();
 
-    }
-
-
-    /**
-     * Add all the custom actions to the item
-     *
-     * @since 1.1.7
-     */
-    private void addActions() {
-        CommentedConfigurationSection customActions = this.config.getConfigurationSection(this.itemPath + ".commands");
-        if (customActions == null)
-            return;
-
-        for (String key : customActions.getKeys(false)) {
-            ClickType clickType = CrateUtils.getEnum(ClickType.class, key.toUpperCase());
-            if (clickType == null) {
-                EternalCrates.getInstance().getLogger().warning("Invalid click type [" + key + "] in the " + this.itemPath + ".commands section of the [" + this.config.getName() + "] menu.");
-                continue;
-            }
-
-            List<Action> actionList = new ArrayList<>();
-            this.config.getStringList(this.itemPath + ".commands." + key)
-                    .stream()
-                    .map(PluginAction::parse)
-                    .filter(Objects::nonNull)
-                    .forEach(actionList::add);
-
-            this.customActions.put(clickType, actionList);
-        }
-
-        if (this.customActions.isEmpty())
-            return;
-
-        this.action = event -> {
-            List<Action> actions = this.customActions.get(event.getClick());
-            if (actions == null)
-                return;
-
-            actions.forEach(action -> action.execute(null,(Player) event.getWhoClicked(), this.placeholders));
-        };
     }
 
     /**
@@ -218,7 +169,7 @@ public class MenuItem {
     public final MenuItem slots(List<Integer> slots) {
         this.slots = slots;
         return this;
-    } 
+    }
 
     public final MenuItem slot(int slot) {
         this.slots = List.of(slot);
@@ -242,11 +193,5 @@ public class MenuItem {
         this.condition = condition;
         return this;
     }
-
-    public Map<ClickType, List<Action>> getCustomActions() {
-        return customActions;
-    }
-
-
 
 }

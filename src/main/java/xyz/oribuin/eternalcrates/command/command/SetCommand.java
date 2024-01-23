@@ -4,21 +4,18 @@ import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.command.framework.CommandContext;
 import dev.rosewood.rosegarden.command.framework.RoseCommand;
 import dev.rosewood.rosegarden.command.framework.RoseCommandWrapper;
+import dev.rosewood.rosegarden.command.framework.annotation.Optional;
 import dev.rosewood.rosegarden.command.framework.annotation.RoseExecutable;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import org.bukkit.Color;
-import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitTask;
 import xyz.oribuin.eternalcrates.crate.Crate;
 import xyz.oribuin.eternalcrates.manager.CrateManager;
 import xyz.oribuin.eternalcrates.manager.LocaleManager;
 import xyz.oribuin.eternalcrates.particle.ParticleData;
 import xyz.oribuin.eternalcrates.util.CrateUtils;
-
-import java.util.List;
 
 public class SetCommand extends RoseCommand {
 
@@ -28,43 +25,31 @@ public class SetCommand extends RoseCommand {
 
     @RoseExecutable
     public void execute(CommandContext context, Crate crate) {
-        final LocaleManager locale = this.rosePlugin.getManager(LocaleManager.class);
-        final CrateManager manager = this.rosePlugin.getManager(CrateManager.class);
+        LocaleManager locale = this.rosePlugin.getManager(LocaleManager.class);
+        CrateManager manager = this.rosePlugin.getManager(CrateManager.class);
 
-        // Cast the command sender as a player
         Player player = (Player) context.getSender();
+        Block target = player.getTargetBlockExact(5);
 
-        // Get the block the player is looking at
-        final Block targetBlock = player.getTargetBlockExact(5);
-        if (targetBlock == null || targetBlock.isLiquid() || targetBlock.isEmpty()) {
+        // Make sure the player is looking at a valid block
+        if (target == null || target.isEmpty() || target.isLiquid()) {
             locale.sendMessage(player, "command-set-no-target");
             return;
         }
 
-        Crate blockCrate = manager.getCrate(targetBlock.getLocation());
-        if (blockCrate != null) {
-            locale.sendMessage(player, "command-set-already-set", StringPlaceholders.of("crate", blockCrate.getId()));
+        // Make sure the crate isnt already set
+        if (manager.get(target.getLocation()) != null) {
+            locale.sendMessage(player, "command-set-already-set");
             return;
         }
 
-        if (!crate.getLocations().contains(targetBlock.getLocation())) {
-            crate.getLocations().add(targetBlock.getLocation());
-            manager.saveCrate(crate, crate.getFile());
-        }
+        // Set the crate
+        crate.getLocations().add(target.getLocation());
+        manager.save(crate);
+        locale.sendMessage(player, "command-set-success", StringPlaceholders.of("crate", crate.getName()));
 
-        locale.sendMessage(player, "command-set-success", StringPlaceholders.of("crate", crate.getId()));
-
-        final ParticleData data = new ParticleData(Particle.REDSTONE);
-        data.setDustOptions(Color.LIME);
-
-        final List<Location> cube = CrateUtils.getCube(targetBlock.getLocation().clone(), targetBlock.getLocation().clone().add(1, 1, 1), 0.5);
-
-        // Spawn particles in the cube and then remove them after 1.5s (35 ticks)
-        BukkitTask task = this.rosePlugin.getServer().getScheduler().runTaskTimerAsynchronously(this.rosePlugin, () ->
-                cube.forEach(loc -> data.spawn(player, loc, 1)), 0, 2
-        );
-
-        this.rosePlugin.getServer().getScheduler().runTaskLater(this.rosePlugin, task::cancel, 35);
+        ParticleData data = new ParticleData(Particle.REDSTONE).setDustOptions(Color.LIME);
+        CrateUtils.outline(data, target, player);
     }
 
     @Override
@@ -79,11 +64,13 @@ public class SetCommand extends RoseCommand {
 
     @Override
     public String getRequiredPermission() {
-        return "eternalcrates.command.set";
+        return "eternalcrates.set";
     }
 
     @Override
     public boolean isPlayerOnly() {
         return true;
     }
+
+
 }

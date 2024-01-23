@@ -2,19 +2,17 @@ package xyz.oribuin.eternalcrates;
 
 import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.manager.Manager;
-import dev.rosewood.rosegarden.utils.NMSUtil;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.persistence.PersistentDataType;
-import xyz.oribuin.eternalcrates.hook.PAPI;
+import xyz.oribuin.eternalcrates.animation.factory.AnimationFactory;
+import xyz.oribuin.eternalcrates.hook.CratePlaceholders;
 import xyz.oribuin.eternalcrates.listener.AnimationListeners;
 import xyz.oribuin.eternalcrates.listener.CrateListeners;
 import xyz.oribuin.eternalcrates.listener.PlayerListeners;
-import xyz.oribuin.eternalcrates.manager.AnimationManager;
 import xyz.oribuin.eternalcrates.manager.CommandManager;
 import xyz.oribuin.eternalcrates.manager.ConfigurationManager;
-import xyz.oribuin.eternalcrates.manager.ConversionManager;
 import xyz.oribuin.eternalcrates.manager.CrateManager;
 import xyz.oribuin.eternalcrates.manager.DataManager;
 import xyz.oribuin.eternalcrates.manager.LocaleManager;
@@ -43,8 +41,8 @@ public class EternalCrates extends RosePlugin {
         this.getServer().getPluginManager().registerEvents(new PlayerListeners(this), this);
 
         // Register PlaceholderAPI
-        if (PAPI.isEnabled()) {
-            new PAPI(this).register();
+        if (CratePlaceholders.isEnabled()) {
+            new CratePlaceholders(this).register();
         }
     }
 
@@ -64,14 +62,12 @@ public class EternalCrates extends RosePlugin {
     @Override
     protected List<Class<? extends Manager>> getManagerLoadPriority() {
         return Arrays.asList(
-                ConversionManager.class,
-                AnimationManager.class,
                 MenuManager.class,
                 CrateManager.class
         );
     }
 
-    public static EternalCrates getInstance() {
+    public static EternalCrates get() {
         return instance;
     }
 
