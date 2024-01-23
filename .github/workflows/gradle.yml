@@ -34,6 +34,8 @@ jobs:
       - name: Change wrapper permissions
         run: chmod +x ./gradlew
 
+      - name: Configure Maven credentials
+        run: echo "mavenUser=${{ secrets.MAVEN_USER }}" > ~/.gradle/gradle.properties && echo "mavenPassword=${{ secrets.MAVEN_PASSWORD }}" >> ~/.gradle/gradle.properties
 
       - name: Build artifacts
         run: ./gradlew build
